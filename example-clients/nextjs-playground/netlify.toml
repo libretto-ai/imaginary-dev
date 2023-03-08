@@ -1,0 +1,6 @@
+  
+[[redirects]]
+  from = "https://playground.imaginaryprogramming.com/*"
+  to = "https://playground.imaginary.dev/:splat"
+  status = 302
+  force = true

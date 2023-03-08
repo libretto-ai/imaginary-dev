@@ -1,0 +1,17 @@
+{
+  "name": "@imaginary-dev/util",
+  "version": "0.0.1",
+  "description": "",
+  "main": "dist/util/src/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "author": "Sasha Aickin",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "object-hash": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/object-hash": "^3.0.2"
+  }
+}

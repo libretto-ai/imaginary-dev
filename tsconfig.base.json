@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "target": "ES2021",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "strictNullChecks": true,
+    "resolveJsonModule": true,
+    "outDir": "dist",
+    "baseUrl": ".",
+    "rootDir": ".",
+    "paths": {
+      "@imaginary-dev/babel-transformer": ["transformers/babel/src/index"],
+      "@imaginary-dev/runtime": ["prompt-engine"],
+      "transformer-shared-tests": ["transformers/shared-tests/src"],
+      "@imaginary-dev/typescript-transformer": [
+        "transformers/typescript/src/index.ts"
+      ],
+      "@imaginary-dev/util": ["util/src/index.ts"]
+    }
+  },
+  "lib": ["es2021"]
+}

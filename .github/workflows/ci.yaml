@@ -1,0 +1,31 @@
+name: Tests
+run-name: ${{ github.actor }} running tests
+on:
+  pull_request:
+  push:
+    branches: main
+jobs:
+  test:
+    # proactively cancel the same job running on the same branch when a newer
+    # one comes in
+    concurrency:
+      group: ${{ github.ref }}
+      cancel-in-progress: true
+    # https://github.com/nrwl/nx-set-shas#permissions-in-v2
+    permissions:
+      contents: "read"
+      actions: "read"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: "npm"
+      - uses: nrwl/nx-set-shas@v3
+      - run: npm ci
+      - run: npm run build
+      - run: npm run build:example
+      - run: npm test

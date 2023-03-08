@@ -1,0 +1,32 @@
+{
+  "name": "@imaginary-dev/typescript-transformer",
+  "version": "0.0.1",
+  "description": "Compiles LLM prompts",
+  "files": [
+    "dist"
+  ],
+  "main": "dist/transformers/typescript/src/index.js",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist/",
+    "full-clean": "npm run clean && rm -rf node_modules",
+    "test": "jest"
+  },
+  "author": "Sasha Aickin",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@microsoft/tsdoc": "^0.14.2",
+    "ajv": "^8.12.0",
+    "@imaginary-dev/util": "0.0.1"
+  },
+  "devDependencies": {
+    "ts-jest": "^29.0.5",
+    "transformer-shared-tests": "*"
+  },
+  "volta": {
+    "extends": "../../package.json"
+  },
+  "publishConfig": {
+    "access": "restricted"
+  }
+}
