@@ -1,7 +1,7 @@
 {
   "name": "@imaginary-dev/babel-transformer",
   "version": "0.0.1",
-  "description": "",
+  "description": "A Babel plugin for transforming imaginary functions",
   "main": "dist/transformers/babel/src/index.js",
   "scripts": {
     "build": "tsc",
