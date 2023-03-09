@@ -1,6 +1,6 @@
-import { Playground } from "@/components/Playground";
 import "@uiw/react-textarea-code-editor/dist.css";
 import { Metadata } from "next";
+import dynamic from "next/dynamic";
 import logo from "./images/playground.png";
 
 export const metadata: Metadata = {
@@ -21,6 +21,8 @@ export const metadata: Metadata = {
     images: [logo.src],
   },
 };
+
+const Playground = dynamic(() => import("../components/Playground"));
 export default function Home() {
   return (
     <main>

@@ -45,3 +45,4 @@ function PlaygroundScenarioTabs() {
     </Flex>
   );
 }
+export default Playground;
