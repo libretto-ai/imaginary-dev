@@ -10,7 +10,7 @@
     "test": "jest"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "@babel/plugin-transform-typescript": "^7.20.13",
     "ajv": "^8.12.0",

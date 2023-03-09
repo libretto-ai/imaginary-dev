@@ -1,5 +1,6 @@
 {
   "name": "promptify",
+  "license": "MIT",
   "scripts": {
     "build": "nx run-many --target=build",
     "build:example": "nx run-many --target=build:example",

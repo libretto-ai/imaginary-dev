@@ -13,7 +13,7 @@
     "full-clean": "npm run clean && rm -rf node_modules"
   },
   "author": "Sasha Aickin",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "dependencies": {
     "@imaginary-dev/util": "^0.0.3",
     "@ltd/j-toml": "^1.35.2",
