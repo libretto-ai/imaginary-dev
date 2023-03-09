@@ -1,6 +1,6 @@
 {
   "name": "@imaginary-dev/babel-transformer",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "A Babel plugin for transforming imaginary functions",
   "main": "dist/transformers/babel/src/index.js",
   "scripts": {
@@ -14,7 +14,8 @@
   "dependencies": {
     "@babel/plugin-transform-typescript": "^7.20.13",
     "ajv": "^8.12.0",
-    "ts-essentials": "^9.3.0"
+    "ts-essentials": "^9.3.0",
+    "@imaginary-dev/util": "^0.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.20.12",

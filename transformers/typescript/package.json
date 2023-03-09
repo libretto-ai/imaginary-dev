@@ -1,6 +1,6 @@
 {
   "name": "@imaginary-dev/typescript-transformer",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "A TypeScript plugin for transforming imaginary functions",
   "files": [
     "dist"
@@ -17,7 +17,7 @@
   "dependencies": {
     "@microsoft/tsdoc": "^0.14.2",
     "ajv": "^8.12.0",
-    "@imaginary-dev/util": "0.0.1"
+    "@imaginary-dev/util": "^0.0.3"
   },
   "devDependencies": {
     "ts-jest": "^29.0.5",

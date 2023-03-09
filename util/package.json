@@ -1,6 +1,6 @@
 {
   "name": "@imaginary-dev/util",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "",
   "main": "dist/util/src/index.js",
   "scripts": {
@@ -9,6 +9,7 @@
   "author": "Sasha Aickin",
   "license": "UNLICENSED",
   "dependencies": {
+    "@microsoft/tsdoc": "^0.14.2",
     "object-hash": "^3.0.0"
   },
   "devDependencies": {
