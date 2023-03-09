@@ -1,7 +1,8 @@
-import { ClientGoogleAnalytics } from "./analytics";
+import dynamic from "next/dynamic";
 import "./globals.css";
 import { Providers } from "./providers";
 
+const ClientGoogleAnalytics = dynamic(() => import("./analytics"));
 export default function RootLayout({
   children,
 }: {
