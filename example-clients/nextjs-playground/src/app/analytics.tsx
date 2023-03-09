@@ -1,9 +1,6 @@
-import dynamic from "next/dynamic";
+"use client";
+import { GoogleAnalytics } from "nextjs-google-analytics";
 
-const GoogleAnalytics = dynamic(
-  async () => (await import("nextjs-google-analytics")).GoogleAnalytics
-);
-
-export function ClientGoogleAnalytics(props: any) {
+export default function ClientGoogleAnalytics(props: any) {
   return <GoogleAnalytics {...props} />;
 }
