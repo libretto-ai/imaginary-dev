@@ -123,6 +123,7 @@ Return value as JSON: ${prefix}`;
       returnSchema
     );
   } catch (e) {
+    // TODO: should we throw the error?
     console.error(
       `Error parsing the result from OpenAI as a JSON object: \`${prefix}${completion.text}\``,
       e
