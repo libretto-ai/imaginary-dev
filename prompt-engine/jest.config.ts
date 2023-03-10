@@ -6,9 +6,9 @@ const jestConfig: JestConfigWithTsJest = {
   testEnvironment: "node",
   modulePaths: [compilerOptions.baseUrl], // <-- This will be set to 'baseUrl' value
   moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, {
-    prefix: "<rootDir>/../..",
+    prefix: "<rootDir>/..",
   }),
-  modulePathIgnorePatterns: ['<rootDir>/dist/'],
+  modulePathIgnorePatterns: ["<rootDir>/dist/"],
 };
 
 export default jestConfig;
