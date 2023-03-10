@@ -8,6 +8,7 @@
   "main": "dist/prompt-engine/index.js",
   "scripts": {
     "test": "jest",
+    "coverage": "jest --coverage",
     "build": "tsc",
     "clean": "rm -rf dist/",
     "full-clean": "npm run clean && rm -rf node_modules"

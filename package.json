@@ -6,6 +6,7 @@
     "clean": "nx run-many --target=clean",
     "full-clean": "nx run-many --target=full-clean && rm -rf node_modules",
     "test": "nx run-many --target=test",
+    "coverage": "nx run-many --target=coverage",
     "deploy-site": "nx run-many --target=deploy-site",
     "prettier": "prettier -w ."
   },
