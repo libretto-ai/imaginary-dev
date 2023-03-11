@@ -109,7 +109,9 @@ export const SampleEditor: FC<{
                   ? ""
                   : JSON.stringify(result.lastResult?.response, null, 2)
               }
-              readOnly
+              onChange={(e) => {
+                /* don't use readOnly, because that makes text unselectable in Firefox*/
+              }}
             />
           )}
       </Flex>
