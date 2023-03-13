@@ -53,6 +53,7 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import { useDebounce } from "use-debounce";
 import { presetScenarios } from "../util/presetScenarios";
 import { ShareDialog } from "./ShareDialog";
+import { event } from "nextjs-google-analytics";
 
 export const CodeEditor = dynamic(
   () => import("@uiw/react-textarea-code-editor").then((mod) => mod.default),
@@ -86,13 +87,19 @@ export function ScenarioCodeEditor() {
     }
   };
 
-  const onRunButtonClick = async (event: MouseEvent) => {
+  const onRunButtonClick = async (e: MouseEvent) => {
+    if (event) {
+      event("form_submit", {
+        category: "playground",
+        label: "run",
+      });
+    }
     runTestCase(
       updateActiveResult,
       activeTestCase.parameterValues,
       setIsBusy,
       imaginaryFunctionDefinitions,
-      event.shiftKey
+      e.shiftKey
     );
   };
   const { onClose, onOpen, isOpen } = useDisclosure();
