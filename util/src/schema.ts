@@ -38,6 +38,9 @@ export const jsonSchemaToTypeScriptText = (jsonSchema: JSONSchema7): string => {
   ) {
     return jsonSchema.type;
   }
+  if (jsonSchema.type === "integer") {
+    return "number";
+  }
 
   // recursive types
   if (jsonSchema.type === "array" && typeof jsonSchema.items === "object") {
