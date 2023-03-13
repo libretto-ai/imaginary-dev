@@ -22,7 +22,10 @@ export function getVariablesFromPrompt(prompt: Prompt): string[] {
 }
 
 // todo: use a more intensive templating engine
-export function replaceVariablesInPrompt(promptText: string, parameters) {
+export function replaceVariablesInPrompt(
+  promptText: string,
+  parameters: Record<string, string>
+) {
   const variableReplacedPrompt = promptText.replace(
     VARIABLE_REGEX,
     (match, captureGroup1) => {
