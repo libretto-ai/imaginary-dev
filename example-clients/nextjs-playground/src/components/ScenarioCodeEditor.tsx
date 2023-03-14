@@ -41,6 +41,7 @@ import {
 import { JSONSchema7 } from "json-schema";
 import dynamic from "next/dynamic";
 import NextLink from "next/link";
+import { event } from "nextjs-google-analytics";
 import {
   ComponentProps,
   FC,
@@ -53,7 +54,6 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import { useDebounce } from "use-debounce";
 import { presetScenarios } from "../util/presetScenarios";
 import { ShareDialog } from "./ShareDialog";
-import { event } from "nextjs-google-analytics";
 
 export const CodeEditor = dynamic(
   () => import("@uiw/react-textarea-code-editor").then((mod) => mod.default),
@@ -137,7 +137,13 @@ export function ScenarioCodeEditor() {
         <Text fontSize={{ base: "xs", md: "x-large" }} flex={1}>
           Imaginary Programming Playground
         </Text>
-        <Tag borderRadius="full" backgroundColor="#3662E2" color="white" p={2}>
+        <Tag
+          borderRadius="full"
+          backgroundColor="#3662E2"
+          color="white"
+          padding={2}
+          paddingLeft={3}
+        >
           <TagLabel>
             <Link as={NextLink} href="https://imaginary.dev" target="_blank">
               <Hide below="md">Add Imaginary Programming to your code</Hide>
