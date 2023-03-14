@@ -396,4 +396,75 @@ declare function getCustomerAngerLevel(customerSupportEmail: string): Promise<{a
       },
     ],
   },
+  {
+    scenario: makeScenario(
+      "order-movies",
+      "Order Movies",
+      `
+    /**
+     * Order the following list of movies by recognizability, with the most
+     * recognizable movie first, and the least recognizable movie last.
+     * @imaginary
+     */
+    declare function orderByRecognizability(movies: {name: string, id: string}[]): Promise<{name: string, id: string}[]>;
+    `
+    ),
+    testCases: [
+      {
+        id: "tom-hanks-movies",
+        name: "Tom Hanks Movies",
+        parameterValues: {
+          movies: JSON.stringify([
+            {
+              id: "volunteers",
+              name: "Volunteers",
+            },
+            {
+              id: "league",
+              name: "A League of Their Own",
+            },
+            {
+              id: "news",
+              name: "News of the World",
+            },
+            {
+              id: "fg",
+              name: "Forrest Gump",
+            },
+            {
+              id: "toy-story",
+              name: "Toy Story",
+            },
+          ]),
+        },
+      },
+    ],
+  },
+  {
+    scenario: makeScenario(
+      "notable-roles",
+      "Movie Roles",
+      `
+    /**
+     * Produce a list of up to 3 well known roles starring the given actor, including
+     * the name of the character they played, the movie, and the release year of
+     * the movie.
+     * @imaginary
+     */
+    declare function getWellKnownRoles(actorName: string): Promise<{character: string, movie: string, releaseYear: number}[]>;
+    `
+    ),
+    testCases: [
+      {
+        id: "denzel",
+        name: "Denzel Washington ",
+        parameterValues: { actorName: "Denzel Washington" },
+      },
+      {
+        id: "tom-hanks",
+        name: "Tom Hanks",
+        parameterValues: { actorName: "Tom Hanks" },
+      },
+    ],
+  },
 ];
