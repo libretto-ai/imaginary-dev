@@ -91,7 +91,9 @@ export function babelTypeToJsonSchema<T = any>(tsType: t.TSType): JSONSchema7 {
       return jsonSchema;
     }
     case "TSTupleType": {
-      throw new Error("Typed arrays not supported yet");
+      throw new Error(
+        "Typed arrays not supported yet. (Did you mean <type>[] instead of [<type>]?"
+      );
     }
     case "TSParenthesizedType": {
       return babelTypeToJsonSchema(tsType.typeAnnotation);
