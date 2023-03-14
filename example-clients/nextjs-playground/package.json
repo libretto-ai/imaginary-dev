@@ -13,8 +13,6 @@
     "deploy-site": "git checkout main && git pull && git checkout deploy-nextjs-playground && git pull && git merge main && git push"
   },
   "dependencies": {
-    "@imaginary-dev/runtime": "0.0.1",
-    "@imaginary-dev/util": "0.0.1",
     "@babel/parser": "^7.20.15",
     "@babel/traverse": "^7.20.13",
     "@babel/types": "^7.20.7",
@@ -22,11 +20,11 @@
     "@chakra-ui/react": "^2.4.9",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
+    "@imaginary-dev/runtime": "0.0.1",
+    "@imaginary-dev/util": "0.0.1",
     "@next/font": "^13.2.3",
     "@uiw/react-textarea-code-editor": "^2.1.0",
     "ajv": "^8.12.0",
-    "eslint": "8.33.0",
-    "eslint-config-next": "13.1.6",
     "fflate": "^0.7.4",
     "framer-motion": "^9.0.1",
     "next": "^13.1.6",
@@ -48,6 +46,8 @@
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
     "@types/uuid": "^8.3.4",
+    "eslint": "^8.36.0",
+    "eslint-config-next": "^13.2.4",
     "next-remove-imports": "^1.0.8"
   }
 }
