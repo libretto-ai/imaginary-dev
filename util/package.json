@@ -4,7 +4,9 @@
   "description": "",
   "main": "dist/util/src/index.js",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test": "jest",
+    "coverage": "jest --coverage"
   },
   "author": "Sasha Aickin",
   "license": "MIT",
