@@ -22,7 +22,8 @@ export const ParamEditor: FC<{
   schema: JSONSchema7;
   value: any;
   onChange: (value: string) => void;
-}> = ({ schema, value, onChange }) => {
+  onSubmit: () => void;
+}> = ({ schema, value, onChange, onSubmit }) => {
   const codeBgColor = useToken("colors", "gray.50");
 
   const name = schema.title;
@@ -39,6 +40,12 @@ export const ParamEditor: FC<{
           <Textarea
             rows={rows}
             value={value ?? ""}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && e.shiftKey === false) {
+                e.preventDefault();
+                onSubmit();
+              }
+            }}
             onChange={(e) => onChange(e.target.value)}
           />
         </>
