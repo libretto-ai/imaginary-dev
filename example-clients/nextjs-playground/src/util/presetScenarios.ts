@@ -518,11 +518,9 @@ declare function makePolite(passage: string): Promise<string>
         id: "agressive-donut",
         name: "Aggressive / Donut",
         parameterValues: {
-          passage: `I am extremely disappointed with the donut I purchased from your store.
-The donut was stale and tasted as if it had been sitting out for hours. As a paying customer,
-I expect to receive fresh and quality products. This experience has left a bad taste in my mouth,
-and I hope that you will take steps to ensure that this does not happen again in the future.
-`,
+          passage: `I just had the worst donut experience imaginable. 
+The donut was so stale and flavorless that it was inedible. 
+I wouldn't recommend buying anything from this place.`,
           style: "passive",
         },
       },
