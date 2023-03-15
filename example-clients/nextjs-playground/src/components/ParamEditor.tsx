@@ -1,7 +1,14 @@
 "use client";
 import { validateParameter } from "@/state/scenarios";
 import { WarningIcon } from "@chakra-ui/icons";
-import { Input, Switch, Text, Tooltip, useToken } from "@chakra-ui/react";
+import {
+  Input,
+  Switch,
+  Text,
+  Textarea,
+  Tooltip,
+  useToken,
+} from "@chakra-ui/react";
 import { JSONSchema7 } from "json-schema";
 import dynamic from "next/dynamic";
 import { FC, useState } from "react";
@@ -24,10 +31,13 @@ export const ParamEditor: FC<{
   }`;
   switch (schema.type) {
     case "string":
+      const valueStr = value ?? "";
+      const rows = [...valueStr.matchAll("\n")].length + 1;
       return (
         <>
           <Text alignSelf="center">{displayName}</Text>
-          <Input
+          <Textarea
+            rows={rows}
             value={value ?? ""}
             onChange={(e) => onChange(e.target.value)}
           />

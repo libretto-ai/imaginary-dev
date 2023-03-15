@@ -14,7 +14,7 @@ export function makeScenario(id: string, name: string, code: string): Scenario {
   const hash =
     definitions.length === 1 ? hashFunctionDefinition(definitions[0]) : null;
   return {
-    code,
+    code: code.trim(),
     hash,
     id,
     name,
