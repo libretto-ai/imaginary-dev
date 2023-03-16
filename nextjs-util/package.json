@@ -8,6 +8,9 @@
     "test": "jest",
     "coverage": "jest --coverage"
   },
+  "peerDependencies": {
+    "next": "*"
+  },
   "author": "",
   "license": "MIT"
 }
