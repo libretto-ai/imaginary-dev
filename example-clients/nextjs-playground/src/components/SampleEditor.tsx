@@ -63,6 +63,15 @@ export const SampleEditor: FC<{
                     key={parameter.title}
                     schema={parameter}
                     value={testCase.parameterValues[parameter.title]}
+                    onSubmit={() =>
+                      runTestCase(
+                        updateActiveResult,
+                        testCase.parameterValues,
+                        setIsBusy,
+                        definitionsState,
+                        false
+                      )
+                    }
                     onChange={(newValue) => {
                       const newResult: TestCase = {
                         ...testCase,

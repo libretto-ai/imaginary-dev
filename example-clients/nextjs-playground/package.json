@@ -13,8 +13,8 @@
     "deploy-site": "git checkout main && git pull && git checkout deploy-nextjs-playground && git pull && git merge main && git push"
   },
   "dependencies": {
-    "@imaginary-dev/runtime": "0.0.1",
-    "@imaginary-dev/util": "0.0.1",
+    "@imaginary-dev/runtime": "*",
+    "@imaginary-dev/util": "*",
     "@babel/parser": "^7.20.15",
     "@babel/traverse": "^7.20.13",
     "@babel/types": "^7.20.7",

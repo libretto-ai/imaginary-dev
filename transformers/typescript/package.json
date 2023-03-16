@@ -18,7 +18,7 @@
   "dependencies": {
     "@microsoft/tsdoc": "^0.14.2",
     "ajv": "^8.12.0",
-    "@imaginary-dev/util": "^0.0.3"
+    "@imaginary-dev/util": "*"
   },
   "devDependencies": {
     "ts-jest": "^29.0.5",

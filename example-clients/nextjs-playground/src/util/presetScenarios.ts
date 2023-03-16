@@ -396,4 +396,134 @@ declare function getCustomerAngerLevel(customerSupportEmail: string): Promise<{a
       },
     ],
   },
+  {
+    scenario: makeScenario(
+      "order-movies",
+      "Order Movies",
+      `
+    /**
+     * Order the following list of movies by recognizability, with the most
+     * recognizable movie first, and the least recognizable movie last.
+     * @imaginary
+     */
+    declare function orderByRecognizability(movies: {name: string, id: string}[]): Promise<{name: string, id: string}[]>;
+    `
+    ),
+    testCases: [
+      {
+        id: "tom-hanks-movies",
+        name: "Tom Hanks Movies",
+        parameterValues: {
+          movies: JSON.stringify([
+            {
+              id: "volunteers",
+              name: "Volunteers",
+            },
+            {
+              id: "league",
+              name: "A League of Their Own",
+            },
+            {
+              id: "news",
+              name: "News of the World",
+            },
+            {
+              id: "fg",
+              name: "Forrest Gump",
+            },
+            {
+              id: "toy-story",
+              name: "Toy Story",
+            },
+          ]),
+        },
+      },
+    ],
+  },
+  {
+    scenario: makeScenario(
+      "notable-roles",
+      "Movie Roles",
+      `
+/**
+ * Produce a list of up to 3 well known roles starring the given actor, including
+ * the name of the character they played, the movie, and the release year of
+ * the movie.
+ * @imaginary
+ */
+declare function getWellKnownRoles(actorName: string): Promise<{character: string, movie: string, releaseYear: number}[]>;
+    `
+    ),
+    testCases: [
+      {
+        id: "denzel",
+        name: "Denzel Washington ",
+        parameterValues: { actorName: "Denzel Washington" },
+      },
+      {
+        id: "tom-hanks",
+        name: "Tom Hanks",
+        parameterValues: { actorName: "Tom Hanks" },
+      },
+    ],
+  },
+  // Does not seem to work! Just repeats back the passage given?
+  // {
+  //   scenario: makeScenario(
+  //     "writing-style",
+  //     "Shift Writing Style",
+  //     `
+  //   /**
+  //    * This function takes in a passage of text and shifts the writing style to be more aggressive,
+  //    * polite, or florid in praise.
+  //    * @param passage - the passage of text to be modified
+  //    * @param style - the desired writing style ("aggressive", "polite" or "florid")
+  //    * @returns the modified passage in the desired writing style
+  //    * @imaginary
+  //    */
+  //   declare function shiftWritingStyle(passage: string, style: 'aggressive'|'polite'|'florid'): Promise<string>
+  //   `
+  //   ),
+  //   testCases: [
+  //     {
+  //       id: "agressive-donut",
+  //       name: "Aggressive / Donut",
+  //       parameterValues: {
+  //         passage: `/* I am extremely disappointed with the donut I purchased from your store.
+  //          The donut was stale and tasted as if it had been sitting out for hours. As a paying customer,
+  //          I expect to receive fresh and quality products. This experience has left a bad taste in my mouth,
+  //          and I hope that you will take steps to ensure that this does not happen again in the future.
+  //          */`,
+  //         style: "passive",
+  //       },
+  //     },
+  //   ],
+  // },
+  {
+    scenario: makeScenario(
+      "writing-style-polite",
+      "Make more polite",
+      `
+/**
+ * This function takes in a review of a product and rephrases the writing style to be extremely polite.
+ * @param passage - the review to be modified
+ * @returns a very polite revision of the passage
+ * @imaginary
+ */
+declare function makePolite(passage: string): Promise<string>
+          `
+    ),
+    testCases: [
+      {
+        id: "agressive-donut",
+        name: "Aggressive / Donut",
+        parameterValues: {
+          passage: `I just had the worst donut experience imaginable. 
+The donut was so stale and flavorless that it was inedible. 
+I wouldn't recommend buying anything from this place.`,
+          style: "passive",
+        },
+      },
+    ],
+  },
 ];
