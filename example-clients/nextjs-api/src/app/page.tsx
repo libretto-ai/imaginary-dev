@@ -1,24 +1,33 @@
 "use client";
-import { ApiResponse } from "@/ApiResponse";
+import { moreEmoji, singleEmojiForText } from "@/emojify";
+import { wrapRemoteFn } from "@imaginary-dev/nextjs-util/browser";
 import { useState } from "react";
 import styles from "./page.module.css";
+
+const singleEmojify = wrapRemoteFn("/api/singleEmoji", singleEmojiForText);
+const multiEmojify = wrapRemoteFn("/api/multiMoji", moreEmoji);
 
 const Spinner = () => <div className={styles.spinner}></div>;
 export default function Home() {
   const [text, setText] = useState("");
-  const [result, setResult] = useState<ApiResponse>();
+  const [singleEmojiResult, setSingleEmojiResult] = useState<string>();
+  const [multiEmojiResult, setMultiEmojiResult] = useState<string>();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<Error>();
   const onSubmit = async () => {
     setError(undefined);
     setBusy(true);
     try {
-      const response = await fetch(
-        `/api/hello?query=${encodeURIComponent(text)}`
-      );
-      setResult(await response.json());
+      setSingleEmojiResult(undefined);
+      setMultiEmojiResult(undefined);
+
+      const singleEmojiPromise = singleEmojify(text);
+      const multiEmojiPromise = multiEmojify(text);
+      setSingleEmojiResult(await singleEmojiPromise);
+      setMultiEmojiResult(await multiEmojiPromise);
     } catch (ex) {
-      setResult(undefined);
+      setSingleEmojiResult(undefined);
+      setMultiEmojiResult(undefined);
       setError(ex as Error);
     } finally {
       setBusy(false);
@@ -44,16 +53,16 @@ export default function Home() {
           Emojify!
           {busy && <Spinner />}
         </button>
-        {result && (
+        {singleEmojiResult && (
           <div>
             <div className={styles.emojiResultDescription}>
               As a single emoji:
             </div>
-            <div className={styles.emojiResult}>{result.emojified}</div>
+            <div className={styles.emojiResult}>{singleEmojiResult}</div>
             <div className={styles.emojiResultDescription}>
               As multiple emoji:
             </div>
-            <div className={styles.emojiResult}>{result.multiMoji}</div>
+            <div className={styles.emojiResult}>{multiEmojiResult}</div>
           </div>
         )}
         {error && <p>{`${error}`}</p>}
