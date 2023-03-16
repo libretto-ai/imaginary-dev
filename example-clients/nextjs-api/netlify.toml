@@ -1,0 +1,6 @@
+  
+[[redirects]]
+  from = "https://emojifier.imaginaryprogramming.com/*"
+  to = "https://emojifier.imaginary.dev/:splat"
+  status = 302
+  force = true

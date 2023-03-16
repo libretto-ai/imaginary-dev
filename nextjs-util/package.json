@@ -1,0 +1,21 @@
+{
+  "name": "@imaginary-dev/nextjs-util",
+  "version": "0.0.1",
+  "description": "Utilities for deploying imaginary functions in nextjs",
+  "main": "dist/nextjs-util/src/server.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "coverage": "jest --coverage"
+  },
+  "peerDependencies": {
+    "next": "*"
+  },
+  "exports": {
+    ".": "./dist/nextjs-util/src/index.js",
+    "./server": "./dist/nextjs-util/src/server.js",
+    "./browser": "./dist/nextjs-util/src/browser.js"
+  },
+  "author": "",
+  "license": "MIT"
+}
