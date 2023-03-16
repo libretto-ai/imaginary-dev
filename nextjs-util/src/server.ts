@@ -14,6 +14,7 @@ export function makeNextjsHandler<
   ) {
     const { args } = req.query ?? {};
     if (!args) {
+      console.warn("failure, no args passed to handler: ", args);
       res.status(400).json({
         error: "No arguments passed to function",
       });
@@ -39,16 +40,4 @@ function deserialize<A extends any[]>(
   const paramNames = getParamNames(fn);
   const paramArgs = paramNames.map((paramName) => paramValues[paramName]);
   return paramArgs as A;
-}
-
-export function wrapImaginaryFunction<
-  F extends (...args: A) => R,
-  A extends any[],
-  R extends Promise<AR>,
-  AR
->(f: F): F {
-  const newF = (async (...args) => {
-    return {} as AR;
-  }) as F;
-  return newF;
 }
