@@ -18,7 +18,7 @@ describe("makeNextjsHandler", () => {
       json: jest.fn(() => res),
     } as unknown as NextApiResponse;
     const req = {
-      query: { args: JSON.stringify({ s: "x" }) },
+      query: { args: JSON.stringify("x") },
     } as unknown as NextApiRequest;
     await wrapper(req, res);
     expect(emojifySpy).toBeCalledWith("x");
