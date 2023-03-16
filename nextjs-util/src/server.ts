@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getParamNames } from "./util";
 
 interface Data {}
 export function makeNextjsHandler<
@@ -37,7 +36,12 @@ function deserialize<A extends any[]>(
   params: string
 ): A {
   const paramValues = JSON.parse(params);
-  const paramNames = getParamNames(fn);
-  const paramArgs = paramNames.map((paramName) => paramValues[paramName]);
-  return paramArgs as A;
+
+  // This approach does not work, as babel renames the parameters. See matching
+  // code in `serialize()`.
+  // const paramNames = getParamNames(fn); const paramArgs =
+  // paramNames.map((paramName) => paramValues[paramName]); return paramArgs as
+  // A;
+
+  return paramValues as A;
 }

@@ -7,10 +7,12 @@ function serialize(fn: Function, params: any[]) {
       `Cannot serialize parameters. Function has ${paramNames.length} params, but was passed ${params.length} values.`
     );
   }
-  const o = Object.fromEntries(
-    paramNames.map((paramName, index) => [paramName, params[index]])
-  );
-  return JSON.stringify(o);
+  // This approach does not work, as babel renames the parameters, and you get
+  // paramter names like "_x" etc.
+  // const o = Object.fromEntries( paramNames.map((paramName, index) =>
+  //   [paramName, params[index]])
+  // );
+  return JSON.stringify(params);
 }
 
 export function wrapRemoteFn<
@@ -18,12 +20,15 @@ export function wrapRemoteFn<
   A extends any[],
   R extends Promise<AR>,
   AR
->(url, fn: F): F {
+>(url: string, fn: F): F {
   const callImaginaryFunction = (async (...args: A): Promise<AR> => {
+    console.log("unwrapping ", fn.toString());
     const argString = serialize(fn, args);
+    console.log("calling remote fn with ", argString);
     const fullUrl = new URL(url, window.location.toString());
     fullUrl.searchParams.set("args", argString);
-    const request = await fetch(url);
+    console.log("fetching ", fullUrl);
+    const request = await fetch(fullUrl);
     const response = await request.json();
     if (!request.ok) {
       if (response.error) {
