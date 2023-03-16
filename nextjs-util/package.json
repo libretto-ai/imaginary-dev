@@ -1,0 +1,13 @@
+{
+  "name": "@imaginary-dev/nextjs-util",
+  "version": "0.0.1",
+  "description": "Utilities for deploying imaginary functions in nextjs",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "coverage": "jest --coverage"
+  },
+  "author": "",
+  "license": "MIT"
+}

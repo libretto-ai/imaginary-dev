@@ -15,6 +15,7 @@
     "prompt-engine",
     "example-clients/nextjs-playground",
     "transformers/*",
+    "nextjs-util",
     "util"
   ],
   "devDependencies": {
@@ -38,4 +39,3 @@
     "npm": "9.5.1"
   }
 }
-
