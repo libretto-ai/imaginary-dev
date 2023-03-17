@@ -51,6 +51,21 @@ export function wrapRemoteFn<
   return callImaginaryFunction;
 }
 
+export function wrapImaginaryFunctions<
+  T extends { [s: string]: (...args: any[]) => Promise<any> }
+>(m: T, apiPrefix = "/api"): T {
+  if (!apiPrefix.endsWith("/")) {
+    throw new Error("apiPrefix must end with /");
+  }
+  const e = Object.entries(m).map(
+    ([key, fn]): [string, (...args: any[]) => Promise<any>] => [
+      key,
+      wrapRemoteFn(`${apiPrefix}${key}`, fn as () => Promise<any>),
+    ]
+  );
+  return Object.fromEntries(e) as T;
+}
+
 /**
  * Serialize the parameters to a function call
  * @see deserialize in server.ts
