@@ -6,6 +6,8 @@
   "scripts": {
     "build": "tsc",
     "test": "jest",
+    "clean": "rm -rf dist/",
+    "full-clean": "npm run clean && rm -rf node_modules",
     "coverage": "jest --coverage"
   },
   "peerDependencies": {
@@ -17,5 +19,9 @@
     "./browser": "./dist/nextjs-util/src/browser.js"
   },
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "jest-environment-jsdom": "^29.5.0",
+    "jest-fetch-mock": "^3.0.3"
+  }
 }

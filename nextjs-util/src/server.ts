@@ -1,19 +1,44 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-interface Data {}
+interface ApiError {
+  error: string;
+}
+
+interface ApiResult<R> {
+  result: R;
+}
+
+/**
+ * Wrap an imaginary function into a nextjs endpoint.
+ * @see wrapRemoteFn for the browser side.
+ *
+ * @example
+ * ```
+ * /**
+ *  * @imaginary
+ *  *+/
+ * declare function emojify(s: string): Promise<string>;
+ *
+ * export default makeNextjsHandler(emojify);
+ * ```
+ */
 export function makeNextjsHandler<
   F extends (...args: A) => R,
   A extends any[],
   R extends Promise<AR>,
   AR
->(f: F): (req: NextApiRequest, res: NextApiResponse<Data | Error>) => void {
+>(
+  f: F
+): (
+  req: NextApiRequest,
+  res: NextApiResponse<ApiResult<AR> | ApiError>
+) => void {
   async function handler(
     req: NextApiRequest,
-    res: NextApiResponse<Data | Error>
+    res: NextApiResponse<ApiResult<AR> | ApiError>
   ) {
     const { args } = req.query ?? {};
     if (!args) {
-      console.warn("failure, no args passed to handler: ", args);
       res.status(400).json({
         error: "No arguments passed to function",
       });
@@ -31,6 +56,16 @@ export function makeNextjsHandler<
   return handler;
 }
 
+export function makeNextjsHandlers<
+  F extends ((...args: any[]) => Promise<any>)[]
+>(functions: F) {
+  return functions.map((f) => f);
+}
+
+/**
+ * Deserialize parameters passed into the API
+ * @see serialize from browser.ts
+ */
 function deserialize<A extends any[]>(
   fn: (...args: A) => any,
   params: string
