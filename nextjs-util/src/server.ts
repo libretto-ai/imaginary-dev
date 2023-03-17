@@ -1,4 +1,4 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiHandler } from "next";
 
 interface ApiError {
   error: string;
@@ -27,16 +27,11 @@ export function makeNextjsHandler<
   A extends any[],
   R extends Promise<AR>,
   AR
->(
-  f: F
-): (
-  req: NextApiRequest,
-  res: NextApiResponse<ApiResult<AR> | ApiError>
-) => void {
-  async function handler(
-    req: NextApiRequest,
-    res: NextApiResponse<ApiResult<AR> | ApiError>
-  ) {
+>(f: F): NextApiHandler {
+  const handler: NextApiHandler<ApiResult<AR> | ApiError> = async (
+    req,
+    res
+  ) => {
     const { args } = req.query ?? {};
     if (!args) {
       res.status(400).json({
@@ -51,7 +46,7 @@ export function makeNextjsHandler<
     res.status(200).json({
       result: value,
     });
-  }
+  };
 
   return handler;
 }
