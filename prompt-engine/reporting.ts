@@ -51,19 +51,20 @@ function sendEvent(event: PromptEvent) {
     // This is fatal because we shouldn't get here without this being set
     throw new Error("Missing PROMPT_REPORTING_URL");
   }
+  const body = JSON.stringify(event);
   return fetch(eventReportUrl, {
-    body: JSON.stringify(event),
+    body,
     method: "POST",
     headers: {
       "content-type": "application/json",
     },
   });
 }
-export function reportEventErrors(
+export async function reportEventErrors(
   beginEventPromise: Promise<Response | undefined>,
   finishEventPromise: Promise<Response | undefined>
 ) {
-  Promise.allSettled([beginEventPromise, finishEventPromise]).then(
+  await Promise.allSettled([beginEventPromise, finishEventPromise]).then(
     (eventResults) => {
       eventResults
         .filter(

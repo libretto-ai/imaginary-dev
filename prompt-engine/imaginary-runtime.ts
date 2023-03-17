@@ -150,9 +150,7 @@ Return value as JSON: ${prefix}`;
     errorMessages
   );
 
-  // Note we are not blocking *this* function waiting for these events, we're
-  // merely reporting errors to the console
-  reportEventErrors(beginEventPromise, finishEventPromise);
+  await reportEventErrors(beginEventPromise, finishEventPromise);
 
   if (!valid) {
     console.error(`Error validating the return value.`, validate.errors);
