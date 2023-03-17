@@ -1,4 +1,4 @@
-import { readFileSync } from "fs";
+import { mkdtempSync, readFileSync } from "fs";
 import { resolve } from "path";
 import { Compiler, UncompiledProject } from "transformer-shared-tests";
 import * as ts from "typescript";
@@ -21,6 +21,7 @@ export function compileProject(project: UncompiledProject): {
   compiledFiles: Record<string, string>;
   inputFileNameToCompiledFileName: (inputFileName: string) => string;
 } {
+  const nodeModulesCache: Record<string, string> = {};
   // normalize the paths.
   const normalizedProjectFiles = Object.fromEntries(
     Object.entries(project.projectFiles).map(([key, value]) => [
@@ -42,11 +43,23 @@ export function compileProject(project: UncompiledProject): {
     }
     return originalFileExists.apply(host, [fileName]);
   };
+  const mrc = ts.createModuleResolutionCache(
+    mkdtempSync("ts-cache-"),
+    (s) => s,
+    compilerOptions
+  );
+  host.getModuleResolutionCache = () => mrc;
+
   host.readFile = (fileName: string) => {
     // we need to make sure that ts compiler can get to the real node_modules so it
     // can find .d.ts files for things like Promise.
     if (fileName.match(/node_modules/)) {
-      return readFileSync(fileName, { encoding: "utf-8" });
+      if (fileName in nodeModulesCache) {
+        return nodeModulesCache[fileName];
+      }
+      const fileBody = readFileSync(fileName, { encoding: "utf-8" });
+      nodeModulesCache[fileName] = fileBody;
+      return fileBody;
     }
 
     // if it's one of the files we are compiling, return the contents.
