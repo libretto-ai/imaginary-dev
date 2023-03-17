@@ -6,6 +6,8 @@
   "scripts": {
     "build": "tsc",
     "test": "jest",
+    "clean": "rm -rf dist/",
+    "full-clean": "npm run clean && rm -rf node_modules",
     "coverage": "jest --coverage"
   },
   "peerDependencies": {
