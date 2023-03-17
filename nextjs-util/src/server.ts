@@ -39,7 +39,6 @@ export function makeNextjsHandler<
   ) {
     const { args } = req.query ?? {};
     if (!args) {
-      console.warn("failure, no args passed to handler: ", args, req);
       res.status(400).json({
         error: "No arguments passed to function",
       });

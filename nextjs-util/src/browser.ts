@@ -33,16 +33,20 @@ export function wrapRemoteFn<
     fullUrl.searchParams.set("args", argString);
 
     const request = await fetch(fullUrl.toString());
-    const response = await request.json();
-    if (!request.ok) {
-      if (response.error) {
-        throw new Error(response.error);
+    try {
+      const response = await request.json();
+      if (!request.ok) {
+        if (response.error) {
+          throw new Error(response.error);
+        }
+        throw new Error(
+          `Failed to call server-side imaginary function: ${request.statusText}`
+        );
       }
-      throw new Error(
-        `Failed to call server-side imaginary function: ${request.statusText}`
-      );
+      return response.result;
+    } catch (ex) {
+      throw new Error(ex);
     }
-    return response.result;
   }) as F;
   return callImaginaryFunction;
 }
