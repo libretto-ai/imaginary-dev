@@ -39,7 +39,7 @@ export function makeNextjsHandler<
   ) {
     const { args } = req.query ?? {};
     if (!args) {
-      console.warn("failure, no args passed to handler: ", args);
+      console.warn("failure, no args passed to handler: ", args, req);
       res.status(400).json({
         error: "No arguments passed to function",
       });
@@ -55,6 +55,12 @@ export function makeNextjsHandler<
   }
 
   return handler;
+}
+
+export function makeNextjsHandlers<
+  F extends ((...args: any[]) => Promise<any>)[]
+>(functions: F) {
+  return functions.map((f) => f);
 }
 
 /**

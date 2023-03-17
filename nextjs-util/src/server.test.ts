@@ -23,4 +23,21 @@ describe("makeNextjsHandler", () => {
     await wrapper(req, res);
     expect(emojifySpy).toBeCalledWith("x");
   });
+  it("should error out with no parameters", async () => {
+    const emojifySpy = jest.fn(emojify);
+    emojifySpy.toString = emojify.toString.bind(emojify);
+    const wrapper = makeNextjsHandler(emojifySpy);
+    const res = {
+      status: jest.fn(() => res),
+      json: jest.fn(() => res),
+    } as unknown as NextApiResponse;
+    const req = {
+      query: {},
+    } as unknown as NextApiRequest;
+    await wrapper(req, res);
+    expect(res.status).toBeCalledWith(400);
+    expect(res.json).toBeCalledWith({
+      error: "No arguments passed to function",
+    });
+  });
 });

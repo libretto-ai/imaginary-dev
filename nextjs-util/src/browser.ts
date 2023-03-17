@@ -4,6 +4,9 @@ import { getParamNames } from "./util";
  * Wrap an imaginary function with a lightweight async call to an API endpoint.
  * The return value is a function that is signature-compatible with the original
  * function.
+ * @param url The endpoint for the url, created with `makeNextjsHandler`
+ * @param fn The imaginary function.
+ * @returns A nextjs-compatible API handler.
  *
  * @see makeNextjsHandler for the server side.
  *
@@ -25,13 +28,11 @@ export function wrapRemoteFn<
   AR
 >(url: string, fn: F): F {
   const callImaginaryFunction = (async (...args: A): Promise<AR> => {
-    console.log("unwrapping ", fn.toString());
     const argString = serialize(fn, args);
-    console.log("calling remote fn with ", argString);
     const fullUrl = new URL(url, window.location.toString());
     fullUrl.searchParams.set("args", argString);
-    console.log("fetching ", fullUrl);
-    const request = await fetch(fullUrl);
+
+    const request = await fetch(fullUrl.toString());
     const response = await request.json();
     if (!request.ok) {
       if (response.error) {

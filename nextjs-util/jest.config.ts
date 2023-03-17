@@ -9,6 +9,8 @@ const jestConfig: JestConfigWithTsJest = {
     prefix: "<rootDir>/..",
   }),
   modulePathIgnorePatterns: ["<rootDir>/dist/"],
+  automock: false,
+  setupFiles: ["./setupJest.ts"],
 };
 
 export default jestConfig;
