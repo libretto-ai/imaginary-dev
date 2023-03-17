@@ -51,10 +51,32 @@ export function makeNextjsHandler<
   return handler;
 }
 
-export function makeNextjsHandlers<
-  F extends ((...args: any[]) => Promise<any>)[]
->(functions: F) {
-  return functions.map((f) => f);
+export function makeNextjsMultiHandler<
+  T extends { [s: string]: (...args: any[]) => Promise<any> }
+>(map: T, urlKey: string): NextApiHandler {
+  const handlers = Object.entries(map).map(
+    ([key, fn]): [string, NextApiHandler] => {
+      const newHandler = makeNextjsHandler(fn);
+      return [key, newHandler];
+    }
+  );
+  const handlerMap = Object.fromEntries(handlers);
+
+  const handler: NextApiHandler = async (req, res) => {
+    const { [urlKey]: fnName, ...rest } = req.query;
+    const fnNameStr = typeof fnName === "string" ? fnName : fnName?.[0];
+    if (!fnNameStr) {
+      res.status(400).json({
+        error: "No such imaginary function",
+      });
+      return;
+    }
+    const newHandler = handlerMap[fnNameStr];
+
+    req.query = rest;
+    return newHandler(req, res);
+  };
+  return handler;
 }
 
 /**
