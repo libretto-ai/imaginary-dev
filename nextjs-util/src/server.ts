@@ -7,6 +7,21 @@ interface ApiError {
 interface ApiResult<R> {
   result: R;
 }
+
+/**
+ * Wrap an imaginary function into a nextjs endpoint.
+ * @see wrapRemoteFn for the browser side.
+ *
+ * @example
+ * ```
+ * /**
+ *  * @imaginary
+ *  *+/
+ * declare function emojify(s: string): Promise<string>;
+ *
+ * export default makeNextjsHandler(emojify);
+ * ```
+ */
 export function makeNextjsHandler<
   F extends (...args: A) => R,
   A extends any[],
@@ -42,6 +57,10 @@ export function makeNextjsHandler<
   return handler;
 }
 
+/**
+ * Deserialize parameters passed into the API
+ * @see serialize from browser.ts
+ */
 function deserialize<A extends any[]>(
   fn: (...args: A) => any,
   params: string

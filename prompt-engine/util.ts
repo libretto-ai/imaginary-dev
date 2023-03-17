@@ -7,8 +7,7 @@ import retry from "async-retry";
  * simple boolean check after an error fires to know if the function should stop
  * retrying
  *
- * Usage:
- *
+ * @example
  * ```
  * async function run(s: string, n: number): Promise<string> {
  *    // body here

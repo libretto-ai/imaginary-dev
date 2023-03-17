@@ -1,20 +1,23 @@
 import { getParamNames } from "./util";
 
-function serialize(fn: Function, params: any[]) {
-  const paramNames = getParamNames(fn);
-  if (paramNames.length !== params.length) {
-    throw new Error(
-      `Cannot serialize parameters. Function has ${paramNames.length} params, but was passed ${params.length} values.`
-    );
-  }
-  // This approach does not work, as babel renames the parameters, and you get
-  // paramter names like "_x" etc.
-  // const o = Object.fromEntries( paramNames.map((paramName, index) =>
-  //   [paramName, params[index]])
-  // );
-  return JSON.stringify(params);
-}
-
+/**
+ * Wrap an imaginary function with a lightweight async call to an API endpoint.
+ * The return value is a function that is signature-compatible with the original
+ * function.
+ *
+ * @see makeNextjsHandler for the server side.
+ *
+ * @example
+ * ```ts
+ * // Wrap this once at the module level.
+ * const emojifyRemote = wrapRemoteFn(emojify);
+ *
+ *   // Inside a hook or event handler
+ *   useEffect(() => {
+ *     const emojified = await emojifyRemote(userInput);
+ *   }, [userInput])
+ * ```
+ */
 export function wrapRemoteFn<
   F extends (...args: A) => R,
   A extends any[],
@@ -41,4 +44,23 @@ export function wrapRemoteFn<
     return response.result;
   }) as F;
   return callImaginaryFunction;
+}
+
+/**
+ * Serialize the parameters to a function call
+ * @see deserialize in server.ts
+ */
+function serialize(fn: Function, params: any[]) {
+  const paramNames = getParamNames(fn);
+  if (paramNames.length !== params.length) {
+    throw new Error(
+      `Cannot serialize parameters. Function has ${paramNames.length} params, but was passed ${params.length} values.`
+    );
+  }
+  // This approach does not work, as babel renames the parameters, and you get
+  // paramter names like "_x" etc.
+  // const o = Object.fromEntries( paramNames.map((paramName, index) =>
+  //   [paramName, params[index]])
+  // );
+  return JSON.stringify(params);
 }
