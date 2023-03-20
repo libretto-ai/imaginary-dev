@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync } from "fs";
+import { readFileSync } from "fs";
 import { resolve } from "path";
 import { Compiler, UncompiledProject } from "transformer-shared-tests";
 import * as ts from "typescript";
@@ -12,6 +12,8 @@ const compilerOptions: ts.CompilerOptions = {
   strictNullChecks: true,
   // sourceMap: true,
   lib: ["es2015"],
+  extendedDiagnostics: true,
+  exclude: ["**/node_modules"],
 };
 
 const makePathAbsolute = (relativePath: string) =>
@@ -21,7 +23,8 @@ export function compileProject(project: UncompiledProject): {
   compiledFiles: Record<string, string>;
   inputFileNameToCompiledFileName: (inputFileName: string) => string;
 } {
-  const nodeModulesCache: Record<string, string> = {};
+  const nodeModulesASTCache: Record<string, ts.SourceFile> = {};
+
   // normalize the paths.
   const normalizedProjectFiles = Object.fromEntries(
     Object.entries(project.projectFiles).map(([key, value]) => [
@@ -29,6 +32,8 @@ export function compileProject(project: UncompiledProject): {
       value,
     ])
   );
+  const normalizedProjectFilenames = Object.keys(normalizedProjectFiles);
+
   const normalizedRootFiles = project.rootFiles.map(makePathAbsolute);
 
   // Create a Program with an in-memory emit
@@ -36,34 +41,39 @@ export function compileProject(project: UncompiledProject): {
   const host = ts.createCompilerHost(compilerOptions);
 
   const originalFileExists = host.fileExists;
-
   host.fileExists = (fileName) => {
-    if (Object.keys(normalizedProjectFiles).indexOf(fileName) !== -1) {
+    if (normalizedProjectFilenames.indexOf(fileName) !== -1) {
       return true;
     }
     return originalFileExists.apply(host, [fileName]);
   };
-  const mrc = ts.createModuleResolutionCache(
-    mkdtempSync("ts-cache-"),
-    (s) => s,
-    compilerOptions
-  );
-  host.getModuleResolutionCache = () => mrc;
+
+  const originalGetSourceFile = host.getSourceFile;
+  host.getSourceFile = (fileName, ...rest) => {
+    if (fileName.includes("/node_modules/")) {
+      // only cache files in node_modules
+      if (fileName in nodeModulesASTCache) {
+        return nodeModulesASTCache[fileName];
+      }
+      const sourceFile = originalGetSourceFile.apply(host, [fileName, ...rest]);
+      nodeModulesASTCache[fileName] = sourceFile;
+      return sourceFile;
+    } else {
+      // never cache local files
+      return originalGetSourceFile.apply(host, [fileName, ...rest]);
+    }
+  };
 
   host.readFile = (fileName: string) => {
     // we need to make sure that ts compiler can get to the real node_modules so it
     // can find .d.ts files for things like Promise.
-    if (fileName.match(/node_modules/)) {
-      if (fileName in nodeModulesCache) {
-        return nodeModulesCache[fileName];
-      }
+    if (fileName.includes("/node_modules/")) {
       const fileBody = readFileSync(fileName, { encoding: "utf-8" });
-      nodeModulesCache[fileName] = fileBody;
       return fileBody;
     }
 
     // if it's one of the files we are compiling, return the contents.
-    if (Object.keys(normalizedProjectFiles).indexOf(fileName) !== -1) {
+    if (normalizedProjectFilenames.indexOf(fileName) !== -1) {
       return normalizedProjectFiles[fileName];
     }
     return "";
@@ -74,10 +84,32 @@ export function compileProject(project: UncompiledProject): {
 
   // Prepare and emit the files
   const program = ts.createProgram(normalizedRootFiles, compilerOptions, host);
-  program.emit(undefined, undefined, undefined, undefined, {
-    before: [imaginaryTransformer(program)],
+  const sourceFiles = program.getSourceFiles().filter((f) => {
+    const absoluteSourceFile = makePathAbsolute(f.fileName);
+    return (
+      normalizedRootFiles.includes(absoluteSourceFile) ||
+      normalizedProjectFilenames.includes(absoluteSourceFile)
+    );
   });
-
+  sourceFiles.forEach((sourceFile) => {
+    const result = program.emit(sourceFile, undefined, undefined, undefined, {
+      before: [imaginaryTransformer(program)],
+    });
+    const diagnostics = ts
+      .getPreEmitDiagnostics(program)
+      .concat(result.diagnostics);
+    diagnostics.forEach((diagnostic) => {
+      const { line, character } =
+        diagnostic.file?.getLineAndCharacterOfPosition(diagnostic.start!) ?? {
+          line: -1,
+          character: -1,
+        };
+      const message = ts.flattenDiagnosticMessageText(
+        diagnostic.messageText,
+        "\n"
+      );
+    });
+  });
   return {
     compiledFiles: createdFiles,
     inputFileNameToCompiledFileName: (inputFileName) =>
