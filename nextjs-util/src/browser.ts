@@ -21,7 +21,7 @@ import { getParamNames } from "./util";
  *   }, [userInput])
  * ```
  */
-export function wrapRemoteFn<
+export function wrapRemoteImaginaryFunction<
   F extends (...args: A) => R,
   A extends any[],
   R extends Promise<AR>,
@@ -51,7 +51,7 @@ export function wrapRemoteFn<
   return callImaginaryFunction;
 }
 
-export function wrapImaginaryFunctions<
+export function wrapRemoteImaginaryFunctions<
   T extends { [s: string]: (...args: any[]) => Promise<any> }
 >(m: T, apiPrefix = "/api"): T {
   if (!apiPrefix.endsWith("/")) {
@@ -60,7 +60,10 @@ export function wrapImaginaryFunctions<
   const e = Object.entries(m).map(
     ([key, fn]): [string, (...args: any[]) => Promise<any>] => [
       key,
-      wrapRemoteFn(`${apiPrefix}${key}`, fn as () => Promise<any>),
+      wrapRemoteImaginaryFunction(
+        `${apiPrefix}${key}`,
+        fn as () => Promise<any>
+      ),
     ]
   );
   return Object.fromEntries(e) as T;

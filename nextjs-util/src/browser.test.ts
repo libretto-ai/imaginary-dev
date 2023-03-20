@@ -5,7 +5,7 @@
 import fetchMock, { enableFetchMocks } from "jest-fetch-mock";
 enableFetchMocks();
 
-import { wrapRemoteFn } from "./browser";
+import { wrapRemoteImaginaryFunction } from "./browser";
 
 /**
  * @imaginary
@@ -19,7 +19,7 @@ beforeEach(() => {
 describe("wrapRemoteFn", () => {
   it("should make a callable wrapper", async () => {
     fetchMock.mockResponseOnce(JSON.stringify({ result: "Emoji Here" }));
-    const wrappedEmojify = wrapRemoteFn("/api/emojify", emojify);
+    const wrappedEmojify = wrapRemoteImaginaryFunction("/api/emojify", emojify);
 
     const value = await wrappedEmojify("Hello");
 
@@ -28,7 +28,10 @@ describe("wrapRemoteFn", () => {
 
   it("should bail if invalid parameters", async () => {
     fetchMock.mockResponseOnce(JSON.stringify({ result: "Emoji Here" }));
-    const wrappedEmojify = wrapRemoteFn("/api/emojify", emojify) as Function;
+    const wrappedEmojify = wrapRemoteImaginaryFunction(
+      "/api/emojify",
+      emojify
+    ) as Function;
 
     expect(async () => {
       const value = await wrappedEmojify("Hello", "there");
@@ -42,7 +45,7 @@ describe("wrapRemoteFn", () => {
         status: 400,
       }
     );
-    const wrappedEmojify = wrapRemoteFn("/api/emojify", emojify);
+    const wrappedEmojify = wrapRemoteImaginaryFunction("/api/emojify", emojify);
 
     expect(async () => {
       const value = await wrappedEmojify("Hello");
@@ -52,7 +55,7 @@ describe("wrapRemoteFn", () => {
     fetchMock.mockResponseOnce("Hard failure", {
       status: 400,
     });
-    const wrappedEmojify = wrapRemoteFn("/api/emojify", emojify);
+    const wrappedEmojify = wrapRemoteImaginaryFunction("/api/emojify", emojify);
 
     expect(async () => {
       const value = await wrappedEmojify("Hello");
@@ -62,7 +65,7 @@ describe("wrapRemoteFn", () => {
     fetchMock.mockResponseOnce(JSON.stringify({ status: "failure" }), {
       status: 429,
     });
-    const wrappedEmojify = wrapRemoteFn("/api/emojify", emojify);
+    const wrappedEmojify = wrapRemoteImaginaryFunction("/api/emojify", emojify);
 
     expect(async () => {
       const value = await wrappedEmojify("Hello");
