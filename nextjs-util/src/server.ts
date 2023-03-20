@@ -65,8 +65,8 @@ export function makeNextjsMultiHandler<
   const handler: NextApiHandler = async (req, res) => {
     const { [urlKey]: fnName, ...rest } = req.query;
     const fnNameStr = typeof fnName === "string" ? fnName : fnName?.[0];
-    if (!fnNameStr) {
-      res.status(400).json({
+    if (!fnNameStr || !(fnNameStr in handlerMap)) {
+      res.status(404).json({
         error: "No such imaginary function",
       });
       return;
