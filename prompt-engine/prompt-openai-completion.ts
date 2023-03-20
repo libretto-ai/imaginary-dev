@@ -1,7 +1,6 @@
 import { ServiceParameters } from "@imaginary-dev/util";
-import { STATUS_CODES } from "http";
 import { Configuration, CreateCompletionRequest, OpenAIApi } from "openai";
-import { Prompt, replaceVariablesInPrompt, TrimType } from "./prompt";
+import { Prompt, replaceVariablesInPrompt } from "./prompt";
 import {
   getHttpErrorMessage,
   PromptError,
