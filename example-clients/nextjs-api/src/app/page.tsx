@@ -1,10 +1,13 @@
 "use client";
 import { imaginaryFunctionMap } from "@/emojify";
-import { wrapImaginaryFunctions } from "@imaginary-dev/nextjs-util/browser";
+import { wrapRemoteImaginaryFunctions } from "@imaginary-dev/nextjs-util/browser";
 import { useState } from "react";
 import styles from "./page.module.css";
 
-const fns = wrapImaginaryFunctions(imaginaryFunctionMap, "/api/functions/");
+const fns = wrapRemoteImaginaryFunctions(
+  imaginaryFunctionMap,
+  "/api/functions/"
+);
 
 const Spinner = () => <div className={styles.spinner}></div>;
 export default function Home() {
