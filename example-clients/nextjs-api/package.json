@@ -1,0 +1,33 @@
+{
+  "name": "nextjs-example",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build:example": "next build",
+    "clean": "rm -rf .next/",
+    "netlify": "cd ../.. && npm install && npm run build && cd example-clients/nextjs && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "full-clean": "npm run clean && rm -rf node_modules",
+    "deploy-site": "git checkout main && git pull && git checkout deploy-nextjs && git pull && git merge main && git push"
+  },
+  "devDependencies": {
+    "@imaginary-dev/babel-transformer": "*",
+    "@imaginary-dev/runtime": "*"
+  },
+  "dependencies": {
+    "@next/font": "^13.1.2",
+    "@imaginary-dev/nextjs-util": "*",
+    "@types/node": "^18.11.18",
+    "@types/react": "^18.0.27",
+    "@types/react-dom": "^18.0.10",
+    "eslint": "^8.32.0",
+    "eslint-config-next": "^13.1.2",
+    "next": "^13.1.2",
+    "nextjs-google-analytics": "^2.3.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^4.9.4"
+  }
+}
