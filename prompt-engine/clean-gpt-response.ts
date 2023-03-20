@@ -98,8 +98,10 @@ IgnorableWhiteSpace =
 
 // JSON5 Syntactic Grammar
 // https://spec.json5.org/#syntactic-grammar
+// added the piece that allows strings before and after.
 JSON5Text =
-    JSON5Value
+    JSON5Value /
+    (! "\`\`\`json" .)* "\`\`\`json" @(JSON5Value) "\`\`\`" .*
 
 JSON5Value =
     IgnorableWhiteSpace 
