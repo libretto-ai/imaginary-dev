@@ -1,6 +1,6 @@
 import { ServiceParameters } from "@imaginary-dev/util";
 import { Configuration, CreateChatCompletionRequest, OpenAIApi } from "openai";
-import { Prompt, replaceVariablesInPrompt, TrimType } from "./prompt";
+import { Prompt, replaceVariablesInPrompt } from "./prompt";
 import {
   getHttpErrorMessage,
   PromptError,
@@ -9,22 +9,24 @@ import {
 import { wrapWithRetry } from "./util";
 
 // TODO: these should be configurable per-prompt
-const DEFAULT_MODEL = process.env.PROMPTJS_MODEL ?? "gpt-3.5-turbo";
-const DEFAULT_MAX_TOKENS = process.env.PROMPTJS_MAXTOKENS
+export const DEFAULT_MODEL = process.env.PROMPTJS_MODEL ?? "gpt-3.5-turbo";
+export const DEFAULT_MAX_TOKENS = process.env.PROMPTJS_MAXTOKENS
   ? parseInt(process.env.PROMPTJS_MAXTOKENS, 10)
   : 7000;
-const DEFAULT_TEMPERATURE = process.env.PROMPTJS_TEMPERATURE
+export const DEFAULT_TEMPERATURE = process.env.PROMPTJS_TEMPERATURE
   ? parseInt(process.env.PROMPTJS_TEMPERATURE, 10)
   : 0;
 
-const runPrompt: (
+export const runPrompt: (
   prompt: Prompt,
   parameters: Record<string, string>,
-  serviceParameters: ServiceParameters
+  serviceParameters: ServiceParameters,
+  openaiApi?: OpenAIApi
 ) => Promise<{ text: string; finish_reason?: string }> = async (
   prompt,
   parameters,
-  serviceParameters
+  serviceParameters,
+  openaiApi
 ) => {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error(
@@ -47,7 +49,7 @@ const runPrompt: (
 
   const time = new Date();
 
-  const openai = new OpenAIApi(configuration);
+  const openai = openaiApi ?? new OpenAIApi(configuration);
   const model = serviceParameters?.openai?.model ?? DEFAULT_MODEL;
   const completionRequest: CreateChatCompletionRequest = {
     model,
