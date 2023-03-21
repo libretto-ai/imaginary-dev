@@ -4,6 +4,6 @@
     "outDir": "dist",
     "declaration": true
   },
-  "files": ["src/browser.ts", "src/server.ts"],
+  "files": ["src/browser.ts", "src/server.ts", "src/index.ts"],
   "include": ["src/tests/*.ts", "setupJest.ts"]
 }
