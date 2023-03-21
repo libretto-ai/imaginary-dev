@@ -1,4 +1,4 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiHandler } from "next";
 
 interface ApiError {
   error: string;
@@ -27,16 +27,11 @@ export function makeNextjsHandler<
   A extends any[],
   R extends Promise<AR>,
   AR
->(
-  f: F
-): (
-  req: NextApiRequest,
-  res: NextApiResponse<ApiResult<AR> | ApiError>
-) => void {
-  async function handler(
-    req: NextApiRequest,
-    res: NextApiResponse<ApiResult<AR> | ApiError>
-  ) {
+>(f: F): NextApiHandler {
+  const handler: NextApiHandler<ApiResult<AR> | ApiError> = async (
+    req,
+    res
+  ) => {
     const { args } = req.query ?? {};
     if (!args) {
       res.status(400).json({
@@ -51,15 +46,37 @@ export function makeNextjsHandler<
     res.status(200).json({
       result: value,
     });
-  }
+  };
 
   return handler;
 }
 
-export function makeNextjsHandlers<
-  F extends ((...args: any[]) => Promise<any>)[]
->(functions: F) {
-  return functions.map((f) => f);
+export function makeNextjsMultiHandler<
+  T extends { [s: string]: (...args: any[]) => Promise<any> }
+>(map: T, urlKey: string): NextApiHandler {
+  const handlers = Object.entries(map).map(
+    ([key, fn]): [string, NextApiHandler] => {
+      const newHandler = makeNextjsHandler(fn);
+      return [key, newHandler];
+    }
+  );
+  const handlerMap = Object.fromEntries(handlers);
+
+  const handler: NextApiHandler = async (req, res) => {
+    const { [urlKey]: fnName, ...rest } = req.query;
+    const fnNameStr = typeof fnName === "string" ? fnName : fnName?.[0];
+    if (!fnNameStr || !(fnNameStr in handlerMap)) {
+      res.status(404).json({
+        error: "No such imaginary function",
+      });
+      return;
+    }
+    const newHandler = handlerMap[fnNameStr];
+
+    req.query = rest;
+    return newHandler(req, res);
+  };
+  return handler;
 }
 
 /**
