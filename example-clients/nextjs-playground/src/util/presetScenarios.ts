@@ -1,7 +1,23 @@
 import { makeScenario } from "@/state/scenarios";
 import { InitialPlaygroundState } from "./playgroundState";
 
+export const codePlaceholder = `/**
+ * Enter your code here
+ * @imaginary
+ */
+declare function newFunction(param: string): Promise<string>;`;
+
 export const presetScenarios: InitialPlaygroundState[] = [
+  {
+    scenario: makeScenario("stub", "New function", codePlaceholder),
+    testCases: [
+      {
+        id: "stub-1",
+        name: "First Sample",
+        parameterValues: {},
+      },
+    ],
+  },
   {
     scenario: makeScenario(
       "emojifier",
