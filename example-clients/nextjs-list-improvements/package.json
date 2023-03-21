@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@imaginary-dev/babel-transformer": "*"
+    "@imaginary-dev/babel-transformer": "*",
+    "@imaginary-dev/nextjs-util": "*"
   }
 }
