@@ -197,6 +197,14 @@ export function ScenarioCodeEditor() {
         </Tooltip>
       </Flex>
       <CodeEditor
+        onFocus={() => {
+          if (!activeScenario.code?.trim()) {
+            setActiveScenario((scenario) => ({
+              ...scenario,
+              code: codePlaceholder,
+            }));
+          }
+        }}
         language="ts"
         padding={15}
         placeholder={codePlaceholder}
