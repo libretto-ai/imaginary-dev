@@ -9,6 +9,7 @@ const jestConfig: JestConfigWithTsJest = {
     prefix: "<rootDir>/../..",
   }),
   setupFilesAfterEnv: ["./setupJest.ts"],
+  collectCoverageFrom: ["<rootDir>/src/**/*.{ts,tsx}"],
   testPathIgnorePatterns: ["/node_modules/", "dist"],
 };
 
