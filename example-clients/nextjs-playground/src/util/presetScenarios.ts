@@ -22,15 +22,14 @@ export const presetScenarios: InitialPlaygroundState[] = [
     scenario: makeScenario(
       "emojifier",
       "Emojifier",
-      `/**
-  * This function takes in a word or phrase and returns a single emoji that represents that concept.
-  * @param textToEmojify - textToEmojify the word or phrase to be turned into an emoji
-  * @returns a single character emoji
-  * @imaginary
-  */
-  declare function singleEmojiForText(
-    textToEmojify: string
-  ): Promise<string>;`
+      `
+/**
+ * This function takes in a word or phrase and returns a single emoji that represents that concept.
+ * @param textToEmojify - textToEmojify the word or phrase to be turned into an emoji
+ * @returns a single character emoji
+ * @imaginary
+ */
+declare function singleEmojiForText(textToEmojify: string): Promise<string>;`
     ),
     testCases: [
       {
@@ -59,18 +58,19 @@ export const presetScenarios: InitialPlaygroundState[] = [
     scenario: makeScenario(
       "database-columns",
       "Database Column Generator",
-      `/**
-* Get a list of column names for an SQL table named by "tableName", including a
-* primary key. If tableDescription is provided, it will be used to improve the suggested columns.
-*
-* @param tableName The name of the table
-* @param tableDescription A description of the type of data stored in the table
-* @returns An array of column objects that each include the name, description, and data type
-* @imaginary
-*/
+      `
+/**
+ * Get a list of column names for an SQL table named by "tableName", including a
+ * primary key. If tableDescription is provided, it will be used to improve the suggested columns.
+ *
+ * @param tableName The name of the table
+ * @param tableDescription A description of the type of data stored in the table
+ * @returns An array of column objects that each include the name, description, and data type
+ * @imaginary
+ */
 declare function suggestTableColumns(
- tableName: string,
- tableDescription?: string
+  tableName: string,
+  tableDescription?: string
 ): Promise<{ key: string; name: string; description?: string; type: string }[]>;`
     ),
     testCases: [
@@ -106,17 +106,18 @@ declare function suggestTableColumns(
     scenario: makeScenario(
       "playlist",
       "Playlist Name Generator",
-      `/**
-* This function takes in a playlist represented as an array of songs, each represented with artist name and
-* song title, and it returns a good name for the playlist that includes all those songs. The playlist name
-* should be descriptive and evocative. Good playlist names refer to things like the music genre of the songs in the playlist,
-* the mood that the songs in the playlist evoke, the time period the songs in the playlist are from, the people who love the songs
-* in the playlist, or themes that unite the songs in the playlist.
-* @param songs - an array of songs in the playlist, with artist name and song title
-* @returns a good name for the playlist
-* @imaginary
-* @openai \`{"temperature": 0.75}\`
-*/
+      `
+/**
+ * This function takes in a playlist represented as an array of songs, each represented with artist name and
+ * song title, and it returns a good name for the playlist that includes all those songs. The playlist name
+ * should be descriptive and evocative. Good playlist names refer to things like the music genre of the songs in the playlist,
+ * the mood that the songs in the playlist evoke, the time period the songs in the playlist are from, the people who love the songs
+ * in the playlist, or themes that unite the songs in the playlist.
+ * @param songs - an array of songs in the playlist, with artist name and song title
+ * @returns a good name for the playlist
+ * @imaginary
+ * @openai \`{"temperature": 0.75}\`
+ */
 declare function getPlaylistNameForSongs(songs: { artistName: string; title: string }[]): Promise<string>;`
     ),
     testCases: [
@@ -159,22 +160,21 @@ declare function getPlaylistNameForSongs(songs: { artistName: string; title: str
     scenario: makeScenario(
       "muppets",
       "Muppets Casting Agent",
-      `/**
-* This function takes in the name of a movie and recasts the roles with characters from the
-* Muppets. For example, if the movie name is "Star Wars", a good answer would be:
-* {
-*  "Kermit": "Luke Skywalker",
-*  "Miss Piggy": "Princess Leia",
-*  "Fozzie Bear": "Han Solo",
-* }
-* The function returns at least 8 muppets in every answer.
-* @param movieName - the name of the movie to re-cast
-* @returns an object which is a map of muppet names to roles in the movie
-* @imaginary
-*/
-declare function castMovieWithMuppets(
-  movieName: string
-): Promise<Record<string, string>>;`
+      `
+/**
+ * This function takes in the name of a movie and recasts the roles with characters from the
+ * Muppets. For example, if the movie name is "Star Wars", a good answer would be:
+ * {
+ *  "Kermit": "Luke Skywalker",
+ *  "Miss Piggy": "Princess Leia",
+ *  "Fozzie Bear": "Han Solo",
+ * }
+ * The function returns at least 8 muppets in every answer.
+ * @param movieName - the name of the movie to re-cast
+ * @returns an object which is a map of muppet names to roles in the movie
+ * @imaginary
+ */
+declare function castMovieWithMuppets(movieName: string): Promise<Record<string, string>>;`
     ),
     testCases: [
       {
@@ -218,15 +218,14 @@ declare function castMovieWithMuppets(
     scenario: makeScenario(
       "translate-to-spanish",
       "Translate To Spanish",
-      `/**
-* This function takes in some English text and translates it to Spanish.
-* @param englishText - the English text to translate
-* @returns an idiomatic translation of the text
-* @imaginary
-*/
-declare function translateToSpanish(
-  englishText: string
-): Promise<string>;`
+      `
+/**
+ * This function takes in some English text and translates it to Spanish.
+ * @param englishText - the English text to translate
+ * @returns an idiomatic translation of the text
+ * @imaginary
+ */
+declare function translateToSpanish(englishText: string): Promise<string>;`
     ),
     testCases: [
       {
@@ -250,11 +249,12 @@ declare function translateToSpanish(
     scenario: makeScenario(
       "generate-name-for-country",
       "Generate Name For Country",
-      `/** 
-* This should return a human name common to the specified country
-* @imaginary 
-* @openai \`{"temperature": 1}\`
-*/
+      `
+/** 
+ * This should return a human name common to the specified country
+ * @imaginary 
+ * @openai \`{"temperature": 1}\`
+ */
 declare function createUserName(country: string):Promise<string>;`
     ),
     testCases: [
@@ -278,24 +278,23 @@ declare function createUserName(country: string):Promise<string>;`
     scenario: makeScenario(
       "parse-grocery-list",
       "Parse Grocery List",
-      `/**
-* This function turns a shopping list into an array of object, where each object is a standard
-* grocery item from the list.
-*
-* @param groceryList - a grocery list. some items might be misspelled or sloppily written
-* @returns an array of objects with an optional numeric quantity value, an optional units which
-* depicts what the quantity means (units could be things like "pound" or "quart" but also things
-* like "loaf" or "bag") and a mandatory name value. The name value should not include a quantity.
-* The quantity strings should be full words of common grocery items, not
-* abbreviations. The objects returned by this function
-* represent every item in the grocery list, spelled correctly, using common words
-* that a search engine will understand.
-* @imaginary
-* @openai \`{"temperature": 0}\`
-*/
-declare function parseGroceryList(
-  groceryList: string
-  ): Promise<{ name: string; quantity?: number; units?: string }[]>;`
+      `
+/**
+ * This function turns a shopping list into an array of object, where each object is a standard
+ * grocery item from the list.
+ *
+ * @param groceryList - a grocery list. some items might be misspelled or sloppily written
+ * @returns an array of objects with an optional numeric quantity value, an optional units which
+ * depicts what the quantity means (units could be things like "pound" or "quart" but also things
+ * like "loaf" or "bag") and a mandatory name value. The name value should not include a quantity.
+ * The quantity strings should be full words of common grocery items, not
+ * abbreviations. The objects returned by this function
+ * represent every item in the grocery list, spelled correctly, using common words
+ * that a search engine will understand.
+ * @imaginary
+ * @openai \`{"temperature": 0}\`
+ */
+declare function parseGroceryList(groceryList: string): Promise<{ name: string; quantity?: number; units?: string }[]>;`
     ),
     testCases: [
       {
@@ -311,19 +310,18 @@ declare function parseGroceryList(
     scenario: makeScenario(
       "extract-names",
       "Extract Names From Email",
-      `/**
-* This function extracts all of the names of people from an email text and returns them as structured
-* information.
-*
-* @param emailText - the text of an email from which to extract names of people
-*
-* @returns an array of objects with optional firstName and lastName properties representing the first
-* and last names of people mentioned in the email.
-* @imaginary
-*/
-export declare function extractNamesOfPeopleFromEmail(
-  emailText: string
-): Promise<{ firstName?: string; lastName?: string }[]>;`
+      `
+/**
+ * This function extracts all of the names of people from an email text and returns them as structured
+ * information.
+ *
+ * @param emailText - the text of an email from which to extract names of people
+ *
+ * @returns an array of objects with optional firstName and lastName properties representing the first
+ * and last names of people mentioned in the email.
+ * @imaginary
+ */
+export declare function extractNamesOfPeopleFromEmail(emailText: string): Promise<{ firstName?: string; lastName?: string }[]>;`
     ),
     testCases: [
       {
@@ -385,14 +383,15 @@ Cheri`,
     scenario: makeScenario(
       "customer-anger",
       "Customer Anger Level",
-      `/**
-* This function takes in a customer support email chain and rates the customer's anger or frustration level.
-* The possible outputs are "not angry", "mildly frustrated", "very frustrated", or "irate".
-* @param customerSupportEmail - the text of a customer support email
-* @returns an object with a single attribute: angerLevel. angerLevel can be "not angry", "mildly frustrated", 
-* "very frustrated", or "irate" and describes how angry the customer is with the company.
-* @imaginary
-*/
+      `
+/**
+ * This function takes in a customer support email chain and rates the customer's anger or frustration level.
+ * The possible outputs are "not angry", "mildly frustrated", "very frustrated", or "irate".
+ * @param customerSupportEmail - the text of a customer support email
+ * @returns an object with a single attribute: angerLevel. angerLevel can be "not angry", "mildly frustrated", 
+ * "very frustrated", or "irate" and describes how angry the customer is with the company.
+ * @imaginary
+ */
 declare function getCustomerAngerLevel(customerSupportEmail: string): Promise<{angerLevel: "not angry"| "mildly frustrated"| "very frustrated"| "irate"}>;`
     ),
     testCases: [
@@ -417,13 +416,12 @@ declare function getCustomerAngerLevel(customerSupportEmail: string): Promise<{a
       "order-movies",
       "Order Movies",
       `
-    /**
-     * Order the following list of movies by recognizability, with the most
-     * recognizable movie first, and the least recognizable movie last.
-     * @imaginary
-     */
-    declare function orderByRecognizability(movies: {name: string, id: string}[]): Promise<{name: string, id: string}[]>;
-    `
+/**
+ * Order the following list of movies by recognizability, with the most
+ * recognizable movie first, and the least recognizable movie last.
+ * @imaginary
+ */
+declare function orderByRecognizability(movies: {name: string, id: string}[]): Promise<{name: string, id: string}[]>;`
     ),
     testCases: [
       {
