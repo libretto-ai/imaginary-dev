@@ -12,14 +12,14 @@ export declare function getNameForList(items: string[]): Promise<string>;
  *
  * @imaginary
  */
-export declare function getAdditionalItems(
+export declare function getAdditionalItem(
   categoryName: string,
   items: string[]
 ): Promise<string>;
 
 const functions = {
   getNameForList,
-  getAdditionalItems,
+  getAdditionalItem,
 };
 
 export default functions;
