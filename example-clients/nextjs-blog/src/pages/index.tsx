@@ -94,16 +94,10 @@ export default function Home() {
               <div className="text-s mb-3">
                 Suggested titles:{" "}
                 {suggestedTitles.length ? (
-                  suggestedTitles.map((title) => (
-                    <div key={title}>
-                      <a
-                        className="text-sm underline decoration-indigo-500 cursor-pointer"
-                        onClick={(e) => setBlogTitle(title)}
-                      >
-                        {title}
-                      </a>
-                    </div>
-                  ))
+                  <TitleList
+                    onSelectTitle={setBlogTitle}
+                    titles={suggestedTitles}
+                  />
                 ) : (
                   <div className="text-sm italic">
                     type some content for suggestions
@@ -127,21 +121,16 @@ export default function Home() {
                 ></textarea>
               </div>
               <div className="flex justify-end">
-                <button
-                  onClick={addParagraph}
-                  className="bg-indigo-600 text-white text-sm font-semibold py-3 pr-8 pl-3 mx-2 rounded hover:bg-indigo-700 focus:outline-none"
-                >
-                  <Loading visible={addParagraphLoading} />
+                <Button onClick={addParagraph} isLoading={addParagraphLoading}>
                   Add Paragraph
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={addConclusion}
-                  className="bg-indigo-600 text-white text-sm font-semibold py-3 pr-8 pl-3 mx-2 rounded hover:bg-indigo-700 focus:outline-none"
+                  isLoading={addConclusionLoading}
                 >
-                  <Loading visible={addConclusionLoading} />
                   Add Conclusion
-                </button>
-              </div>
+                </Button>
+              </div>{" "}
               <div className="mb-4">
                 <label
                   htmlFor="tags"
@@ -162,26 +151,13 @@ export default function Home() {
               <div className="text-s mb-3">
                 Suggested tags:{" "}
                 {suggestedTags.length ? (
-                  suggestedTags.map((tag) => (
-                    <div
-                      key={tag}
-                      className="inline-block rounded-lg bg-indigo-700 mx-2 my-1 text-white px-3 py-1"
-                    >
-                      <a
-                        className="text-sm cursor-pointer"
-                        onClick={(e) => addTag(tag)}
-                      >
-                        {tag}
-                      </a>
-                    </div>
-                  ))
+                  <TagList tags={suggestedTags} onSelectTag={addTag} />
                 ) : (
                   <div className="text-sm italic">
                     type some content for suggestions
                   </div>
                 )}
               </div>
-
               <button
                 type="submit"
                 className="w-full bg-indigo-600 text-white font-semibold p-3 rounded hover:bg-indigo-700 focus:outline-none"
@@ -222,6 +198,75 @@ function Loading({ visible }: { visible: boolean }) {
         </>
       )}
     </svg>
+  );
+}
+
+function TitleList({
+  titles,
+  onSelectTitle,
+}: {
+  titles: string[];
+  onSelectTitle: (arg: string) => void;
+}) {
+  return (
+    <>
+      {titles.map((title) => (
+        <div key={title}>
+          <a
+            className="text-sm underline decoration-indigo-500 cursor-pointer"
+            onClick={(e) => onSelectTitle(title)}
+          >
+            {title}
+          </a>
+        </div>
+      ))}
+    </>
+  );
+}
+
+function TagList({
+  tags,
+  onSelectTag,
+}: {
+  tags: string[];
+  onSelectTag: (arg: string) => void;
+}) {
+  return (
+    <>
+      {tags.map((tag) => (
+        <div
+          key={tag}
+          className="inline-block rounded-lg bg-indigo-700 mx-2 my-1 text-white px-3 py-1"
+        >
+          <a
+            className="text-sm cursor-pointer"
+            onClick={(e) => onSelectTag(tag)}
+          >
+            {tag}
+          </a>
+        </div>
+      ))}
+    </>
+  );
+}
+
+function Button({
+  onClick,
+  isLoading,
+  children,
+}: {
+  onClick: React.MouseEventHandler<HTMLButtonElement>;
+  isLoading: boolean;
+  children?: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="bg-indigo-600 text-white text-sm font-semibold py-3 pr-8 pl-3 mx-2 rounded hover:bg-indigo-700 focus:outline-none"
+    >
+      <Loading visible={isLoading} />
+      {children}
+    </button>
   );
 }
 
