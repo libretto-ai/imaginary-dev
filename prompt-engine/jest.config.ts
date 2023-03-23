@@ -8,6 +8,7 @@ const jestConfig: JestConfigWithTsJest = {
   moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, {
     prefix: "<rootDir>/..",
   }),
+  collectCoverageFrom: ["<rootDir>/src/**/*.{ts,tsx}"],
   modulePathIgnorePatterns: ["<rootDir>/dist/"],
 };
 

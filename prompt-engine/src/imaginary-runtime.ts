@@ -11,7 +11,8 @@ import cleanGptResponse, {
   isSchemaForNull,
 } from "./clean-gpt-response";
 import { getJSONSchemaType } from "./json-schema-util";
-import { runPromptWithRetry } from "./prompt-openai";
+import { runPromptWithRetry as runCompletionPromptWithRetry } from "./prompt-openai-completion";
+import { runPromptWithRetry as runChatPromptWithRetry } from "./prompt-openai-chat";
 import { beginReportEvent, finishReport, reportEventErrors } from "./reporting";
 
 const ajv = new Ajv();
@@ -55,6 +56,8 @@ export async function callImaginaryFunction(
   );
   const paramNames = parameterTypes.map(({ name }) => name);
 
+  const model = serviceParameters.openai?.model ?? "text-davinci-003";
+
   // this may be too restrictive, but I'm starting out restrictive and moving in the direction of less
   // restrictive if it becomes a burden.
   if (!funcComment.trim().startsWith("/**")) {
@@ -71,7 +74,7 @@ export async function callImaginaryFunction(
     throw new Error("The function comment cannot include non-comment text.");
   }
 
-  const prefix = getPromptPrefix(returnSchema);
+  const prefix = getPromptPrefix(model, returnSchema);
   const typehint = getPromptHint(returnSchema);
   const canBeNull =
     isSchemaForNull(returnSchema) || !getWrappedValueType(returnSchema);
@@ -80,7 +83,7 @@ export async function callImaginaryFunction(
     ? ""
     : "Never return null or undefined.";
 
-  const IMAGINARY_FUNCTION_PROMPT = `Consider the following TypeScript function prototype:
+  let imaginaryFunctionPrompt = `Consider the following TypeScript function prototype:
 ---
 ${funcComment}
 declare function ${funcName}(${parameterTypes
@@ -103,12 +106,17 @@ ${Object.entries(params)
   )
   .join("")}
 ${typehint ? `The JSON output should be in the form: ${typehint}` : ""}
-${primitiveInstructions}
+${primitiveInstructions}`;
 
+  if (prefix) {
+    imaginaryFunctionPrompt += `
+  
 Return value as JSON: ${prefix}`;
+  }
 
-  const completion = await runPromptWithRetry(
-    { text: IMAGINARY_FUNCTION_PROMPT },
+  const runPrompt = getRunPromptForModel(model);
+  const completion = await runPrompt(
+    { text: imaginaryFunctionPrompt },
     params,
     serviceParameters
   );
@@ -119,7 +127,7 @@ Return value as JSON: ${prefix}`;
   let completionObject: string | null;
   try {
     completionObject = cleanGptResponse(
-      `${prefix}${completion.text ?? ""}`,
+      `${prefix ?? ""}${completion.text ?? ""}`,
       returnSchema
     );
   } catch (e) {
@@ -150,9 +158,7 @@ Return value as JSON: ${prefix}`;
     errorMessages
   );
 
-  // Note we are not blocking *this* function waiting for these events, we're
-  // merely reporting errors to the console
-  reportEventErrors(beginEventPromise, finishEventPromise);
+  await reportEventErrors(beginEventPromise, finishEventPromise);
 
   if (!valid) {
     console.error(`Error validating the return value.`, validate.errors);
@@ -162,7 +168,9 @@ Return value as JSON: ${prefix}`;
   return completionObject;
 }
 
-function getPromptPrefix(type: JSONSchema7): string {
+function getPromptPrefix(model: string, type: JSONSchema7): string | null {
+  if (isChatModel(model)) return null;
+
   const jsonSchemaType = getJSONSchemaType(type);
   switch (jsonSchemaType) {
     case "object":
@@ -210,4 +218,23 @@ function getPromptHint(type: JSONSchema7): string {
     case "null":
       return '{"value": null }';
   }
+}
+
+function getRunPromptForModel(model: string) {
+  if (!isChatModel(model)) {
+    return runCompletionPromptWithRetry;
+  }
+  return runChatPromptWithRetry;
+}
+
+// if the model is davinci, curie, babbage, or ada, it's a completion prompt.
+// otherwise, let's assume it's a chat prompt. this is obviously a rough approximation.
+function isChatModel(model: string) {
+  return !(
+    model.includes("ada") ||
+    model.includes("babbage") ||
+    model.includes("curie") ||
+    model.includes("davinci") ||
+    model.includes("cushman")
+  );
 }

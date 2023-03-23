@@ -20,3 +20,8 @@ export declare function singleEmojiForText(
  * @imaginary
  */
 export declare function moreEmoji(textToEmojify: string): Promise<string>;
+
+export const imaginaryFunctionMap = {
+  singleEmojiForText,
+  moreEmoji,
+};

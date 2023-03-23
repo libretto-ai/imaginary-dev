@@ -10,6 +10,7 @@ const jestConfig: JestConfigWithTsJest = {
   }),
   modulePathIgnorePatterns: ["<rootDir>/dist/"],
   automock: false,
+  collectCoverageFrom: ["<rootDir>/src/**/*.{ts,tsx}"],
   setupFiles: ["./setupJest.ts"],
 };
 

@@ -1,6 +1,6 @@
 import { JSONSchema7 } from "json-schema";
 import objectHash from "object-hash";
-import { CreateCompletionRequest } from "openai";
+import { CreateCompletionRequest, CreateChatCompletionRequest } from "openai";
 export interface ImaginaryFunctionDefinition {
   funcName: string;
   funcComment: string;
@@ -12,7 +12,9 @@ export interface ImaginaryFunctionDefinition {
 }
 
 export interface ServiceParameters {
-  openai?: Partial<Omit<CreateCompletionRequest, "prompt">>;
+  openai?: Partial<
+    Omit<CreateCompletionRequest & CreateChatCompletionRequest, "prompt">
+  >;
 }
 
 export const AI_SERVICES: (keyof ServiceParameters)[] = ["openai"];

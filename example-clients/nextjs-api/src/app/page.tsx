@@ -1,11 +1,13 @@
 "use client";
-import { moreEmoji, singleEmojiForText } from "@/emojify";
-import { wrapRemoteFn } from "@imaginary-dev/nextjs-util/browser";
+import { imaginaryFunctionMap } from "@/emojify";
+import { wrapRemoteImaginaryFunctions } from "@imaginary-dev/nextjs-util/browser";
 import { useState } from "react";
 import styles from "./page.module.css";
 
-const singleEmojify = wrapRemoteFn("/api/singleEmoji", singleEmojiForText);
-const multiEmojify = wrapRemoteFn("/api/multiMoji", moreEmoji);
+const fns = wrapRemoteImaginaryFunctions(
+  imaginaryFunctionMap,
+  "/api/functions/"
+);
 
 const Spinner = () => <div className={styles.spinner}></div>;
 export default function Home() {
@@ -21,8 +23,8 @@ export default function Home() {
       setSingleEmojiResult(undefined);
       setMultiEmojiResult(undefined);
 
-      const singleEmojiPromise = singleEmojify(text);
-      const multiEmojiPromise = multiEmojify(text);
+      const singleEmojiPromise = fns.singleEmojiForText(text);
+      const multiEmojiPromise = fns.moreEmoji(text);
       setSingleEmojiResult(await singleEmojiPromise);
       setMultiEmojiResult(await multiEmojiPromise);
     } catch (ex) {

@@ -51,27 +51,28 @@ function sendEvent(event: PromptEvent) {
     // This is fatal because we shouldn't get here without this being set
     throw new Error("Missing PROMPT_REPORTING_URL");
   }
+  const body = JSON.stringify(event);
   return fetch(eventReportUrl, {
-    body: JSON.stringify(event),
+    body,
     method: "POST",
     headers: {
       "content-type": "application/json",
     },
   });
 }
-export function reportEventErrors(
+export async function reportEventErrors(
   beginEventPromise: Promise<Response | undefined>,
   finishEventPromise: Promise<Response | undefined>
 ) {
-  Promise.allSettled([beginEventPromise, finishEventPromise]).then(
-    (eventResults) => {
-      eventResults
-        .filter(
-          (event): event is PromiseRejectedResult => event.status === "rejected"
-        )
-        .forEach((rejectedEvent) => {
-          console.error("Failure to report events: ", rejectedEvent.reason);
-        });
-    }
-  );
+  const eventResults = await Promise.allSettled([
+    beginEventPromise,
+    finishEventPromise,
+  ]);
+  eventResults
+    .filter(
+      (event): event is PromiseRejectedResult => event.status === "rejected"
+    )
+    .forEach((rejectedEvent) => {
+      console.error("Failure to report events: ", rejectedEvent.reason);
+    });
 }
