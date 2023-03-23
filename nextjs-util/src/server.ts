@@ -1,10 +1,10 @@
 import type { NextApiHandler } from "next";
 
-interface ApiError {
+export interface ApiError {
   error: string;
 }
 
-interface ApiResult<R> {
+export interface ApiResult<R> {
   result: R;
 }
 
