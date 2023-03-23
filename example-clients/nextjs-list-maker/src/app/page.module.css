@@ -86,9 +86,10 @@
   gap: 1rem;
 }
 
-.removeButton {
+.iconbutton {
   border: 0;
   background-color: transparent;
+  font-size: larger;
 }
 
 .spinner {
@@ -108,4 +109,10 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.listtitle {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
 }

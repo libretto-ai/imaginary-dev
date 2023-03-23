@@ -51,43 +51,59 @@ export default function Home() {
   // only allow adding non-empty strings
   const addEnabled = newItem.trim().length > 0;
 
-  useEffect(() => {
-    async function getName() {
-      setBusyCount((busy) => busy + 1);
-      try {
-        const newName = await imaginaryFunctions.getNameForList(items);
-        if (newName) {
-          setListName(newName);
-        }
-      } finally {
-        setBusyCount((busy) => busy - 1);
+  const getNewName = useCallback(async (items: string[]) => {
+    setBusyCount((busy) => busy + 1);
+    try {
+      const newName = await imaginaryFunctions.getNameForList(items);
+      if (newName) {
+        setListName(newName);
       }
+    } finally {
+      setBusyCount((busy) => busy - 1);
     }
+  }, []);
+
+  useEffect(() => {
     if (!listName && items.length >= 3) {
-      getName();
+      getNewName(items);
     }
-  }, [items]);
+  }, [getNewName, items, listName]);
+
   const onReset = useCallback(() => {
     setListName(undefined);
     setNewItem("");
     setItems([]);
   }, []);
+  const onSuggestNewName = useCallback(() => {
+    getNewName(items);
+  }, [getNewName, items]);
 
   return (
     <main className={styles.body}>
       <div className={styles.container}>
         <h1 className={styles.h1}>Listmaker 3000</h1>
-        <h2 className={styles.h2}>{listName}</h2>
+        <h2 className={styles.listtitle}>
+          <span>{listName}</span>
+          {listName && (
+            <button
+              type="button"
+              className={styles.iconbutton}
+              onClick={onSuggestNewName}
+            >
+              ↻
+            </button>
+          )}
+        </h2>
         <ul className={styles.ul}>
           {items.map((item, index) => (
             <li className={styles.li} key={index}>
-              {item}
+              <span>{item}</span>
               <button
-                className={styles.removeButton}
+                className={styles.iconbutton}
                 onClick={() => onRemoveItem(item)}
                 type="button"
               >
-                x
+                ✖️
               </button>
             </li>
           ))}
