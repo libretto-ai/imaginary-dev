@@ -1,4 +1,4 @@
-import { makeImaginaryNextFunction } from "@/next-helpers";
+import { makeImaginaryNextFunction } from "@imaginary-dev/nextjs-util";
 
 /**
  * This function takes in a blog post text and returns at least 5 good titles for the blog post.

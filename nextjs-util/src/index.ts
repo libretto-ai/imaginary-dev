@@ -1,5 +1,5 @@
-import { makeNextjsHandler } from "@imaginary-dev/nextjs-util/server";
-import { wrapRemoteImaginaryFunction } from "@imaginary-dev/nextjs-util/browser";
+import { makeNextjsHandler } from "./server";
+import { wrapRemoteImaginaryFunction } from "./browser";
 
 export function makeImaginaryNextFunction<
   F extends (...args: any[]) => R,

@@ -9,14 +9,15 @@
     "lint": "next lint"
   },
   "devDependencies": {
-    "@imaginary-dev/babel-transformer": "^0.0.3",
+    "@imaginary-dev/babel-transformer": "*",
     "@types/diff": "^5.0.2",
     "autoprefixer": "^10.4.14",
     "postcss": "^8.4.21",
     "tailwindcss": "^3.2.7"
   },
   "dependencies": {
-    "@imaginary-dev/runtime": "^0.0.3",
+    "@imaginary-dev/runtime": "*",
+    "@imaginary-dev/nextjs-util": "*",
     "diff": "^5.1.0"
   }
 }

@@ -1,4 +1,4 @@
-import { makeImaginaryNextFunction } from "@/next-helpers";
+import { makeImaginaryNextFunction } from "@imaginary-dev/nextjs-util";
 
 /**
  * This function takes in an incomplete blog post text and returns a concluding paragraph
@@ -8,7 +8,7 @@ import { makeImaginaryNextFunction } from "@/next-helpers";
  * @param blogPostText - string with the blog post text
  * @returns a paragraph of text that can be added to the end of the blog post to
  * conclude the post.
- * @openai `{temperature: 0.7}`
+ * @openai `{"temperature": 0.7}`
  * @imaginary
  */
 declare function addConcludingParagraphToBlogPost(
