@@ -25,9 +25,13 @@ const transformer =
   (program: ts.Program): ts.TransformerFactory<ts.SourceFile> =>
   (context: ts.TransformationContext) => {
     return (sourceFile: ts.SourceFile) => {
-      let addedImports = false;
+      if (sourceFile.fileName.includes("node_modules/")) {
+        return sourceFile;
+      }
       const promptEngineIdentifier =
         ts.factory.createUniqueName("promptEngine");
+
+      let addedImports = false;
 
       const visitor = (node: ts.Node): ts.VisitResult<ts.Node> => {
         if (ts.isFunctionDeclaration(node)) {
@@ -120,6 +124,7 @@ const transformer =
           transformedSource
         );
       }
+
       return transformedSource;
     };
   };

@@ -10,6 +10,7 @@ const jestConfig: JestConfigWithTsJest = {
   }),
   setupFilesAfterEnv: ["./setupJest.ts"],
   testPathIgnorePatterns: ["/node_modules/", "dist"],
+  collectCoverageFrom: ["<rootDir>/src/**/*.{ts,tsx}"],
 };
 
 export default jestConfig;

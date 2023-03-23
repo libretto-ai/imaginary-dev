@@ -1,7 +1,11 @@
 import { ServiceParameters } from "@imaginary-dev/util";
-import { STATUS_CODES } from "http";
 import { Configuration, CreateCompletionRequest, OpenAIApi } from "openai";
-import { Prompt, replaceVariablesInPrompt, TrimType } from "./prompt";
+import { Prompt, replaceVariablesInPrompt } from "./prompt";
+import {
+  getHttpErrorMessage,
+  PromptError,
+  trim,
+} from "./prompt-openai-helpers";
 import { wrapWithRetry } from "./util";
 
 // TODO: these should be configurable per-prompt
@@ -12,10 +16,14 @@ const DEFAULT_MAX_TOKENS = process.env.PROMPTJS_MAXTOKENS
 const DEFAULT_TEMPERATURE = process.env.PROMPTJS_TEMPERATURE
   ? parseInt(process.env.PROMPTJS_TEMPERATURE, 10)
   : 0;
-const runPrompt = async (
+const runPrompt: (
   prompt: Prompt,
   parameters: Record<string, string>,
   serviceParameters: ServiceParameters
+) => Promise<{ text: string; finish_reason?: string }> = async (
+  prompt,
+  parameters,
+  serviceParameters
 ) => {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error(
@@ -62,7 +70,7 @@ const runPrompt = async (
     throw new PromptError(message, e.toJSON());
   }
 
-  response.data.choices = response.data.choices.map((choice) => {
+  const choices = response.data.choices.map((choice) => {
     // make sure to trim *before* validating
     let resultText: string | undefined = trim(
       choice.text ?? "",
@@ -79,49 +87,14 @@ const runPrompt = async (
     }
 
     return {
-      logprobs: choice.logprobs,
       finish_reason: choice.finish_reason,
-      index: choice.index,
-      text: resultText,
+      text: resultText ?? "",
     };
   });
 
-  return response.data.choices[0];
+  return choices[0];
 };
-const trim = (str: string, trimType: TrimType): string => {
-  switch (trimType) {
-    case "start":
-      return str.trimStart();
-    case "end":
-      return str.trimEnd();
-    case "both":
-      return str.trim();
-  }
-  return str;
-};
-function getHttpErrorMessage(statusCode: number) {
-  // Specialized error messages
-  if (statusCode === 401) {
-    return `Unauthorized: Invalid or missing OpenAI key`;
-  }
-  if (statusCode === 429) {
-    return `${STATUS_CODES[statusCode]}: May be rate limited. Please try again later.`;
-  }
-  const retry = statusCode > 500;
-  return retry
-    ? `${STATUS_CODES[statusCode]}: Please try again.`
-    : STATUS_CODES[statusCode]!;
-}
-class PromptError extends Error {
-  status: number;
-  error: Error;
-  constructor(message: string, error: any) {
-    super();
-    this.message = message;
-    this.status = error.status;
-    this.error = error;
-  }
-}
+
 export const runPromptWithRetry = wrapWithRetry(runPrompt, {
   minTimeout: 300,
   retries: 3,

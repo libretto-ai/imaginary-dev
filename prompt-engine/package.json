@@ -5,7 +5,7 @@
   "files": [
     "dist"
   ],
-  "main": "dist/prompt-engine/index.js",
+  "main": "dist/prompt-engine/src/index.js",
   "scripts": {
     "test": "jest",
     "coverage": "jest --coverage",
@@ -20,7 +20,7 @@
     "@ltd/j-toml": "^1.35.2",
     "ajv": "^8.12.0",
     "async-retry": "^1.3.3",
-    "openai": "^3.1.0",
+    "openai": "^3.2.1",
     "peggy": "^2.0.1",
     "uuid": "^8.3.2"
   },

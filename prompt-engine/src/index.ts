@@ -1,4 +1,4 @@
-import { runPromptWithRetry } from "./prompt-openai";
+import { runPromptWithRetry } from "./prompt-openai-completion";
 
 export { callImaginaryFunction } from "./imaginary-runtime";
 export { getVariablesFromPrompt, Prompt, TrimType } from "./prompt";

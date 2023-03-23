@@ -1,7 +1,7 @@
 import { callImaginaryFunction } from "./imaginary-runtime";
-import * as promptOpenai from "./prompt-openai";
+import * as promptOpenai from "./prompt-openai-completion";
 
-jest.mock("./prompt-openai");
+jest.mock("./prompt-openai-completion");
 
 describe("callImaginaryFunction", () => {
   const runMock = jest.mocked(promptOpenai.runPromptWithRetry);

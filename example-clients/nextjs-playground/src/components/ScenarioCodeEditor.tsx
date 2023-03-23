@@ -52,7 +52,7 @@ import {
 import { FiChevronRight, FiPlay, FiShare2 } from "react-icons/fi";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { useDebounce } from "use-debounce";
-import { presetScenarios } from "../util/presetScenarios";
+import { codePlaceholder, presetScenarios } from "../util/presetScenarios";
 import { ShareDialog } from "./ShareDialog";
 
 export const CodeEditor = dynamic(
@@ -197,6 +197,14 @@ export function ScenarioCodeEditor() {
         </Tooltip>
       </Flex>
       <CodeEditor
+        onFocus={() => {
+          if (!activeScenario.code?.trim()) {
+            setActiveScenario((scenario) => ({
+              ...scenario,
+              code: codePlaceholder,
+            }));
+          }
+        }}
         language="ts"
         padding={15}
         placeholder={codePlaceholder}
@@ -221,11 +229,6 @@ export function ScenarioCodeEditor() {
     </Flex>
   );
 }
-const codePlaceholder = `/**
- * Enter your code here
- * @imaginary
- */
-declare function newFunction(param: string): Promise<string>`;
 
 /// TODO: Move error detection to the babel / typescript transformer instead
 const SyntaxErrors: FC<{
