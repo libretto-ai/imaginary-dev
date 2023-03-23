@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build:example": "next build",
     "start": "next start",
+    "netlify": "cd ../.. && npm install && npm run build && cd example-clients/nextjs-list-maker && next build:example",
     "lint": "next lint"
   },
   "dependencies": {
