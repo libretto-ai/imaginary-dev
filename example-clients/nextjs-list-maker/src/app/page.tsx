@@ -13,7 +13,7 @@ export default function Home() {
   const [items, setItems] = useState<string[]>([]);
   const [newItem, setNewItem] = useState("");
   const [busyCount, setBusyCount] = useState(0);
-  const [listName, setListName] = useState("");
+  const [listName, setListName] = useState<string>();
   const onAddItem = useCallback(
     (e: any) => {
       e.preventDefault();
@@ -27,12 +27,15 @@ export default function Home() {
   }, []);
 
   const onSuggest = useCallback(async () => {
+    if (!listName) {
+      return;
+    }
     setBusyCount((busy) => busy + 1);
-
+    const queryItems = newItem ? [...items, newItem] : items;
     try {
       const newItem = await imaginaryFunctions.getAdditionalItem(
         listName,
-        items
+        queryItems
       );
       if (newItem) {
         setNewItem(newItem);
@@ -40,10 +43,14 @@ export default function Home() {
     } finally {
       setBusyCount((busy) => busy - 1);
     }
-  }, [items, listName]);
-  const suggestEnabled = items.length >= 3;
+  }, [items, listName, newItem]);
+
+  // only allow suggestions once we have list
+  const suggestEnabled = !!listName;
+
+  // only allow adding non-empty strings
   const addEnabled = newItem.trim().length > 0;
-  const itemCount = items.length;
+
   useEffect(() => {
     async function getName() {
       setBusyCount((busy) => busy + 1);
@@ -56,15 +63,20 @@ export default function Home() {
         setBusyCount((busy) => busy - 1);
       }
     }
-    if (items.length > 3) {
+    if (!listName && items.length >= 3) {
       getName();
     }
   }, [items]);
+  const onReset = useCallback(() => {
+    setListName(undefined);
+    setNewItem("");
+    setItems([]);
+  }, []);
 
   return (
     <main className={styles.body}>
       <div className={styles.container}>
-        <h1 className={styles.h1}>Add Items to List</h1>
+        <h1 className={styles.h1}>Listmaker 3000</h1>
         <h2 className={styles.h2}>{listName}</h2>
         <ul className={styles.ul}>
           {items.map((item, index) => (
@@ -107,7 +119,13 @@ export default function Home() {
             >
               Suggest
             </button>
+            <button className={styles.button} type="button" onClick={onReset}>
+              Reset
+            </button>
           </div>
+          <div
+            className={`${styles.spinner} ${busyCount ? styles.active : ""}`}
+          />
         </form>
       </div>
     </main>

@@ -31,6 +31,7 @@
   flex-direction: column;
   align-items: center;
   margin-bottom: 20px;
+  gap: 1rem;
 }
 
 .input[type="text"] {
@@ -88,4 +89,23 @@
 .removeButton {
   border: 0;
   background-color: transparent;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 5px solid rgba(0, 0, 0, 0.1);
+  border-top-color: #3498db;
+  animation: spinner 1s ease-in-out infinite;
+  visibility: hidden; /* hide the spinner by default */
+}
+.spinner.active {
+  visibility: visible; /* show the spinner when the active class is present */
+}
+
+@keyframes spinner {
+  to {
+    transform: rotate(360deg);
+  }
 }

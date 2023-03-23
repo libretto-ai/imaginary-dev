@@ -8,7 +8,7 @@ export declare function getNameForList(items: string[]): Promise<string>;
 
 /**
  * This function takes a category name, and a list of items in that category,
- * and returns one more item that would be a member of the named list.
+ * and returns one more items not in `items`, that would also a member of the named list.
  *
  * @imaginary
  */
