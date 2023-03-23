@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build:example": "next build",
     "clean": "rm -rf .next/",
-    "netlify": "cd ../.. && npm install && npm run build && cd example-clients/nextjs-api && next build:example",
+    "netlify": "cd ../.. && npm install && npm run build && cd example-clients/nextjs-api && next build",
     "start": "next start",
     "lint": "next lint",
     "full-clean": "npm run clean && rm -rf node_modules",
