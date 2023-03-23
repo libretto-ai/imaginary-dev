@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "netlify": "cd ../.. && npm install && npm run build && cd example-clients/nextjs && next build",
     "lint": "next lint"
   },
   "dependencies": {
