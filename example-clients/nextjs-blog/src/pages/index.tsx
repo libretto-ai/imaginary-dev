@@ -1,17 +1,11 @@
 import Head from "next/head";
-import Image from "next/image";
-import styles from "@/styles/Home.module.css";
 import { useState } from "react";
-const diff = require("diff");
-import { imaginaryFunctionMap } from "@/blog-ai";
-import { wrapRemoteImaginaryFunctions } from "@imaginary-dev/nextjs-util/browser";
+import { diffChars } from "diff";
 
-const {
-  titleForBlogPost,
-  tagsForBlogPost,
-  addParagraphToBlogPost,
-  addConcludingParagraphToBlogPost,
-} = wrapRemoteImaginaryFunctions(imaginaryFunctionMap, "/api/");
+import titleForBlogPost from "./api/titleForBlogPost";
+import tagsForBlogPost from "./api/tagsForBlogPost";
+import addConcludingParagraphToBlogPost from "./api/addConcludingParagraphToBlogPost";
+import addParagraphToBlogPost from "./api/addParagraphToBlogPost";
 
 export default function Home() {
   const [blogTitle, setBlogTitle] = useState("");
@@ -24,7 +18,7 @@ export default function Home() {
   const [addParagraphLoading, setAddParagraphLoading] = useState(false);
   const [addConclusionLoading, setAddConclusionLoading] = useState(false);
 
-  const changeBlogText = async (e) => {
+  const changeBlogText = async (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
 
     setBlogText(e.target.value);
@@ -36,26 +30,36 @@ export default function Home() {
     }
   };
 
-  const addTag = (tag) => {
+  const addTag = (tag: string) => {
     if (tags.includes(tag)) return;
 
     setTags([...tags, tag]);
   };
 
-  const addParagraph = async (e) => {
-    e.preventDefault();
-    setAddParagraphLoading(true);
-    setBlogText(blogText + "\n\n" + (await addParagraphToBlogPost(blogText)));
-    setAddParagraphLoading(false);
+  const refreshSuggestions = (newText: string) => {
+    setTextWhentTitleWasAsked(newText);
+    titleForBlogPost(newText).then(setSuggestedTitles);
+    tagsForBlogPost(newText).then(setSuggestedTags);
   };
 
-  const addConclusion = async (e) => {
+  const addParagraph = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    setAddParagraphLoading(true);
+    const newText =
+      blogText + "\n\n" + (await addParagraphToBlogPost(blogText));
+    setBlogText(newText);
+    setAddParagraphLoading(false);
+    refreshSuggestions(newText);
+  };
+
+  const addConclusion = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setAddConclusionLoading(true);
-    setBlogText(
-      blogText + "\n\n" + (await addConcludingParagraphToBlogPost(blogText))
-    );
+    const newText =
+      blogText + "\n\n" + (await addConcludingParagraphToBlogPost(blogText));
+    setBlogText(newText);
     setAddConclusionLoading(false);
+    refreshSuggestions(newText);
   };
 
   return (
@@ -91,7 +95,7 @@ export default function Home() {
                 Suggested titles:{" "}
                 {suggestedTitles.length ? (
                   suggestedTitles.map((title) => (
-                    <div>
+                    <div key={title}>
                       <a
                         className="text-sm underline decoration-indigo-500 cursor-pointer"
                         onClick={(e) => setBlogTitle(title)}
@@ -159,7 +163,10 @@ export default function Home() {
                 Suggested tags:{" "}
                 {suggestedTags.length ? (
                   suggestedTags.map((tag) => (
-                    <div className="inline-block rounded-lg bg-indigo-700 mx-2 my-1 text-white px-3 py-1">
+                    <div
+                      key={tag}
+                      className="inline-block rounded-lg bg-indigo-700 mx-2 my-1 text-white px-3 py-1"
+                    >
                       <a
                         className="text-sm cursor-pointer"
                         onClick={(e) => addTag(tag)}
@@ -219,7 +226,7 @@ function Loading({ visible }: { visible: boolean }) {
 }
 
 function diffCharCount(str1: string, str2: string) {
-  const fullCharDiff = diff.diffChars(str1, str2);
+  const fullCharDiff = diffChars(str1, str2);
 
   return fullCharDiff
     .filter(({ added, removed }) => added || removed)

@@ -17,7 +17,9 @@
       "@imaginary-dev/typescript-transformer": [
         "transformers/typescript/src/index.ts"
       ],
-      "@imaginary-dev/util": ["util/src/index.ts"]
+      "@imaginary-dev/util": ["util/src/index.ts"],
+      "@imaginary-dev/nextjs-util/server": ["nextjs-util/src/server.ts"],
+      "@imaginary-dev/nextjs-util/browser": ["nextjs-util/src/browser.ts"]
     }
   },
   "lib": ["es2021"]
