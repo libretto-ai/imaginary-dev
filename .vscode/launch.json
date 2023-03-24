@@ -25,7 +25,7 @@
       "args": ["--extensionDevelopmentPath=${workspaceFolder}/vsc-extension"],
       "cwd": "${workspaceFolder}/vsc-extension",
       "outFiles": ["${workspaceFolder}/vsc-extension/dist/**/*.js"],
-      "preLaunchTask": "${defaultBuildTask}"
+      "preLaunchTask": "build-extension"
     },
     {
       "name": "Extension Tests",
@@ -36,7 +36,7 @@
         "--extensionTestsPath=${workspaceFolder}/vsc-extension/dist/test/suite/index"
       ],
       "outFiles": ["${workspaceFolder}/vsc-extension/dist/test/**/*.js"],
-      "preLaunchTask": "${defaultBuildTask}"
+      "preLaunchTask": "build-extension"
     }
   ]
 }
