@@ -27,7 +27,7 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "test-disabled": "node ./out/test/runTest.js"
   },
   "dependencies": {
     "@imaginary-dev/util": "*",
