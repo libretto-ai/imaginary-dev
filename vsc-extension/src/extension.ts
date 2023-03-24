@@ -1,10 +1,19 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import { getImaginaryTsDocComments } from "@imaginary-dev/typescript-transformer";
+import { relative } from "path";
 import * as ts from "typescript";
 import * as vscode from "vscode";
 import { ImaginaryFunctionProvider } from "./function-tree-provider";
 import { SourceFileMap } from "./source-info";
+
+function getRelativePathToProject(absPath: string) {
+  const projectPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
+  if (projectPath) {
+    return relative(projectPath, absPath);
+  }
+  return absPath;
+}
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -61,28 +70,33 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   function updateFile(document: vscode.TextDocument) {
+    console.log(
+      "updateFile",
+      document.fileName,
+      document.languageId,
+      document.uri.scheme
+    );
     if (document.languageId !== "typescript" || document.uri.scheme === "git") {
       return;
     }
 
     const { fileName } = document;
+    const relativeFileName = getRelativePathToProject(fileName);
     const code = document.getText();
-    console.log("onDidChangeTextDocument for ", fileName);
+
     const sourceFile = ts.createSourceFile(
-      fileName,
+      relativeFileName,
       code,
       // TODO: get this from tsconfig for the project
       ts.ScriptTarget.Latest
     );
 
     const functions = findFunctions(sourceFile);
-    sources[fileName] = {
+    sources[relativeFileName] = {
       functions,
       sourceFile,
     };
     functionTreeProvider.refresh();
-
-    console.log("found ", functions.length, " in ", fileName);
   }
 }
 
