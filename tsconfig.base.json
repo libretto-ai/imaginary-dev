@@ -5,6 +5,7 @@
     "target": "ES2021",
     "moduleResolution": "node",
     "sourceMap": true,
+    "declaration": true,
     "strictNullChecks": true,
     "resolveJsonModule": true,
     "outDir": "dist",

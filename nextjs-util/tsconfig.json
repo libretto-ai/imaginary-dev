@@ -1,8 +1,7 @@
 {
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "declaration": true
+    "outDir": "dist"
   },
   "files": ["src/browser.ts", "src/server.ts", "src/index.ts"],
   "include": ["src/tests/*.ts", "setupJest.ts"]
