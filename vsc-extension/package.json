@@ -12,7 +12,7 @@
   "activationEvents": [
     "onLanguage:typescript"
   ],
-  "main": "./out/extension.js",
+  "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
@@ -27,7 +27,7 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
-    "test-disabled": "node ./out/test/runTest.js"
+    "test-disabled": "node ./dist/test/runTest.js"
   },
   "dependencies": {
     "@imaginary-dev/util": "*",
