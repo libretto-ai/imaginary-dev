@@ -14,12 +14,7 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "imaginary-programming.helloWorld",
-        "title": "Hello World"
-      }
-    ],
+    "commands": [],
     "viewsContainers": {
       "panel": [
         {
