@@ -14,12 +14,24 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "imaginary-programming.helloWorld",
-        "title": "Hello World"
-      }
-    ]
+    "commands": [],
+    "viewsContainers": {
+      "panel": [
+        {
+          "id": "imaginary-function-list",
+          "title": "Imaginary Functions",
+          "icon": "resources/favicon-32x32.png"
+        }
+      ]
+    },
+    "views": {
+      "imaginary-function-list": [
+        {
+          "id": "functions",
+          "name": "Function List"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

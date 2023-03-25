@@ -254,7 +254,7 @@ function getFunctionName(
   return functionName;
 }
 
-function getImaginaryTsDocComments(
+export function getImaginaryTsDocComments(
   functionDeclationNode: ts.FunctionDeclaration,
   sourceFile: ts.SourceFile
 ): string[] {
