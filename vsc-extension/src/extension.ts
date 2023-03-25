@@ -42,18 +42,21 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.workspace.onDidChangeTextDocument((e) => {
+      console.info("onDidChangeTextDocument", e.document.fileName, e.reason);
       updateFile(sources, e.document);
       functionTreeProvider.refresh();
     })
   );
   context.subscriptions.push(
     vscode.workspace.onDidOpenTextDocument((document) => {
+      console.info("onDidOpenTextDocument", document.fileName);
       updateFile(sources, document);
       functionTreeProvider.refresh();
     })
   );
   context.subscriptions.push(
     vscode.workspace.onDidCloseTextDocument((document) => {
+      console.info("onDidCloseTextDocument", document.fileName);
       const relativeFilePath = getRelativePathToProject(document.fileName);
       delete sources[relativeFilePath];
       functionTreeProvider.refresh();
@@ -62,7 +65,12 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 function updateFile(sources: SourceFileMap, document: vscode.TextDocument) {
-  if (document.languageId !== "typescript" || document.uri.scheme === "git") {
+  if (
+    (document.languageId !== "typescript" &&
+      document.languageId !== "typescriptreact") ||
+    document.uri.scheme === "git"
+  ) {
+    console.log("skipping because ", document.languageId);
     return;
   }
 
@@ -82,6 +90,13 @@ function updateFile(sources: SourceFileMap, document: vscode.TextDocument) {
     functions,
     sourceFile,
   };
+  console.log(
+    "updated ",
+    relativeFileName,
+    " with ",
+    functions.length,
+    " fucntions"
+  );
 }
 // This method is called when your extension is deactivated
 export function deactivate() {}

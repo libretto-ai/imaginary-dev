@@ -43,21 +43,26 @@ export class ImaginaryFunctionProvider
 
     // file item, only emit if there are files
     if (element.itemType === "file") {
-      const c = element.sourceFileInfo.functions.map(
-        (fn) =>
-          new FunctionItem(
-            fn,
-            fn.name?.text ?? "<unknown>",
-            this.printer.printNode(
-              ts.EmitHint.Unspecified,
-              fn,
-              element.sourceFileInfo.sourceFile
-            )
-          )
-      );
+      const c = element.sourceFileInfo.functions.map((fn) => {
+        const tooltip = this.printFunctionDefinition(fn, element);
+        return new FunctionItem(fn, fn.name?.text ?? "<unknown>", tooltip);
+      });
       return c;
     }
     return [];
+  }
+
+  printFunctionDefinition(fn: ts.FunctionDeclaration, element: FileItem) {
+    const tooltip = new vscode.MarkdownString();
+    tooltip.appendCodeblock(
+      this.printer.printNode(
+        ts.EmitHint.Unspecified,
+        fn,
+        element.sourceFileInfo.sourceFile
+      ),
+      "typescript"
+    );
+    return tooltip;
   }
 }
 
@@ -66,7 +71,7 @@ export class FunctionItem extends vscode.TreeItem {
   constructor(
     node: ts.FunctionDeclaration,
     public readonly label: string,
-    public readonly tooltip: string
+    public readonly tooltip: string | vscode.MarkdownString
   ) {
     super(label, vscode.TreeItemCollapsibleState.None);
     this.tooltip = tooltip;
