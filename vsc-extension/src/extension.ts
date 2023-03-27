@@ -4,6 +4,7 @@ import { getImaginaryTsDocComments } from "@imaginary-dev/typescript-transformer
 import { relative } from "path";
 import * as ts from "typescript";
 import * as vscode from "vscode";
+import { focusNode } from "./editor-utils";
 import { ImaginaryFunctionProvider } from "./function-tree-provider";
 import { SourceFileMap } from "./source-info";
 
@@ -35,10 +36,10 @@ export function activate(context: vscode.ExtensionContext) {
   const sources: SourceFileMap = {};
 
   const functionTreeProvider = new ImaginaryFunctionProvider(sources);
-
-  context.subscriptions.push(
-    vscode.window.registerTreeDataProvider("functions", functionTreeProvider)
-  );
+  const treeView = vscode.window.createTreeView("functions", {
+    treeDataProvider: functionTreeProvider,
+  });
+  vscode.commands.registerCommand("imaginary.clickFunction", focusNode);
 
   context.subscriptions.push(
     vscode.workspace.onDidChangeTextDocument((e) => {

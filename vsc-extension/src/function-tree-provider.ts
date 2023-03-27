@@ -45,7 +45,12 @@ export class ImaginaryFunctionProvider
     if (element.itemType === "file") {
       const c = element.sourceFileInfo.functions.map((fn) => {
         const tooltip = this.printFunctionDefinition(fn, element);
-        return new FunctionItem(fn, fn.name?.text ?? "<unknown>", tooltip);
+        return new FunctionItem(
+          fn,
+          element.sourceFileInfo.sourceFile,
+          fn.name?.text ?? "<unknown>",
+          tooltip
+        );
       });
       return c;
     }
@@ -68,13 +73,23 @@ export class ImaginaryFunctionProvider
 
 export class FunctionItem extends vscode.TreeItem {
   itemType = "function" as const;
+  node: ts.FunctionDeclaration;
+  sourceFile: ts.SourceFile;
   constructor(
     node: ts.FunctionDeclaration,
+    sourceFile: ts.SourceFile,
     public readonly label: string,
     public readonly tooltip: string | vscode.MarkdownString
   ) {
     super(label, vscode.TreeItemCollapsibleState.None);
     this.tooltip = tooltip;
+    this.node = node;
+    this.sourceFile = sourceFile;
+    this.command = {
+      command: "imaginary.clickFunction",
+      title: "???",
+      arguments: [this.node, this.sourceFile],
+    };
   }
 }
 
