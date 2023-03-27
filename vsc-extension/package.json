@@ -15,20 +15,11 @@
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [],
-    "viewsContainers": {
-      "panel": [
-        {
-          "id": "imaginary-function-list",
-          "title": "Imaginary Functions",
-          "icon": "resources/favicon-32x32.png"
-        }
-      ]
-    },
     "views": {
-      "imaginary-function-list": [
+      "explorer": [
         {
           "id": "functions",
-          "name": "Function List"
+          "name": "Imaginary Function List"
         }
       ]
     }
