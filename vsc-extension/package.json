@@ -15,7 +15,23 @@
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [],
+    "viewsContainers": {
+      "panel": [
+        {
+          "id": "currentfunctions",
+          "title": "Current functions",
+          "icon": "resources/favicon-32x32.png"
+        }
+      ]
+    },
     "views": {
+      "currentfunctions": [
+        {
+          "id": "imaginary.currentfunctions",
+          "name": "view: currentfunctions",
+          "type": "webview"
+        }
+      ],
       "explorer": [
         {
           "id": "functions",

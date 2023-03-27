@@ -62,6 +62,22 @@ export function activate(context: vscode.ExtensionContext) {
       functionTreeProvider.update(sources);
     })
   );
+
+  console.log("adding webview...");
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider("imaginary.currentfunctions", {
+      resolveWebviewView(webviewView, context, token) {
+        webviewView.webview.html = `
+        <html lang="en">
+        <head><title>Foo</title></head>
+        <body>
+        <p>Whee, a working webview</p>
+        </body>
+        </html>
+        `;
+      },
+    })
+  );
 }
 
 // This method is called when your extension is deactivated
