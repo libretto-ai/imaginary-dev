@@ -1,9 +1,9 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-import { getImaginaryTsDocComments } from "@imaginary-dev/typescript-transformer";
 import { relative } from "path";
 import * as ts from "typescript";
 import * as vscode from "vscode";
+import { findFunctions } from "./ast-utils";
 import { focusNode } from "./editor-utils";
 import { ImaginaryFunctionProvider } from "./function-tree-provider";
 import { SourceFileMap } from "./source-info";
@@ -33,7 +33,7 @@ export function activate(context: vscode.ExtensionContext) {
     'Congratulations, your extension "imaginary-programming" is now active!'
   );
 
-  const sources: SourceFileMap = {};
+  let sources: Readonly<SourceFileMap> = {};
 
   const functionTreeProvider = new ImaginaryFunctionProvider(sources);
   const treeView = vscode.window.createTreeView("functions", {
@@ -44,35 +44,39 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.workspace.onDidChangeTextDocument((e) => {
       console.info("onDidChangeTextDocument", e.document.fileName, e.reason);
-      updateFile(sources, e.document);
-      functionTreeProvider.refresh();
+      sources = updateFile(sources, e.document);
+      functionTreeProvider.update(sources);
     })
   );
   context.subscriptions.push(
     vscode.workspace.onDidOpenTextDocument((document) => {
       console.info("onDidOpenTextDocument", document.fileName);
-      updateFile(sources, document);
-      functionTreeProvider.refresh();
+      const newSources = updateFile(sources, document);
+      functionTreeProvider.update(newSources);
     })
   );
   context.subscriptions.push(
     vscode.workspace.onDidCloseTextDocument((document) => {
       console.info("onDidCloseTextDocument", document.fileName);
       const relativeFilePath = getRelativePathToProject(document.fileName);
-      delete sources[relativeFilePath];
-      functionTreeProvider.refresh();
+      const { [relativeFilePath]: removed, ...newSources } = sources;
+      sources = newSources;
+      functionTreeProvider.update(sources);
     })
   );
 }
 
-function updateFile(sources: SourceFileMap, document: vscode.TextDocument) {
+function updateFile(
+  prevSources: Readonly<SourceFileMap>,
+  document: vscode.TextDocument
+): Readonly<SourceFileMap> {
   if (
     (document.languageId !== "typescript" &&
       document.languageId !== "typescriptreact") ||
     document.uri.scheme === "git"
   ) {
     console.log("skipping because ", document.languageId);
-    return;
+    return prevSources;
   }
 
   const { fileName } = document;
@@ -87,33 +91,13 @@ function updateFile(sources: SourceFileMap, document: vscode.TextDocument) {
   );
 
   const functions = findFunctions(sourceFile);
-  sources[relativeFileName] = {
-    functions,
-    sourceFile,
+  return {
+    ...prevSources,
+    [relativeFileName]: {
+      functions,
+      sourceFile,
+    },
   };
-  console.log(
-    "updated ",
-    relativeFileName,
-    " with ",
-    functions.length,
-    " fucntions"
-  );
 }
 // This method is called when your extension is deactivated
 export function deactivate() {}
-
-function findFunctions(sourceFile: ts.SourceFile) {
-  const imaginaryFunctions: ts.FunctionDeclaration[] = [];
-  const visitor = (node: ts.Node): ts.VisitResult<ts.Node> => {
-    if (ts.isFunctionDeclaration(node)) {
-      const tsDocComments = getImaginaryTsDocComments(node, sourceFile);
-      if (tsDocComments.length === 1) {
-        imaginaryFunctions.push(node);
-      }
-    }
-    return ts.forEachChild(node, visitor);
-  };
-
-  visitor(sourceFile);
-  return imaginaryFunctions;
-}

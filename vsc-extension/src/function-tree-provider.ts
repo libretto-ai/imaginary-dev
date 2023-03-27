@@ -7,9 +7,9 @@ export class ImaginaryFunctionProvider
 {
   printer = ts.createPrinter();
 
-  sourceFiles: SourceFileMap;
-  constructor(sourceFiles: SourceFileMap) {
-    this.sourceFiles = sourceFiles;
+  private _sourceFiles: Readonly<SourceFileMap>;
+  constructor(sourceFiles: Readonly<SourceFileMap>) {
+    this._sourceFiles = sourceFiles;
   }
 
   private _onDidChangeTreeData: vscode.EventEmitter<
@@ -22,6 +22,12 @@ export class ImaginaryFunctionProvider
   refresh(): void {
     this._onDidChangeTreeData.fire();
   }
+  update(sources: Readonly<SourceFileMap>, refresh = true) {
+    this._sourceFiles = sources;
+    if (refresh) {
+      this.refresh();
+    }
+  }
 
   getTreeItem(
     element: ImaginaryTreeItem
@@ -32,11 +38,11 @@ export class ImaginaryFunctionProvider
     // Root items, so emit files
     if (!element) {
       return (
-        Object.entries(this.sourceFiles)
+        Object.entries(this._sourceFiles)
           // ignore files without imaginary functions
           .filter(([, info]) => info.functions.length)
           .map(([fileName]) => {
-            return new FileItem(fileName, this.sourceFiles[fileName]);
+            return new FileItem(fileName, this._sourceFiles[fileName]);
           })
       );
     }
