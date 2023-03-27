@@ -1,14 +1,13 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import { relative } from "path";
-import * as ts from "typescript";
 import * as vscode from "vscode";
-import { findFunctions } from "./ast-utils";
 import { focusNode } from "./editor-utils";
 import { ImaginaryFunctionProvider } from "./function-tree-provider";
 import { SourceFileMap } from "./source-info";
+import { removeFile, updateFile } from "./source-utils";
 
-function getRelativePathToProject(absPath: string) {
+export function getRelativePathToProject(absPath: string) {
   const projectPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
   if (projectPath) {
     return relative(projectPath, absPath);
@@ -51,53 +50,19 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.workspace.onDidOpenTextDocument((document) => {
       console.info("onDidOpenTextDocument", document.fileName);
-      const newSources = updateFile(sources, document);
-      functionTreeProvider.update(newSources);
+      sources = updateFile(sources, document);
+
+      functionTreeProvider.update(sources);
     })
   );
   context.subscriptions.push(
     vscode.workspace.onDidCloseTextDocument((document) => {
       console.info("onDidCloseTextDocument", document.fileName);
-      const relativeFilePath = getRelativePathToProject(document.fileName);
-      const { [relativeFilePath]: removed, ...newSources } = sources;
-      sources = newSources;
+      sources = removeFile(document, sources);
       functionTreeProvider.update(sources);
     })
   );
 }
 
-function updateFile(
-  prevSources: Readonly<SourceFileMap>,
-  document: vscode.TextDocument
-): Readonly<SourceFileMap> {
-  if (
-    (document.languageId !== "typescript" &&
-      document.languageId !== "typescriptreact") ||
-    document.uri.scheme === "git"
-  ) {
-    console.log("skipping because ", document.languageId);
-    return prevSources;
-  }
-
-  const { fileName } = document;
-  const relativeFileName = getRelativePathToProject(fileName);
-  const code = document.getText();
-
-  const sourceFile = ts.createSourceFile(
-    relativeFileName,
-    code,
-    // TODO: get this from tsconfig for the project
-    ts.ScriptTarget.Latest
-  );
-
-  const functions = findFunctions(sourceFile);
-  return {
-    ...prevSources,
-    [relativeFileName]: {
-      functions,
-      sourceFile,
-    },
-  };
-}
 // This method is called when your extension is deactivated
 export function deactivate() {}
