@@ -14,12 +14,12 @@
   },
   "devDependencies": {
     "@imaginary-dev/babel-transformer": "*",
-    "@imaginary-dev/runtime": "*"
+    "@imaginary-dev/runtime": "*",
+    "@types/node": "16"
   },
   "dependencies": {
-    "@next/font": "^13.1.2",
     "@imaginary-dev/nextjs-util": "*",
-    "@types/node": "^18.11.18",
+    "@next/font": "^13.1.2",
     "@types/react": "^18.0.27",
     "@types/react-dom": "^18.0.10",
     "eslint": "^8.32.0",
