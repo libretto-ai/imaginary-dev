@@ -10,13 +10,15 @@ const path = require("path");
 /** @type WebpackConfig */
 const extensionConfig = {
   target: "web", // VS Code extensions run in a Node.js-context 📖 -> https://webpack.js.org/configuration/node/
-  // mode: "none", // this leaves the source code as close as possible to the original (when packaging we set this to 'production')
   mode: "development",
-  entry: "./src-views/index.tsx", // the entry point of this extension, 📖 -> https://webpack.js.org/configuration/entry-context/
+  entry: {
+    // Make an entry for each panel
+    "function-panel": "./src-views/function-panel/index.tsx",
+  },
   output: {
     // the bundle is stored in the 'dist' folder (check package.json), 📖 -> https://webpack.js.org/configuration/output/
     path: path.resolve(__dirname, "dist", "views"),
-    filename: "index.js",
+    filename: "[name].js",
   },
   externals: {
     vscode: "commonjs vscode", // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed, 📖 -> https://webpack.js.org/configuration/externals/
@@ -55,5 +57,7 @@ const extensionConfig = {
   infrastructureLogging: {
     level: "log", // enables logging required for problem matchers
   },
+  // cannot use eval-based sourcemaps because CSP disallows eval
+  devtool: "cheap-source-map",
 };
 module.exports = [extensionConfig];

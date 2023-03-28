@@ -87,7 +87,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
         const nonce = getNonce();
 
         const jsSrc = webviewView.webview.asWebviewUri(
-          vscode.Uri.joinPath(extensionRoot, "./panel/index.js")
+          vscode.Uri.joinPath(extensionRoot, "./views/function-panel.js")
         );
         const webViewHtml = html`
           <html lang="en">
