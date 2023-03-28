@@ -38,8 +38,18 @@ export default function Home() {
 
   const refreshSuggestions = (newText: string) => {
     setTextWhentTitleWasAsked(newText);
-    titleForBlogPost(newText).then(setSuggestedTitles);
-    tagsForBlogPost(newText).then(setSuggestedTags);
+
+    // don't call await, because we want these to happen in parallel.
+    suggestTitles(newText);
+    suggestTags(newText);
+  };
+
+  const suggestTitles = async (text: string) => {
+    setSuggestedTitles(await titleForBlogPost(text));
+  };
+
+  const suggestTags = async (text: string) => {
+    setSuggestedTags(await tagsForBlogPost(text));
   };
 
   const addParagraph = async (e: React.MouseEvent<HTMLButtonElement>) => {
