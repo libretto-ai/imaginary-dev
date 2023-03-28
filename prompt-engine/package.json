@@ -24,9 +24,6 @@
     "peggy": "^2.0.1",
     "uuid": "^8.3.2"
   },
-  "publishConfig": {
-    "access": "restricted"
-  },
   "devDependencies": {
     "@types/async-retry": "^1.4.5",
     "@types/retry": "^0.12.2",
