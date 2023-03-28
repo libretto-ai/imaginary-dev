@@ -1,6 +1,6 @@
 {
   "name": "@imaginary-dev/nextjs-util",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "description": "Utilities for deploying imaginary functions in nextjs",
   "main": "dist/nextjs-util/src/server.js",
   "scripts": {
@@ -18,7 +18,7 @@
     "./server": "./dist/nextjs-util/src/server.js",
     "./browser": "./dist/nextjs-util/src/browser.js"
   },
-  "author": "",
+  "author": "Sasha Aickin",
   "license": "MIT",
   "devDependencies": {
     "jest-environment-jsdom": "^29.5.0",

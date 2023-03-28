@@ -1,6 +1,6 @@
 {
   "name": "@imaginary-dev/babel-transformer",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A Babel plugin for transforming imaginary functions",
   "main": "dist/transformers/babel/src/index.js",
   "scripts": {
@@ -30,8 +30,5 @@
     "jest": "^29.3.1",
     "transformer-shared-tests": "*",
     "ts-jest": "^29.0.5"
-  },
-  "publishConfig": {
-    "access": "restricted"
   }
 }
