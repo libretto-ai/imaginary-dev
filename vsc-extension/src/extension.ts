@@ -49,6 +49,12 @@ export function activate(extensionContext: vscode.ExtensionContext) {
     })
   );
   extensionContext.subscriptions.push(
+    vscode.window.onDidChangeVisibleTextEditors((editors) => {
+      console.log("onDidChangeVisibleTextEditors", editors);
+    })
+  );
+
+  extensionContext.subscriptions.push(
     vscode.workspace.onDidOpenTextDocument((document) => {
       console.info("onDidOpenTextDocument", document.fileName);
       sources = updateFile(sources, document);
@@ -63,6 +69,8 @@ export function activate(extensionContext: vscode.ExtensionContext) {
       functionTreeProvider.update(sources);
     })
   );
+
+  sources = initializeOpenEditors(sources, functionTreeProvider);
 
   console.log("adding webview...");
   extensionContext.subscriptions.push(
@@ -107,6 +115,25 @@ export function activate(extensionContext: vscode.ExtensionContext) {
       },
     })
   );
+}
+
+/**
+ * onDidOpenTextDocument does not fire for editors that are already open when
+ * the extension initializes, so we do it here.
+ */
+function initializeOpenEditors(
+  sources: Readonly<SourceFileMap>,
+  functionTreeProvider: ImaginaryFunctionProvider
+) {
+  let updated = false;
+  vscode.window.visibleTextEditors.forEach(({ document }) => {
+    sources = updateFile(sources, document);
+    updated = true;
+  });
+  if (updated) {
+    functionTreeProvider.update(sources);
+  }
+  return sources;
 }
 
 // This method is called when your extension is deactivated
