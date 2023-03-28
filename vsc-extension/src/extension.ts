@@ -1,12 +1,13 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
+import html from "html-template-tag";
 import { relative } from "path";
 import * as vscode from "vscode";
 import { focusNode } from "./editor-utils";
 import { ImaginaryFunctionProvider } from "./function-tree-provider";
 import { SourceFileMap } from "./source-info";
 import { removeFile, updateFile } from "./source-utils";
-
+console.log("got html as ", html);
 export function getRelativePathToProject(absPath: string) {
   const projectPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
   if (projectPath) {
@@ -17,7 +18,7 @@ export function getRelativePathToProject(absPath: string) {
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+export function activate(extensionContext: vscode.ExtensionContext) {
   const ipChannel = vscode.window.createOutputChannel(
     "Imaginary Programming Extension"
   );
@@ -40,14 +41,14 @@ export function activate(context: vscode.ExtensionContext) {
   });
   vscode.commands.registerCommand("imaginary.clickFunction", focusNode);
 
-  context.subscriptions.push(
+  extensionContext.subscriptions.push(
     vscode.workspace.onDidChangeTextDocument((e) => {
       console.info("onDidChangeTextDocument", e.document.fileName, e.reason);
       sources = updateFile(sources, e.document);
       functionTreeProvider.update(sources);
     })
   );
-  context.subscriptions.push(
+  extensionContext.subscriptions.push(
     vscode.workspace.onDidOpenTextDocument((document) => {
       console.info("onDidOpenTextDocument", document.fileName);
       sources = updateFile(sources, document);
@@ -55,7 +56,7 @@ export function activate(context: vscode.ExtensionContext) {
       functionTreeProvider.update(sources);
     })
   );
-  context.subscriptions.push(
+  extensionContext.subscriptions.push(
     vscode.workspace.onDidCloseTextDocument((document) => {
       console.info("onDidCloseTextDocument", document.fileName);
       sources = removeFile(document, sources);
@@ -64,17 +65,45 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   console.log("adding webview...");
-  context.subscriptions.push(
+  extensionContext.subscriptions.push(
     vscode.window.registerWebviewViewProvider("imaginary.currentfunctions", {
       resolveWebviewView(webviewView, context, token) {
-        webviewView.webview.html = `
-        <html lang="en">
-        <head><title>Foo</title></head>
-        <body>
-        <p>Whee, a working webview</p>
-        </body>
-        </html>
+        const extensionRoot = vscode.Uri.joinPath(
+          extensionContext.extensionUri,
+          "dist"
+        );
+        webviewView.webview.options = {
+          enableScripts: true,
+          localResourceRoots: [extensionRoot],
+        };
+        const nonce = getNonce();
+
+        const jsSrc = webviewView.webview.asWebviewUri(
+          vscode.Uri.joinPath(extensionRoot, "./panel/index.js")
+        );
+        const webViewHtml = html`
+          <html lang="en">
+            <head>
+              <title>Foo</title>
+              <meta
+                http-equiv="Content-Security-Policy"
+                content="default-src 'none'; img-src vscode-resource: https:; script-src 'nonce-${nonce}';style-src vscode-resource: 'unsafe-inline' http: https: data:;"
+              />
+              <base
+                href="${extensionRoot
+                  .with({ scheme: "vscode-resource" })
+                  .toString()}/"
+              />
+            </head>
+            <body>
+              <main id="root"></main>
+              <script nonce="${nonce}" src="${jsSrc.toString()}"></script>
+            </body>
+          </html>
         `;
+        console.log("restoring web view? ", webViewHtml);
+
+        webviewView.webview.html = webViewHtml;
       },
     })
   );
@@ -82,3 +111,13 @@ export function activate(context: vscode.ExtensionContext) {
 
 // This method is called when your extension is deactivated
 export function deactivate() {}
+
+function getNonce() {
+  let text = "";
+  const possible =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  for (let i = 0; i < 32; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
+}
