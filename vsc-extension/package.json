@@ -49,12 +49,19 @@
     "test-disabled": "node ./dist/test/runTest.js"
   },
   "dependencies": {
+    "@imaginary-dev/typescript-transformer": "*",
     "@imaginary-dev/util": "*",
-    "@imaginary-dev/typescript-transformer": "*"
+    "html-template-tag": "^4.0.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "ts-loader": "^9.4.2",
+    "webpack": "^5.76.3"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",
     "@types/node": "16.x",
+    "@types/react": "^16.3.14",
+    "@types/react-dom": "^16.0.5",
     "@types/vscode": "^1.76.0",
     "@typescript-eslint/eslint-plugin": "^5.53.0",
     "@typescript-eslint/parser": "^5.53.0",
