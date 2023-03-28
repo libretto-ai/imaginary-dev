@@ -59,7 +59,7 @@ OPENAI_API_KEY=sk-some-api-key
 
 Substitute in your particular OpenAI API key. If you want to learn about other ways you can set environment variables in Next.js, check out [the Next.js documentation on environment variables](https://nextjs.org/docs/basic-features/environment-variables).
 
-## Imaginary functions need to live server-side
+### Imaginary functions need to live server-side
 
 OpenAI's API is not intended to be used directly from browsers. If you do so, you will be revealing your OpenAI API key to the world and potentially allow other people to rack up charges on your OpenAI account. For this reason, you should always use the OpenAI API on the server-side and make an API call from your browser frontend to the server. This keeps your API key safe and hidden from potential bad actors.
 
@@ -134,7 +134,7 @@ OPENAI_API_KEY=sk-some-api-key node myfile.js
 
 For projects that already use the standard TypeScript compiler (`tsc`) as part of their build process, you will need to replace `tsc` with `ttsc` from the excellent `ttypescript` project. `ttsc` is a drop-in replacement for `tsc` that allows the use of compiler plugins, like the one that is required for `imaginary-dev` to run. Replacing `tsc` with `ttsc` will not change the version of TypeScript that you use. You will also need to install the `imaginary-dev` compiler plugin and edit your TypeScript config to use that plugin.
 
-## Installing the dependencies
+### Installing the dependencies
 
 First, install the necessary dependencies to your project:
 
@@ -143,7 +143,7 @@ npm install @imaginary-dev/runtime
 npm install --save-dev @imaginary-dev/typescript-transformer ttypescript
 ```
 
-## Swap out `tsc` for `ttsc`
+### Swap out `tsc` for `ttsc`
 
 Next, find where in your project `tsc` is invoked as part of your project's build. Commonly, this in an npm script defined in `package.json`. Replace `tsc` with `ttsc` (note the extra "t" at the beginning). For example, if your project is built with the command `npm run build`, look in your `package.json` file, and you'll probably see a line like this:
 
@@ -167,7 +167,7 @@ To swap out the compiler, all you need to do is change that to:
 
 `ttsc` will pick up your existing TypeScript configuration and support all the same configuration settings as `tsc`.
 
-## Adding `imaginary-dev` to your TypeScript configuration
+### Adding `imaginary-dev` to your TypeScript configuration
 
 Third, add the following `plugins` line to the `compilerOptions` section of your `tsconfig.json` file:
 
