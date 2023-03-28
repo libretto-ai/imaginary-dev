@@ -1,3 +1,4 @@
+import { describe, expect, it } from "@jest/globals";
 import { compileTestCode } from "./babel-test-compiler";
 
 describe("transformer tests", () => {
