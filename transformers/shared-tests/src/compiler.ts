@@ -1,5 +1,3 @@
-import { jest } from "@jest/globals";
-
 export type CallImaginaryFunction = (
   functionComment: string,
   functionName: string,

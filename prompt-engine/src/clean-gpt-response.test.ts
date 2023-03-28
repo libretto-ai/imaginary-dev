@@ -1,4 +1,3 @@
-import { describe, test } from "@jest/globals";
 import cleanGptResponse from "./clean-gpt-response";
 
 describe("GPT response cleaner", () => {

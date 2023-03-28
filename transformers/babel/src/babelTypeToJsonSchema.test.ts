@@ -1,5 +1,4 @@
 import * as t from "@babel/types";
-import { describe, expect, it } from "@jest/globals";
 import { JSONSchema7 } from "json-schema";
 import { babelTypeToJsonSchema } from "./babelTypeToJsonSchema";
 

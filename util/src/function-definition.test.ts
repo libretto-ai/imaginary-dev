@@ -4,10 +4,6 @@ import {
   hashFunctionDefinition,
   ImaginaryFunctionDefinition,
 } from "./function-definition"; // Replace with the correct module path
-
-// Import Jest functions
-import { expect } from "@jest/globals";
-
 // Test the hashFunctionDefinition function
 describe("hashFunctionDefinition", () => {
   it("should return the same hash for identical ImaginaryFunctionDefinitions", () => {
