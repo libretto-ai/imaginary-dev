@@ -17,6 +17,26 @@
       "request": "attach",
       "name": "Attach",
       "port": 9229
+    },
+    {
+      "name": "Run Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}/vsc-extension"],
+      "cwd": "${workspaceFolder}/vsc-extension",
+      "outFiles": ["${workspaceFolder}/vsc-extension/dist/**/*.js"],
+      "preLaunchTask": "build-extension"
+    },
+    {
+      "name": "Extension Tests",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/vsc-extension",
+        "--extensionTestsPath=${workspaceFolder}/vsc-extension/dist/test/suite/index"
+      ],
+      "outFiles": ["${workspaceFolder}/vsc-extension/dist/test/**/*.js"],
+      "preLaunchTask": "build-extension"
     }
   ]
 }

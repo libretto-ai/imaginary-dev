@@ -16,7 +16,8 @@
     "example-clients/*",
     "transformers/*",
     "nextjs-util",
-    "util"
+    "util",
+    "vsc-extension"
   ],
   "devDependencies": {
     "@jest/globals": "^29.3.1",
