@@ -1,6 +1,6 @@
 {
   "name": "@imaginary-dev/util",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "",
   "main": "dist/util/src/index.js",
   "scripts": {
@@ -16,8 +16,5 @@
   },
   "devDependencies": {
     "@types/object-hash": "^3.0.2"
-  },
-  "publishConfig": {
-    "access": "restricted"
   }
 }
