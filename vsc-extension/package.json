@@ -28,7 +28,7 @@
       "currentfunctions": [
         {
           "id": "imaginary.currentfunctions",
-          "name": "view: currentfunctions",
+          "name": "Inputs & Outputs",
           "type": "webview"
         }
       ],
@@ -51,6 +51,7 @@
   "dependencies": {
     "@imaginary-dev/typescript-transformer": "*",
     "@imaginary-dev/util": "*",
+    "@vscode/webview-ui-toolkit": "^1.2.2",
     "html-template-tag": "^4.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -65,6 +66,7 @@
     "@types/react": "^18.0.30",
     "@types/react-dom": "^18.0.11",
     "@types/vscode": "^1.76.0",
+    "@types/vscode-webview": "^1.57.1",
     "@typescript-eslint/eslint-plugin": "^5.53.0",
     "@typescript-eslint/parser": "^5.53.0",
     "@vscode/test-electron": "^2.2.3",
