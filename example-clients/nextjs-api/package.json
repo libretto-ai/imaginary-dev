@@ -14,15 +14,15 @@
   },
   "devDependencies": {
     "@imaginary-dev/babel-transformer": "*",
-    "@imaginary-dev/runtime": "*"
+    "@imaginary-dev/runtime": "*",
+    "@types/node": "16",
+    "eslint": "^8.36.0"
   },
   "dependencies": {
-    "@next/font": "^13.1.2",
     "@imaginary-dev/nextjs-util": "*",
-    "@types/node": "^18.11.18",
+    "@next/font": "^13.1.2",
     "@types/react": "^18.0.27",
     "@types/react-dom": "^18.0.10",
-    "eslint": "^8.32.0",
     "eslint-config-next": "^13.1.2",
     "next": "^13.1.2",
     "nextjs-google-analytics": "^2.3.3",

@@ -10,5 +10,8 @@
   "[dotenv]": {
     "editor.defaultFormatter": "foxundermoon.shell-format"
   },
-  "dotenv.enableAutocloaking": false
+  "dotenv.enableAutocloaking": false,
+  "search.exclude": {
+    "**/dist": true
+  }
 }

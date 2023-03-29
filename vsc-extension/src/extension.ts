@@ -1,14 +1,14 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-import { getImaginaryTsDocComments } from "@imaginary-dev/typescript-transformer";
+import html from "html-template-tag";
 import { relative } from "path";
-import * as ts from "typescript";
 import * as vscode from "vscode";
 import { focusNode } from "./editor-utils";
 import { ImaginaryFunctionProvider } from "./function-tree-provider";
 import { SourceFileMap } from "./source-info";
-
-function getRelativePathToProject(absPath: string) {
+import { removeFile, updateFile } from "./source-utils";
+console.log("got html as ", html);
+export function getRelativePathToProject(absPath: string) {
   const projectPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
   if (projectPath) {
     return relative(projectPath, absPath);
@@ -18,7 +18,7 @@ function getRelativePathToProject(absPath: string) {
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+export function activate(extensionContext: vscode.ExtensionContext) {
   const ipChannel = vscode.window.createOutputChannel(
     "Imaginary Programming Extension"
   );
@@ -33,7 +33,7 @@ export function activate(context: vscode.ExtensionContext) {
     'Congratulations, your extension "imaginary-programming" is now active!'
   );
 
-  const sources: SourceFileMap = {};
+  let sources: Readonly<SourceFileMap> = {};
 
   const functionTreeProvider = new ImaginaryFunctionProvider(sources);
   const treeView = vscode.window.createTreeView("functions", {
@@ -41,79 +41,110 @@ export function activate(context: vscode.ExtensionContext) {
   });
   vscode.commands.registerCommand("imaginary.clickFunction", focusNode);
 
-  context.subscriptions.push(
+  extensionContext.subscriptions.push(
     vscode.workspace.onDidChangeTextDocument((e) => {
       console.info("onDidChangeTextDocument", e.document.fileName, e.reason);
-      updateFile(sources, e.document);
-      functionTreeProvider.refresh();
+      sources = updateFile(sources, e.document);
+      functionTreeProvider.update(sources);
     })
   );
-  context.subscriptions.push(
+  extensionContext.subscriptions.push(
+    vscode.window.onDidChangeVisibleTextEditors((editors) => {
+      console.log("onDidChangeVisibleTextEditors", editors);
+    })
+  );
+
+  extensionContext.subscriptions.push(
     vscode.workspace.onDidOpenTextDocument((document) => {
       console.info("onDidOpenTextDocument", document.fileName);
-      updateFile(sources, document);
-      functionTreeProvider.refresh();
+      sources = updateFile(sources, document);
+
+      functionTreeProvider.update(sources);
     })
   );
-  context.subscriptions.push(
+  extensionContext.subscriptions.push(
     vscode.workspace.onDidCloseTextDocument((document) => {
       console.info("onDidCloseTextDocument", document.fileName);
-      const relativeFilePath = getRelativePathToProject(document.fileName);
-      delete sources[relativeFilePath];
-      functionTreeProvider.refresh();
+      sources = removeFile(document, sources);
+      functionTreeProvider.update(sources);
+    })
+  );
+
+  sources = initializeOpenEditors(sources, functionTreeProvider);
+
+  console.log("adding webview...");
+  extensionContext.subscriptions.push(
+    vscode.window.registerWebviewViewProvider("imaginary.currentfunctions", {
+      resolveWebviewView(webviewView, context, token) {
+        const extensionRoot = vscode.Uri.joinPath(
+          extensionContext.extensionUri,
+          "dist"
+        );
+        webviewView.webview.options = {
+          enableScripts: true,
+          localResourceRoots: [extensionRoot],
+        };
+        const nonce = getNonce();
+
+        const jsSrc = webviewView.webview.asWebviewUri(
+          vscode.Uri.joinPath(extensionRoot, "./views/function-panel.js")
+        );
+        const webViewHtml = html`
+          <html lang="en">
+            <head>
+              <title>Foo</title>
+              <meta
+                http-equiv="Content-Security-Policy"
+                content="default-src 'none'; img-src vscode-resource: https:; script-src 'nonce-${nonce}';style-src vscode-resource: 'unsafe-inline' http: https: data:;"
+              />
+              <base
+                href="${extensionRoot
+                  .with({ scheme: "vscode-resource" })
+                  .toString()}/"
+              />
+            </head>
+            <body>
+              <main id="root"></main>
+              <script nonce="${nonce}" src="${jsSrc.toString()}"></script>
+            </body>
+          </html>
+        `;
+        console.log("restoring web view? ", webViewHtml);
+
+        webviewView.webview.html = webViewHtml;
+      },
     })
   );
 }
 
-function updateFile(sources: SourceFileMap, document: vscode.TextDocument) {
-  if (
-    (document.languageId !== "typescript" &&
-      document.languageId !== "typescriptreact") ||
-    document.uri.scheme === "git"
-  ) {
-    console.log("skipping because ", document.languageId);
-    return;
+/**
+ * onDidOpenTextDocument does not fire for editors that are already open when
+ * the extension initializes, so we do it here.
+ */
+function initializeOpenEditors(
+  sources: Readonly<SourceFileMap>,
+  functionTreeProvider: ImaginaryFunctionProvider
+) {
+  let updated = false;
+  vscode.window.visibleTextEditors.forEach(({ document }) => {
+    sources = updateFile(sources, document);
+    updated = true;
+  });
+  if (updated) {
+    functionTreeProvider.update(sources);
   }
-
-  const { fileName } = document;
-  const relativeFileName = getRelativePathToProject(fileName);
-  const code = document.getText();
-
-  const sourceFile = ts.createSourceFile(
-    relativeFileName,
-    code,
-    // TODO: get this from tsconfig for the project
-    ts.ScriptTarget.Latest
-  );
-
-  const functions = findFunctions(sourceFile);
-  sources[relativeFileName] = {
-    functions,
-    sourceFile,
-  };
-  console.log(
-    "updated ",
-    relativeFileName,
-    " with ",
-    functions.length,
-    " fucntions"
-  );
+  return sources;
 }
+
 // This method is called when your extension is deactivated
 export function deactivate() {}
 
-function findFunctions(sourceFile: ts.SourceFile) {
-  const imaginaryFunctions: ts.FunctionDeclaration[] = [];
-  const visitor = (node: ts.Node): ts.VisitResult<ts.Node> => {
-    if (ts.isFunctionDeclaration(node)) {
-      const tsDocComments = getImaginaryTsDocComments(node, sourceFile);
-      if (tsDocComments.length === 1) {
-        imaginaryFunctions.push(node);
-      }
-    }
-    return ts.forEachChild(node, visitor);
-  };
-
-  visitor(sourceFile);
-  return imaginaryFunctions;
+function getNonce() {
+  let text = "";
+  const possible =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  for (let i = 0; i < 32; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
 }

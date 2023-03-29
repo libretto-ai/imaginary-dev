@@ -15,7 +15,23 @@
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [],
+    "viewsContainers": {
+      "panel": [
+        {
+          "id": "currentfunctions",
+          "title": "Current functions",
+          "icon": "resources/favicon-32x32.png"
+        }
+      ]
+    },
     "views": {
+      "currentfunctions": [
+        {
+          "id": "imaginary.currentfunctions",
+          "name": "view: currentfunctions",
+          "type": "webview"
+        }
+      ],
       "explorer": [
         {
           "id": "functions",
@@ -26,19 +42,26 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
+    "compile": "webpack && tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "test-disabled": "node ./dist/test/runTest.js"
   },
   "dependencies": {
+    "@imaginary-dev/typescript-transformer": "*",
     "@imaginary-dev/util": "*",
-    "@imaginary-dev/typescript-transformer": "*"
+    "html-template-tag": "^4.0.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "ts-loader": "^9.4.2",
+    "webpack": "^5.76.3"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",
-    "@types/node": "16.x",
+    "@types/node": "^16.18.21",
+    "@types/react": "^18.0.30",
+    "@types/react-dom": "^18.0.11",
     "@types/vscode": "^1.76.0",
     "@typescript-eslint/eslint-plugin": "^5.53.0",
     "@typescript-eslint/parser": "^5.53.0",

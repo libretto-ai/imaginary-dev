@@ -1,6 +1,7 @@
 import * as t from "@babel/types";
 import { JSONSchema7 } from "json-schema";
 import { babelTypeToJsonSchema } from "./babelTypeToJsonSchema";
+
 describe("babelTypeToJsonSchema", () => {
   it.each<{ type: t.TSType; schema: JSONSchema7 }>([
     {

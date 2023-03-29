@@ -1,4 +1,3 @@
-import { describe } from "@jest/globals";
 import { getVariablesFromPrompt, replaceVariablesInPrompt } from "./prompt";
 
 describe("getVariablesFromPrompt", () => {
