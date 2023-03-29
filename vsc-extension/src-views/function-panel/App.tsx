@@ -1,3 +1,4 @@
+import { VSCodeDropdown, VSCodeOption } from "@vscode/webview-ui-toolkit/react";
 import React, { Fragment, useEffect, useState } from "react";
 import { RecoilRoot } from "recoil";
 import { SerializableSourceFileMap } from "../../src-shared/source-info";
@@ -22,21 +23,23 @@ const App = () => {
   }, []);
   return (
     <RecoilRoot>
-      <p>This is react running in a webview</p>
-      <ul>
-        {Object.entries(sources).map(([filename, source]) => {
-          return (
-            <Fragment key={filename}>
-              <li>{filename}</li>
-              <ul>
+      <div>
+        Select function:
+        <VSCodeDropdown>
+          {Object.entries(sources).map(([filename, source]) => {
+            return (
+              <Fragment key={filename}>
+                <VSCodeOption disabled>{filename}</VSCodeOption>
                 {source.functions.map((fn) => (
-                  <li key={fn.name}>{fn.name}</li>
+                  <VSCodeOption key={fn.name}>
+                    <span style={{ marginLeft: "1rem" }}>{fn.name}</span>
+                  </VSCodeOption>
                 ))}
-              </ul>
-            </Fragment>
-          );
-        })}
-      </ul>
+              </Fragment>
+            );
+          })}
+        </VSCodeDropdown>
+      </div>
       <pre>{JSON.stringify(sources, null, 4)}</pre>
     </RecoilRoot>
   );
