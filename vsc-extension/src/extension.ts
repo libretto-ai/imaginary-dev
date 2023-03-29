@@ -3,11 +3,11 @@
 import html from "html-template-tag";
 import { relative } from "path";
 import * as vscode from "vscode";
+import { makeSerializable, SourceFileMap } from "../src-shared/source-info";
 import { focusNode } from "./editor-utils";
 import { ImaginaryFunctionProvider } from "./function-tree-provider";
-import { SourceFileMap } from "./source-info";
 import { removeFile, updateFile } from "./source-utils";
-console.log("got html as ", html);
+
 export function getRelativePathToProject(absPath: string) {
   const projectPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
   if (projectPath) {
@@ -33,6 +33,18 @@ export function activate(extensionContext: vscode.ExtensionContext) {
     'Congratulations, your extension "imaginary-programming" is now active!'
   );
 
+  console.log("adding webview...");
+  const webviewProvider = new ReactWebViewProvider(
+    extensionContext,
+    "function-panel"
+  );
+  extensionContext.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(
+      "imaginary.currentfunctions",
+      webviewProvider
+    )
+  );
+
   let sources: Readonly<SourceFileMap> = {};
 
   const functionTreeProvider = new ImaginaryFunctionProvider(sources);
@@ -46,11 +58,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
       console.info("onDidChangeTextDocument", e.document.fileName, e.reason);
       sources = updateFile(sources, e.document);
       functionTreeProvider.update(sources);
-    })
-  );
-  extensionContext.subscriptions.push(
-    vscode.window.onDidChangeVisibleTextEditors((editors) => {
-      console.log("onDidChangeVisibleTextEditors", editors);
+      webviewProvider.updateSources(sources);
     })
   );
 
@@ -60,6 +68,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
       sources = updateFile(sources, document);
 
       functionTreeProvider.update(sources);
+      webviewProvider.updateSources(sources);
     })
   );
   extensionContext.subscriptions.push(
@@ -67,56 +76,86 @@ export function activate(extensionContext: vscode.ExtensionContext) {
       console.info("onDidCloseTextDocument", document.fileName);
       sources = removeFile(document, sources);
       functionTreeProvider.update(sources);
+      webviewProvider.updateSources(sources);
     })
   );
 
   sources = initializeOpenEditors(sources, functionTreeProvider);
-
-  console.log("adding webview...");
-  extensionContext.subscriptions.push(
-    vscode.window.registerWebviewViewProvider("imaginary.currentfunctions", {
-      resolveWebviewView(webviewView, context, token) {
-        const extensionRoot = vscode.Uri.joinPath(
-          extensionContext.extensionUri,
-          "dist"
-        );
-        webviewView.webview.options = {
-          enableScripts: true,
-          localResourceRoots: [extensionRoot],
-        };
-        const nonce = getNonce();
-
-        const jsSrc = webviewView.webview.asWebviewUri(
-          vscode.Uri.joinPath(extensionRoot, "./views/function-panel.js")
-        );
-        const webViewHtml = html`
-          <html lang="en">
-            <head>
-              <title>Foo</title>
-              <meta
-                http-equiv="Content-Security-Policy"
-                content="default-src 'none'; img-src vscode-resource: https:; script-src 'nonce-${nonce}';style-src vscode-resource: 'unsafe-inline' http: https: data:;"
-              />
-              <base
-                href="${extensionRoot
-                  .with({ scheme: "vscode-resource" })
-                  .toString()}/"
-              />
-            </head>
-            <body>
-              <main id="root"></main>
-              <script nonce="${nonce}" src="${jsSrc.toString()}"></script>
-            </body>
-          </html>
-        `;
-        console.log("restoring web view? ", webViewHtml);
-
-        webviewView.webview.html = webViewHtml;
-      },
-    })
-  );
 }
 
+class ReactWebViewProvider implements vscode.WebviewViewProvider {
+  viewId: string;
+  extensionContext: vscode.ExtensionContext;
+  webviewView?: vscode.WebviewView;
+  constructor(extensionContext: vscode.ExtensionContext, webviewId: string) {
+    this.viewId = webviewId;
+    this.extensionContext = extensionContext;
+  }
+
+  async updateSources(sources: SourceFileMap) {
+    const serialized = makeSerializable(sources);
+    this.postMessage("update-sources", serialized);
+  }
+
+  async postMessage<T extends any[]>(messageId: string, ...params: T) {
+    if (!this.webviewView) {
+      throw new Error("webview has not been initialized");
+    }
+    return this.webviewView.webview.postMessage({
+      id: messageId,
+      params,
+    });
+  }
+
+  dispatch(e: any) {
+    console.log("got message from webview", e);
+  }
+  async resolveWebviewView(
+    webviewView: vscode.WebviewView,
+    context: vscode.WebviewViewResolveContext,
+    token: vscode.CancellationToken
+  ) {
+    const extensionRoot = vscode.Uri.joinPath(
+      this.extensionContext.extensionUri,
+      "dist"
+    );
+    this.webviewView = webviewView;
+    webviewView.webview.onDidReceiveMessage((e) => {
+      this.dispatch(e);
+    });
+    webviewView.webview.options = {
+      enableScripts: true,
+      localResourceRoots: [extensionRoot],
+    };
+    const nonce = getNonce();
+
+    const jsSrc = webviewView.webview.asWebviewUri(
+      vscode.Uri.joinPath(extensionRoot, `./views/${this.viewId}.js`)
+    );
+    const webViewHtml = html`
+      <html lang="en">
+        <head>
+          <title>Foo</title>
+          <meta
+            http-equiv="Content-Security-Policy"
+            content="default-src 'none'; img-src vscode-resource: https:; script-src 'nonce-${nonce}';style-src vscode-resource: 'unsafe-inline' http: https: data:;"
+          />
+          <base
+            href="${extensionRoot
+              .with({ scheme: "vscode-resource" })
+              .toString()}/"
+          />
+        </head>
+        <body>
+          <main id="root"></main>
+          <script nonce="${nonce}" src="${jsSrc.toString()}"></script>
+        </body>
+      </html>
+    `;
+
+    webviewView.webview.html = webViewHtml;
+  }
+}
 /**
  * onDidOpenTextDocument does not fire for editors that are already open when
  * the extension initializes, so we do it here.
