@@ -7,7 +7,7 @@ import { focusNode } from "./editor-utils";
 import { ImaginaryFunctionProvider } from "./function-tree-provider";
 import { SourceFileMap } from "./source-info";
 import { removeFile, updateFile } from "./source-utils";
-console.log("got html as ", html);
+
 export function getRelativePathToProject(absPath: string) {
   const projectPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
   if (projectPath) {
@@ -48,11 +48,6 @@ export function activate(extensionContext: vscode.ExtensionContext) {
       functionTreeProvider.update(sources);
     })
   );
-  extensionContext.subscriptions.push(
-    vscode.window.onDidChangeVisibleTextEditors((editors) => {
-      console.log("onDidChangeVisibleTextEditors", editors);
-    })
-  );
 
   extensionContext.subscriptions.push(
     vscode.workspace.onDidOpenTextDocument((document) => {
@@ -74,49 +69,78 @@ export function activate(extensionContext: vscode.ExtensionContext) {
 
   console.log("adding webview...");
   extensionContext.subscriptions.push(
-    vscode.window.registerWebviewViewProvider("imaginary.currentfunctions", {
-      resolveWebviewView(webviewView, context, token) {
-        const extensionRoot = vscode.Uri.joinPath(
-          extensionContext.extensionUri,
-          "dist"
-        );
-        webviewView.webview.options = {
-          enableScripts: true,
-          localResourceRoots: [extensionRoot],
-        };
-        const nonce = getNonce();
-
-        const jsSrc = webviewView.webview.asWebviewUri(
-          vscode.Uri.joinPath(extensionRoot, "./views/function-panel.js")
-        );
-        const webViewHtml = html`
-          <html lang="en">
-            <head>
-              <title>Foo</title>
-              <meta
-                http-equiv="Content-Security-Policy"
-                content="default-src 'none'; img-src vscode-resource: https:; script-src 'nonce-${nonce}';style-src vscode-resource: 'unsafe-inline' http: https: data:;"
-              />
-              <base
-                href="${extensionRoot
-                  .with({ scheme: "vscode-resource" })
-                  .toString()}/"
-              />
-            </head>
-            <body>
-              <main id="root"></main>
-              <script nonce="${nonce}" src="${jsSrc.toString()}"></script>
-            </body>
-          </html>
-        `;
-        console.log("restoring web view? ", webViewHtml);
-
-        webviewView.webview.html = webViewHtml;
-      },
-    })
+    vscode.window.registerWebviewViewProvider(
+      "imaginary.currentfunctions",
+      new ReactWebViewProvider(extensionContext, "function-panel")
+    )
   );
 }
 
+class ReactWebViewProvider implements vscode.WebviewViewProvider {
+  viewId: string;
+  extensionContext: vscode.ExtensionContext;
+  webviewView?: vscode.WebviewView;
+  constructor(extensionContext: vscode.ExtensionContext, webviewId: string) {
+    this.viewId = webviewId;
+    this.extensionContext = extensionContext;
+  }
+
+  async postMessage<T extends any[]>(messageId: string, params: T) {
+    if (!this.webviewView) {
+      throw new Error("webview has not been initialized");
+    }
+    return this.webviewView.webview.postMessage({
+      id: messageId,
+      params,
+    });
+  }
+
+  async resolveWebviewView(
+    webviewView: vscode.WebviewView,
+    context: vscode.WebviewViewResolveContext,
+    token: vscode.CancellationToken
+  ) {
+    const extensionRoot = vscode.Uri.joinPath(
+      this.extensionContext.extensionUri,
+      "dist"
+    );
+    this.webviewView = webviewView;
+    webviewView.webview.onDidReceiveMessage((e) => {
+      console.log("got message from webview:", e);
+    });
+    webviewView.webview.options = {
+      enableScripts: true,
+      localResourceRoots: [extensionRoot],
+    };
+    const nonce = getNonce();
+
+    const jsSrc = webviewView.webview.asWebviewUri(
+      vscode.Uri.joinPath(extensionRoot, `./views/${this.viewId}.js`)
+    );
+    const webViewHtml = html`
+      <html lang="en">
+        <head>
+          <title>Foo</title>
+          <meta
+            http-equiv="Content-Security-Policy"
+            content="default-src 'none'; img-src vscode-resource: https:; script-src 'nonce-${nonce}';style-src vscode-resource: 'unsafe-inline' http: https: data:;"
+          />
+          <base
+            href="${extensionRoot
+              .with({ scheme: "vscode-resource" })
+              .toString()}/"
+          />
+        </head>
+        <body>
+          <main id="root"></main>
+          <script nonce="${nonce}" src="${jsSrc.toString()}"></script>
+        </body>
+      </html>
+    `;
+
+    webviewView.webview.html = webViewHtml;
+  }
+}
 /**
  * onDidOpenTextDocument does not fire for editors that are already open when
  * the extension initializes, so we do it here.
