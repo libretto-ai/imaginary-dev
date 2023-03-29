@@ -3,7 +3,11 @@
 import html from "html-template-tag";
 import { relative } from "path";
 import * as vscode from "vscode";
-import { makeSerializable, SourceFileMap } from "../src-shared/source-info";
+import {
+  makeSerializable,
+  MaybeSelectedFunction,
+  SourceFileMap,
+} from "../src-shared/source-info";
 import { focusNode } from "./editor-utils";
 import { ImaginaryFunctionProvider } from "./function-tree-provider";
 import { removeFile, updateFile } from "./source-utils";
@@ -47,6 +51,8 @@ export function activate(extensionContext: vscode.ExtensionContext) {
 
   let sources: Readonly<SourceFileMap> = {};
 
+  let currentFunction: MaybeSelectedFunction = null;
+
   const functionTreeProvider = new ImaginaryFunctionProvider(sources);
   const treeView = vscode.window.createTreeView("functions", {
     treeDataProvider: functionTreeProvider,
@@ -79,6 +85,52 @@ export function activate(extensionContext: vscode.ExtensionContext) {
       webviewProvider.updateSources(sources);
     })
   );
+  extensionContext.subscriptions.push(
+    vscode.window.onDidChangeTextEditorSelection((e) => {
+      const documentFileName = getRelativePathToProject(
+        e.textEditor.document.fileName
+      );
+
+      const selection = e.selections[0];
+      if (!selection) {
+        return;
+      }
+
+      let newSelection = currentFunction;
+      let found = false;
+      Object.entries(sources).forEach(([fileName, fileInfo]) => {
+        if (fileName === documentFileName) {
+          const cursorPos = fileInfo.sourceFile.getPositionOfLineAndCharacter(
+            selection.active.line,
+            selection.active.character
+          );
+          fileInfo.functions.forEach((fn) => {
+            const start = fn.getStart(fileInfo.sourceFile);
+            const end = fn.getEnd();
+            if (start <= cursorPos && cursorPos <= end) {
+              const functionName = fn.name?.text;
+              if (!functionName) {
+                return;
+              }
+              newSelection = {
+                fileName,
+                functionName,
+              };
+              found = true;
+              console.log("found! ", currentFunction);
+            }
+          });
+        }
+      });
+      if (!found) {
+        newSelection = null;
+      }
+      if (newSelection !== currentFunction) {
+        currentFunction = newSelection;
+        webviewProvider.updateSelection(newSelection);
+      }
+    })
+  );
 
   sources = initializeOpenEditors(sources, functionTreeProvider);
 }
@@ -95,6 +147,10 @@ class ReactWebViewProvider implements vscode.WebviewViewProvider {
   async updateSources(sources: SourceFileMap) {
     const serialized = makeSerializable(sources);
     this.postMessage("update-sources", serialized);
+  }
+
+  async updateSelection(selection: MaybeSelectedFunction) {
+    this.postMessage("update-selection", selection);
   }
 
   async postMessage<T extends any[]>(messageId: string, ...params: T) {
