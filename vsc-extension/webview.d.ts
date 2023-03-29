@@ -1,12 +1,15 @@
 declare global {
-  interface VSCodeWebViewApi {
-    getState(): {
-      [key: string]: unknown;
-    };
-    setState(data: { [key: string]: unknown }): void;
-    postMessage: (msg: unknown) => void;
+  interface VSCodeWebViewApi<
+    S extends { [key: string]: unknown },
+    M = unknown
+  > {
+    getState(): S;
+    setState(data: Partial<S>): void;
+    postMessage(msg: M): void;
   }
 
-  const acquireVsCodeApi: () => VSCodeWebViewApi;
+  function acquireVsCodeApi<
+    S extends { [key: string]: unknown } = { [key: string]: unknown }
+  >(): VSCodeWebViewApi<S>;
 }
 export {};
