@@ -3,9 +3,9 @@
 import html from "html-template-tag";
 import { relative } from "path";
 import * as vscode from "vscode";
+import { makeSerializable, SourceFileMap } from "../src-shared/source-info";
 import { focusNode } from "./editor-utils";
 import { ImaginaryFunctionProvider } from "./function-tree-provider";
-import { SourceFileMap } from "./source-info";
 import { removeFile, updateFile } from "./source-utils";
 
 export function getRelativePathToProject(absPath: string) {
@@ -33,6 +33,18 @@ export function activate(extensionContext: vscode.ExtensionContext) {
     'Congratulations, your extension "imaginary-programming" is now active!'
   );
 
+  console.log("adding webview...");
+  const webviewProvider = new ReactWebViewProvider(
+    extensionContext,
+    "function-panel"
+  );
+  extensionContext.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(
+      "imaginary.currentfunctions",
+      webviewProvider
+    )
+  );
+
   let sources: Readonly<SourceFileMap> = {};
 
   const functionTreeProvider = new ImaginaryFunctionProvider(sources);
@@ -46,6 +58,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
       console.info("onDidChangeTextDocument", e.document.fileName, e.reason);
       sources = updateFile(sources, e.document);
       functionTreeProvider.update(sources);
+      webviewProvider.updateSources(sources);
     })
   );
 
@@ -55,6 +68,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
       sources = updateFile(sources, document);
 
       functionTreeProvider.update(sources);
+      webviewProvider.updateSources(sources);
     })
   );
   extensionContext.subscriptions.push(
@@ -62,18 +76,11 @@ export function activate(extensionContext: vscode.ExtensionContext) {
       console.info("onDidCloseTextDocument", document.fileName);
       sources = removeFile(document, sources);
       functionTreeProvider.update(sources);
+      webviewProvider.updateSources(sources);
     })
   );
 
   sources = initializeOpenEditors(sources, functionTreeProvider);
-
-  console.log("adding webview...");
-  extensionContext.subscriptions.push(
-    vscode.window.registerWebviewViewProvider(
-      "imaginary.currentfunctions",
-      new ReactWebViewProvider(extensionContext, "function-panel")
-    )
-  );
 }
 
 class ReactWebViewProvider implements vscode.WebviewViewProvider {
@@ -85,7 +92,12 @@ class ReactWebViewProvider implements vscode.WebviewViewProvider {
     this.extensionContext = extensionContext;
   }
 
-  async postMessage<T extends any[]>(messageId: string, params: T) {
+  async updateSources(sources: SourceFileMap) {
+    const serialized = makeSerializable(sources);
+    this.postMessage("update-sources", serialized);
+  }
+
+  async postMessage<T extends any[]>(messageId: string, ...params: T) {
     if (!this.webviewView) {
       throw new Error("webview has not been initialized");
     }
@@ -95,6 +107,9 @@ class ReactWebViewProvider implements vscode.WebviewViewProvider {
     });
   }
 
+  dispatch(e: any) {
+    console.log("got message from webview", e);
+  }
   async resolveWebviewView(
     webviewView: vscode.WebviewView,
     context: vscode.WebviewViewResolveContext,
@@ -106,7 +121,7 @@ class ReactWebViewProvider implements vscode.WebviewViewProvider {
     );
     this.webviewView = webviewView;
     webviewView.webview.onDidReceiveMessage((e) => {
-      console.log("got message from webview:", e);
+      this.dispatch(e);
     });
     webviewView.webview.options = {
       enableScripts: true,
