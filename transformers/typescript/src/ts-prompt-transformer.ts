@@ -12,6 +12,21 @@ import {
 import * as ts from "typescript";
 import jsonObjectToTsAst from "./json-object-to-ts-ast";
 
+class NodeError extends Error {
+  constructor(message: string, node: ts.Node) {
+    const { line, character } = node
+      .getSourceFile()
+      .getLineAndCharacterOfPosition(node.pos);
+
+    super(
+      message +
+        ` Error at line ${line}, character ${character} in '${
+          node.getSourceFile().fileName
+        }'`
+    );
+  }
+}
+
 const tsdocConfig: TSDocConfiguration = new TSDocConfiguration();
 tsdocConfig.addTagDefinition(
   new TSDocTagDefinition({
@@ -35,55 +50,62 @@ const transformer =
 
       const visitor = (node: ts.Node): ts.VisitResult<ts.Node> => {
         if (ts.isFunctionDeclaration(node)) {
-          if (node.typeParameters) {
-            throw new Error(
-              "Imaginary function compile error: Functions cannot include type variables."
-            );
-          }
           const imaginaryComments = getImaginaryTsDocComments(node, sourceFile);
 
-          // maybe in the future we could merge multiple @imaginary comments, but for now we throw an
-          // error.
-          if (imaginaryComments.length > 1) {
-            throw new Error(
-              `Imaginary function compile error: imaginary functions should only have one @imaginary TsDoc comment, but the function "${node.getText(
-                sourceFile
-              )}" had ${imaginaryComments.length} @imaginary TsDoc comments.`
-            );
-          }
+          if (imaginaryComments.length > 0) {
+            if (node.typeParameters) {
+              throw new NodeError(
+                `Imaginary function compile error: Functions cannot include type variables.`,
+                node
+              );
+            }
+            // maybe in the future we could merge multiple @imaginary comments, but for now we throw an
+            // error.
+            if (imaginaryComments.length > 1) {
+              throw new NodeError(
+                `Imaginary function compile error: imaginary functions should only have one @imaginary TsDoc comment, but the function "${node.getText(
+                  sourceFile
+                )}" had ${imaginaryComments.length} @imaginary TsDoc comments.`,
+                node
+              );
+            }
 
-          if (imaginaryComments.length === 1) {
-            const imaginaryComment = imaginaryComments[0];
+            if (imaginaryComments.length === 1) {
+              const imaginaryComment = imaginaryComments[0];
 
-            const paramNames = node.parameters.map((paramDeclaration) =>
-              paramDeclaration.name.getText()
-            );
+              const paramNames = node.parameters.map((paramDeclaration) =>
+                paramDeclaration.name.getText()
+              );
 
-            const typeChecker = program.getTypeChecker();
-            const type = typeChecker.getTypeAtLocation(node);
+              const typeChecker = program.getTypeChecker();
+              const type = typeChecker.getTypeAtLocation(node);
 
-            const promisedType = getPromisedReturnType(node, typeChecker);
+              const promisedType = getPromisedReturnType(node, typeChecker);
 
-            addedImports = true;
+              addedImports = true;
 
-            const functionName = getFunctionName(node, typeChecker);
+              const functionName = getFunctionName(node, typeChecker);
 
-            const paramsAsStrings = node.parameters.map((paramDeclaration) => ({
-              name: paramDeclaration.name.getText(),
-              type: paramDeclaration.type
-                ? typeChecker.getTypeAtLocation(paramDeclaration.type)
-                : undefined,
-            }));
+              const paramsAsStrings = node.parameters.map(
+                (paramDeclaration) => ({
+                  name: paramDeclaration.name.getText(),
+                  type: paramDeclaration.type
+                    ? typeChecker.getTypeAtLocation(paramDeclaration.type)
+                    : undefined,
+                })
+              );
 
-            return getASTForName(
-              promptEngineIdentifier,
-              imaginaryComment,
-              functionName,
-              paramsAsStrings,
-              getBottomedOutType(promisedType, typeChecker),
-              promisedType,
-              typeChecker
-            );
+              return getASTForName(
+                promptEngineIdentifier,
+                imaginaryComment,
+                functionName,
+                paramsAsStrings,
+                getBottomedOutType(promisedType, typeChecker, node),
+                promisedType,
+                typeChecker,
+                node
+              );
+            }
           }
         }
         return ts.visitEachChild(node, visitor, context);
@@ -140,10 +162,11 @@ function getPromisedReturnType(
     .find((signature) => signature.declaration === node);
 
   if (!callSignature) {
-    throw new Error(
+    throw new NodeError(
       `Internal compilation error: could not find the call signature for "${typeChecker.typeToString(
         type
-      )}" for this node. Please file a bug with the code that caused this compilation error.`
+      )}" for this node. Please file a bug with the code that caused this compilation error.`,
+      node
     );
   }
 
@@ -154,10 +177,11 @@ function getPromisedReturnType(
   // Check to make sure that the return value is a Promise. This is how you make
   // async functions in TypeScript function declarations.
   if (!isPromise(returnType)) {
-    throw new Error(
+    throw new NodeError(
       `Imaginary function compilation error: all imaginary functions must have a return type of Promise<T>, but the return type of ${typeChecker.typeToString(
         type
-      )} is not a Promise.`
+      )} is not a Promise.`,
+      node
     );
   }
 
@@ -166,21 +190,24 @@ function getPromisedReturnType(
     typeof returnType.typeArguments === "undefined" ||
     returnType.typeArguments.length === 0
   ) {
-    throw new Error(
-      `Imaginary function compilation error: all imaginary functions must have a return type of Promise<T>, where T is the wrapped type that is returned by the function. This imaginary function has no wrapped type.`
+    throw new NodeError(
+      `Imaginary function compilation error: all imaginary functions must have a return type of Promise<T>, where T is the wrapped type that is returned by the function. This imaginary function has no wrapped type.`,
+      node
     );
   }
   if (returnType.typeArguments.length > 1) {
-    throw new Error(
-      `Imaginary function compilation error: all imaginary functions must have a return type of Promise<T>, with one type wrapped by a Promise. This imaginary function has more than one type wrapped by the Promise.`
+    throw new NodeError(
+      `Imaginary function compilation error: all imaginary functions must have a return type of Promise<T>, with one type wrapped by a Promise. This imaginary function has more than one type wrapped by the Promise.`,
+      node
     );
   }
 
   const promisedType = returnType.typeArguments[0] as ts.TypeReference;
 
   if (!isAllowedType(promisedType)) {
-    throw new Error(
-      `Imaginary function compilation error: return types must be inlined.`
+    throw new NodeError(
+      `Imaginary function compilation error: return types must be inlined.`,
+      node
     );
   }
   return promisedType;
@@ -204,11 +231,17 @@ function isAllowedSymbol(symbol: ts.Symbol | undefined) {
 }
 
 // takes in a JSON-compatible type and follows aliases and interfaces
-function getBottomedOutType(type: ts.Type, typeChecker: ts.TypeChecker) {
+function getBottomedOutType(
+  type: ts.Type,
+  typeChecker: ts.TypeChecker,
+  node: ts.Node
+) {
   // It's admittedly a little silly to take a TypeScript AST type and convert it into JSON Schema in
   // order to turn it back into TypeScript text, but that's the easiest path I have right now, given that
   // TS ASTs are so complicated.
-  return jsonSchemaToTypeScriptText(tsTypeToJsonSchema(type, typeChecker));
+  return jsonSchemaToTypeScriptText(
+    tsTypeToJsonSchema(type, typeChecker, node)
+  );
 }
 
 // The version of the function declaration that we need to hand to GPT for imaginary implementation is
@@ -230,7 +263,11 @@ function getGptVersionOfFunctionDeclaration(
 
   let promisedReturnType = getPromisedReturnType(node, typeChecker);
 
-  const returnTypeText = getBottomedOutType(promisedReturnType, typeChecker);
+  const returnTypeText = getBottomedOutType(
+    promisedReturnType,
+    typeChecker,
+    node
+  );
 
   return `declare function ${functionName}(${paramNamesAndTypes.map(
     ({ name, type }) =>
@@ -245,10 +282,11 @@ function getFunctionName(
   const type = typeChecker.getTypeAtLocation(node);
   const functionName = node.name?.escapedText.toString();
   if (typeof functionName === "undefined") {
-    throw new Error(
+    throw new NodeError(
       `Internal imaginary function compilation error: could not retrieve the function name of ${typeChecker.typeToString(
         type
-      )}. Please report this as a bug.`
+      )}. Please report this as a bug.`,
+      node
     );
   }
   return functionName;
@@ -282,6 +320,7 @@ export function getImaginaryTsDocComments(
 const tsTypeToJsonSchema = (
   type: ts.Type,
   typeChecker: ts.TypeChecker,
+  node: ts.Node,
   path: string[] = []
 ): any => {
   const readablePath = path.join(".") || "<root>";
@@ -294,25 +333,29 @@ const tsTypeToJsonSchema = (
     // See also this github issue: https://github.com/microsoft/TypeScript/issues/22269
     if (typeChecker.typeToString(type) === "true") return { const: true };
     if (typeChecker.typeToString(type) === "false") return { const: false };
-    throw new Error(
+    throw new NodeError(
       `Internal error trying to parse boolean literal with type ${type} and symbol ${type
         ?.getSymbol()
-        ?.getName()}`
+        ?.getName()}`,
+      node
     );
   }
   if (type.getCallSignatures().length > 0) {
-    throw new Error(
-      `Imaginary function error: return values from imaginary functions must be JSON-serializable and cannot have function properties. (at path '${readablePath}')`
+    throw new NodeError(
+      `Imaginary function error: return values from imaginary functions must be JSON-serializable and cannot have function properties. (at path '${readablePath}')`,
+      node
     );
   }
   if (type.isClass()) {
-    throw new Error(
-      `Imaginary function error: return values from imaginary functions must be JSON-serializable and cannot be classes. (at path '${readablePath}')`
+    throw new NodeError(
+      `Imaginary function error: return values from imaginary functions must be JSON-serializable and cannot be classes. (at path '${readablePath}')`,
+      node
     );
   }
   if (type.isIntersection()) {
-    throw new Error(
-      `Imaginary function error: we do not yet support intersection types. (at path '${readablePath}')`
+    throw new NodeError(
+      `Imaginary function error: we do not yet support intersection types. (at path '${readablePath}')`,
+      node
     );
   }
   if (type.getFlags() & ts.TypeFlags.EnumLike) {
@@ -325,8 +368,9 @@ const tsTypeToJsonSchema = (
     } else if (type.isLiteral()) {
       literalTypesInEnum = [type];
     } else {
-      throw new Error(
-        `Imaginary function error: we do not yet support computed enums. (at path '${readablePath}').`
+      throw new NodeError(
+        `Imaginary function error: we do not yet support computed enums. (at path '${readablePath}').`,
+        node
       );
     }
     return {
@@ -336,8 +380,9 @@ const tsTypeToJsonSchema = (
         } else if (type.isNumberLiteral()) {
           return type.value;
         }
-        throw new Error(
-          `Internal imaginary function compilation error: encountered an enum type member which is not a string or number, which we don't support (at path '${readablePath}'). Please report this as a bug.`
+        throw new NodeError(
+          `Internal imaginary function compilation error: encountered an enum type member which is not a string or number, which we don't support (at path '${readablePath}'). Please report this as a bug.`,
+          node
         );
       }),
     };
@@ -350,16 +395,18 @@ const tsTypeToJsonSchema = (
     } else if (type.isNumberLiteral()) {
       return { const: type.value };
     }
-    throw new Error(
-      `Imaginary function error: we do not yet support literal types other than string or number. (at path '${readablePath}')`
+    throw new NodeError(
+      `Imaginary function error: we do not yet support literal types other than string or number. (at path '${readablePath}')`,
+      node
     );
   }
   if (type.getFlags() & ts.TypeFlags.Null) {
     return { type: "null" };
   }
   if (type.getFlags() & ts.TypeFlags.Any) {
-    throw new Error(
-      `Imaginary function error: we do not yet support any types; just use string if you want something unstructured. (at path '${readablePath}')`
+    throw new NodeError(
+      `Imaginary function error: we do not yet support any types; just use string if you want something unstructured. (at path '${readablePath}')`,
+      node
     );
   }
 
@@ -377,20 +424,22 @@ const tsTypeToJsonSchema = (
       (type) => !(type.getFlags() & ts.TypeFlags.Undefined)
     );
     if (unionTypesWithoutUndefined.length === 0) {
-      throw new Error(
-        `Imaginary function compiler: internal error of union type with only undefined members.`
+      throw new NodeError(
+        `Imaginary function compiler: internal error of union type with only undefined members.`,
+        node
       );
     }
     if (unionTypesWithoutUndefined.length === 1)
       return tsTypeToJsonSchema(
         unionTypesWithoutUndefined[0],
         typeChecker,
+        node,
         path
       );
     // if we are unioning together { const: false } and { const: true }, replace that with
     // { type: "boolean" }
     const jsonSchemaTypesWithoutUndefined = unionTypesWithoutUndefined.map(
-      (t) => tsTypeToJsonSchema(t, typeChecker, path)
+      (t) => tsTypeToJsonSchema(t, typeChecker, node, path)
     );
     const falseTypeIndex = jsonSchemaTypesWithoutUndefined.findIndex(
       (jsonSchema) => jsonSchema?.const === false
@@ -409,8 +458,9 @@ const tsTypeToJsonSchema = (
     };
   }
   if (type.isIntersection()) {
-    throw new Error(
-      "Imaginary function compiler: intersection types are not supported."
+    throw new NodeError(
+      "Imaginary function compiler: intersection types are not supported.",
+      node
     );
   }
   if (type.getFlags() & ts.TypeFlags.String) {
@@ -423,22 +473,24 @@ const tsTypeToJsonSchema = (
     if (isArray(type)) {
       const typeArguments = (type as ts.TypeReference).typeArguments;
       if (typeof typeArguments === "undefined") {
-        throw new Error(
+        throw new NodeError(
           `Internal imaginary function compiler error: found an array with indeterminate item type, called ${typeChecker.typeToString(
             type
-          )}. Please report this as a bug.`
+          )}. Please report this as a bug.`,
+          node
         );
       }
       if (typeArguments.length !== 1) {
-        throw new Error(
+        throw new NodeError(
           `Internal imaginary function compiler error. Found an array with multiple or no types, called ${typeChecker.typeToString(
             type
-          )}`
+          )}`,
+          node
         );
       }
       return {
         type: "array",
-        items: tsTypeToJsonSchema(typeArguments[0], typeChecker, [
+        items: tsTypeToJsonSchema(typeArguments[0], typeChecker, node, [
           ...path,
           "[]",
         ]),
@@ -453,22 +505,25 @@ const tsTypeToJsonSchema = (
         type as ts.TypeReference
       );
       if (typeof typeArguments === "undefined") {
-        throw new Error(
+        throw new NodeError(
           `Internal imaginary function compiler error: found a ${typeName} with indeterminate item type, called ${typeChecker.typeToString(
             type
-          )}. Please report this as a bug.`
+          )}. Please report this as a bug.`,
+          node
         );
       }
       if (typeArguments.length !== 2) {
-        throw new Error(
+        throw new NodeError(
           `Internal imaginary function compiler error. Found a ${typeName} with too many or no types, called ${typeChecker.typeToString(
             type
-          )}`
+          )}`,
+          node
         );
       }
       if (!(typeArguments[0].getFlags() & ts.TypeFlags.String)) {
-        throw new Error(
-          `Imaginary function compiler: ${typeName} key type must be 'string'. (at path '${readablePath}')`
+        throw new NodeError(
+          `Imaginary function compiler: ${typeName} key type must be 'string'. (at path '${readablePath}')`,
+          node
         );
       }
       return {
@@ -476,6 +531,7 @@ const tsTypeToJsonSchema = (
         additionalProperties: tsTypeToJsonSchema(
           typeArguments[1],
           typeChecker,
+          node,
           [...path, typeName ?? "???"]
         ),
       };
@@ -493,8 +549,9 @@ const tsTypeToJsonSchema = (
           type.getProperties().map((symbol) => {
             const symbolDeclaration = symbol.getDeclarations()?.[0];
             if (typeof symbolDeclaration === "undefined") {
-              throw new Error(
-                `Internal imaginary function compiler error: symbol '${symbol.getName()}' did not have a declaration. Please report this as a bug.`
+              throw new NodeError(
+                `Internal imaginary function compiler error: symbol '${symbol.getName()}' did not have a declaration. Please report this as a bug.`,
+                node
               );
             }
             const propertyType = typeChecker.getTypeOfSymbolAtLocation(
@@ -504,7 +561,7 @@ const tsTypeToJsonSchema = (
 
             return [
               symbol.getName(),
-              tsTypeToJsonSchema(propertyType, typeChecker, [
+              tsTypeToJsonSchema(propertyType, typeChecker, node, [
                 ...path,
                 symbol.getName(),
               ]),
@@ -515,10 +572,11 @@ const tsTypeToJsonSchema = (
       requiredPropNames.length > 0 ? { required: requiredPropNames } : {}
     );
   }
-  throw new Error(
+  throw new NodeError(
     `Imaginary function unexpected error: we do not yet support this type: ${typeChecker.typeToString(
       type
-    )}. (at path '${readablePath}')`
+    )}. (at path '${readablePath}')`,
+    node
   );
 };
 
@@ -579,7 +637,8 @@ function getASTForName(
   paramTypes: { name: string; type?: ts.Type }[],
   returnType: string,
   promisedType: ts.Type,
-  typeChecker: ts.TypeChecker
+  typeChecker: ts.TypeChecker,
+  node: ts.Node
 ) {
   return ts.factory.createFunctionDeclaration(
     [
@@ -617,12 +676,14 @@ function getASTForName(
                   paramTypes.map(({ name, type }) => {
                     return {
                       name,
-                      type: type ? tsTypeToJsonSchema(type, typeChecker) : {},
+                      type: type
+                        ? tsTypeToJsonSchema(type, typeChecker, node)
+                        : {},
                     };
                   })
                 ),
                 jsonObjectToTsAst(
-                  tsTypeToJsonSchema(promisedType, typeChecker)
+                  tsTypeToJsonSchema(promisedType, typeChecker, node)
                 ),
                 ts.factory.createObjectLiteralExpression(
                   paramTypes.map(({ name: paramName }) =>
