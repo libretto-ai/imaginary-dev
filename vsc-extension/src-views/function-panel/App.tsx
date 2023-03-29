@@ -2,16 +2,9 @@ import React, { Fragment, useEffect, useState } from "react";
 import { RecoilRoot } from "recoil";
 import { SerializableSourceFileMap } from "../../src-shared/source-info";
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-interface vscode {
-  postMessage(message: any, transder: any[] | undefined): void;
-}
-declare function acquireVsCodeApi(): vscode;
-
 const App = () => {
   const [sources, setSources] = useState<SerializableSourceFileMap>({});
   useEffect(() => {
-    const vscode = acquireVsCodeApi();
     window.addEventListener("message", (event) => {
       switch (event.data.id as string) {
         case "update-sources": {
