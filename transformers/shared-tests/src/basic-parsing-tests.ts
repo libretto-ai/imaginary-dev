@@ -7,6 +7,20 @@ import {
 
 export function defineTests(compiler: Compiler) {
   describe("imaginary transformer basic transforms", () => {
+    test("should not transform or throw an error on a function with type params and without @imaginary TsDoc tag (bug #182)", () => {
+      const actual = compile(
+        compiler,
+        `
+  /**
+   * This function returns a random string.
+   * @returns a random string.
+   */
+  declare function doSomething<T extends string>(arg1: T) : Promise<number>;`
+      );
+
+      expect(actual).not.toMatch(CALL_IMAGINARY_FUNCTION_NAME);
+    });
+
     test("should transform an function with @imaginary TsDoc tag", () => {
       const actual = compile(
         compiler,
