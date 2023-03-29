@@ -1,6 +1,6 @@
 {
   "name": "@imaginary-dev/typescript-transformer",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A TypeScript plugin for transforming imaginary functions",
   "files": [
     "dist"
