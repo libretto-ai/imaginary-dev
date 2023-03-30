@@ -1,17 +1,33 @@
-import React, { Fragment, useEffect, useState } from "react";
+/* eslint-disable @typescript-eslint/naming-convention */
+import {
+  VSCodeButton,
+  VSCodeDataGrid,
+  VSCodeDataGridCell,
+  VSCodeDataGridRow,
+} from "@vscode/webview-ui-toolkit/react";
+import React, { useEffect, useState } from "react";
 import { RecoilRoot } from "recoil";
-import { SerializableSourceFileMap } from "../../src-shared/source-info";
+import {
+  MaybeSelectedFunction,
+  SerializableSourceFileMap,
+} from "../../src-shared/source-info";
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-interface vscode {
-  postMessage(message: any, transder: any[] | undefined): void;
-}
-declare function acquireVsCodeApi(): vscode;
-
 const App = () => {
   const [sources, setSources] = useState<SerializableSourceFileMap>({});
+  const [selectedFunction, setSelectedFunction] =
+    useState<MaybeSelectedFunction>(null);
+  const matchingSignatures = Object.values(sources)
+    .flatMap((sourceFileInfo) =>
+      sourceFileInfo.functions.map((fn) => {
+        if (fn.name === selectedFunction?.functionName) {
+          return fn.declaration;
+        }
+      })
+    )
+    .filter((s): s is string => !!s);
+  const [debug, setDebug] = useState(false);
   useEffect(() => {
-    const vscode = acquireVsCodeApi();
     window.addEventListener("message", (event) => {
       switch (event.data.id as string) {
         case "update-sources": {
@@ -22,6 +38,13 @@ const App = () => {
           setSources(sources);
           break;
         }
+        case "update-selection": {
+          const [selection] = event.data.params as [
+            selection: MaybeSelectedFunction
+          ];
+          setSelectedFunction(selection);
+          break;
+        }
         default:
           console.log("Unknmown message: ", event);
       }
@@ -29,22 +52,37 @@ const App = () => {
   }, []);
   return (
     <RecoilRoot>
-      <p>This is react running in a webview</p>
-      <ul>
-        {Object.entries(sources).map(([filename, source]) => {
-          return (
-            <Fragment key={filename}>
-              <li>{filename}</li>
-              <ul>
-                {source.functions.map((fn) => (
-                  <li key={fn.name}>{fn.name}</li>
-                ))}
-              </ul>
-            </Fragment>
-          );
-        })}
-      </ul>
-      <pre>{JSON.stringify(sources, null, 4)}</pre>
+      {!!matchingSignatures.length && (
+        <>
+          <p>Function:</p>
+          {matchingSignatures.map((signature) => (
+            <code key="signature" style={{ whiteSpace: "nowrap" }}>
+              {signature}
+            </code>
+          ))}
+        </>
+      )}
+      <VSCodeDataGrid gridTemplateColumns="2fr 1fr 1fr" generateHeader="sticky">
+        <VSCodeDataGridRow rowType="sticky-header">
+          <VSCodeDataGridCell cellType="columnheader" gridColumn="1">
+            Inputs
+          </VSCodeDataGridCell>
+          <VSCodeDataGridCell cellType="columnheader" gridColumn="2">
+            Previous Outputs
+          </VSCodeDataGridCell>
+          <VSCodeDataGridCell cellType="columnheader" gridColumn="3">
+            Output
+          </VSCodeDataGridCell>
+        </VSCodeDataGridRow>
+      </VSCodeDataGrid>
+
+      <VSCodeButton
+        appearance="icon"
+        onClick={() => setDebug((prevDebug) => !prevDebug)}
+      >
+        <span>🐛</span>
+      </VSCodeButton>
+      {debug && <pre>{JSON.stringify(sources, null, 4)}</pre>}
     </RecoilRoot>
   );
 };

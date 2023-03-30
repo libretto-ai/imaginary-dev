@@ -1,11 +1,17 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-import html from "html-template-tag";
 import { relative } from "path";
 import * as vscode from "vscode";
-import { makeSerializable, SourceFileMap } from "../src-shared/source-info";
-import { focusNode } from "./editor-utils";
+import {
+  MaybeSelectedFunction,
+  SourceFileMap,
+} from "../src-shared/source-info";
+import { focusNode, getEditorSelectedFunction } from "./editor-utils";
 import { ImaginaryFunctionProvider } from "./function-tree-provider";
+import {
+  ReactWebViewProvider,
+  registerWebView,
+} from "./react-webview-provider";
 import { removeFile, updateFile } from "./source-utils";
 
 export function getRelativePathToProject(absPath: string) {
@@ -33,19 +39,16 @@ export function activate(extensionContext: vscode.ExtensionContext) {
     'Congratulations, your extension "imaginary-programming" is now active!'
   );
 
-  console.log("adding webview...");
-  const webviewProvider = new ReactWebViewProvider(
+  const outputsWebviewProvider = registerWebView(
     extensionContext,
+    "imaginary.currentfunctions",
     "function-panel"
   );
-  extensionContext.subscriptions.push(
-    vscode.window.registerWebviewViewProvider(
-      "imaginary.currentfunctions",
-      webviewProvider
-    )
-  );
+  registerWebView(extensionContext, "imaginary.inputs", "input-panel");
 
   let sources: Readonly<SourceFileMap> = {};
+
+  let selectedFunction: MaybeSelectedFunction = null;
 
   const functionTreeProvider = new ImaginaryFunctionProvider(sources);
   const treeView = vscode.window.createTreeView("functions", {
@@ -58,7 +61,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
       console.info("onDidChangeTextDocument", e.document.fileName, e.reason);
       sources = updateFile(sources, e.document);
       functionTreeProvider.update(sources);
-      webviewProvider.updateSources(sources);
+      outputsWebviewProvider.updateSources(sources);
     })
   );
 
@@ -68,7 +71,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
       sources = updateFile(sources, document);
 
       functionTreeProvider.update(sources);
-      webviewProvider.updateSources(sources);
+      outputsWebviewProvider.updateSources(sources);
     })
   );
   extensionContext.subscriptions.push(
@@ -76,86 +79,63 @@ export function activate(extensionContext: vscode.ExtensionContext) {
       console.info("onDidCloseTextDocument", document.fileName);
       sources = removeFile(document, sources);
       functionTreeProvider.update(sources);
-      webviewProvider.updateSources(sources);
+      outputsWebviewProvider.updateSources(sources);
     })
   );
-
+  extensionContext.subscriptions.push(
+    vscode.window.onDidChangeTextEditorSelection((e) => {
+      const { textEditor } = e;
+      selectedFunction = updateViewsWithSelection(
+        selectedFunction,
+        sources,
+        textEditor,
+        outputsWebviewProvider
+      );
+    })
+  );
   sources = initializeOpenEditors(sources, functionTreeProvider);
+  selectedFunction = initializeSelection(
+    selectedFunction,
+    sources,
+    outputsWebviewProvider
+  );
 }
 
-class ReactWebViewProvider implements vscode.WebviewViewProvider {
-  viewId: string;
-  extensionContext: vscode.ExtensionContext;
-  webviewView?: vscode.WebviewView;
-  constructor(extensionContext: vscode.ExtensionContext, webviewId: string) {
-    this.viewId = webviewId;
-    this.extensionContext = extensionContext;
-  }
-
-  async updateSources(sources: SourceFileMap) {
-    const serialized = makeSerializable(sources);
-    this.postMessage("update-sources", serialized);
-  }
-
-  async postMessage<T extends any[]>(messageId: string, ...params: T) {
-    if (!this.webviewView) {
-      throw new Error("webview has not been initialized");
-    }
-    return this.webviewView.webview.postMessage({
-      id: messageId,
-      params,
-    });
-  }
-
-  dispatch(e: any) {
-    console.log("got message from webview", e);
-  }
-  async resolveWebviewView(
-    webviewView: vscode.WebviewView,
-    context: vscode.WebviewViewResolveContext,
-    token: vscode.CancellationToken
-  ) {
-    const extensionRoot = vscode.Uri.joinPath(
-      this.extensionContext.extensionUri,
-      "dist"
+function initializeSelection(
+  selectedFunction: MaybeSelectedFunction,
+  sources: Readonly<SourceFileMap>,
+  outputsWebviewProvider: ReactWebViewProvider
+) {
+  if (vscode.window.activeTextEditor) {
+    const textEditor = vscode.window.activeTextEditor;
+    selectedFunction = updateViewsWithSelection(
+      selectedFunction,
+      sources,
+      textEditor,
+      outputsWebviewProvider
     );
-    this.webviewView = webviewView;
-    webviewView.webview.onDidReceiveMessage((e) => {
-      this.dispatch(e);
-    });
-    webviewView.webview.options = {
-      enableScripts: true,
-      localResourceRoots: [extensionRoot],
-    };
-    const nonce = getNonce();
-
-    const jsSrc = webviewView.webview.asWebviewUri(
-      vscode.Uri.joinPath(extensionRoot, `./views/${this.viewId}.js`)
-    );
-    const webViewHtml = html`
-      <html lang="en">
-        <head>
-          <title>Foo</title>
-          <meta
-            http-equiv="Content-Security-Policy"
-            content="default-src 'none'; img-src vscode-resource: https:; script-src 'nonce-${nonce}';style-src vscode-resource: 'unsafe-inline' http: https: data:;"
-          />
-          <base
-            href="${extensionRoot
-              .with({ scheme: "vscode-resource" })
-              .toString()}/"
-          />
-        </head>
-        <body>
-          <main id="root"></main>
-          <script nonce="${nonce}" src="${jsSrc.toString()}"></script>
-        </body>
-      </html>
-    `;
-
-    webviewView.webview.html = webViewHtml;
   }
+  return selectedFunction;
 }
+
+function updateViewsWithSelection(
+  selectedFunction: MaybeSelectedFunction,
+  sources: Readonly<SourceFileMap>,
+  textEditor: vscode.TextEditor,
+  outputsWebviewProvider: ReactWebViewProvider
+) {
+  const newSelection = getEditorSelectedFunction(
+    selectedFunction,
+    sources,
+    textEditor
+  );
+  if (newSelection !== selectedFunction) {
+    selectedFunction = newSelection;
+    outputsWebviewProvider.updateSelection(newSelection);
+  }
+  return selectedFunction;
+}
+
 /**
  * onDidOpenTextDocument does not fire for editors that are already open when
  * the extension initializes, so we do it here.
@@ -177,13 +157,3 @@ function initializeOpenEditors(
 
 // This method is called when your extension is deactivated
 export function deactivate() {}
-
-function getNonce() {
-  let text = "";
-  const possible =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  for (let i = 0; i < 32; i++) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
-  }
-  return text;
-}
