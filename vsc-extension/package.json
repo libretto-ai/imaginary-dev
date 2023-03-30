@@ -22,9 +22,27 @@
           "title": "Current functions",
           "icon": "resources/favicon-32x32.png"
         }
+      ],
+      "activitybar": [
+        {
+          "id": "imaginary",
+          "title": "Imaginary Programming",
+          "icon": "resources/favicon-32x32.png"
+        }
       ]
     },
     "views": {
+      "imaginary": [
+        {
+          "id": "imaginary.inputs",
+          "name": "Inputs here",
+          "type": "webview"
+        },
+        {
+          "id": "functions",
+          "name": "Imaginary Function List"
+        }
+      ],
       "currentfunctions": [
         {
           "id": "imaginary.currentfunctions",
@@ -32,16 +50,7 @@
           "type": "webview"
         }
       ],
-      "explorer": [
-        {
-          "id": "functions",
-          "name": "Imaginary Function List"
-        },
-        {
-          "id": "imaginary.inputs",
-          "name": "Inputs here"
-        }
-      ]
+      "explorer": []
     }
   },
   "scripts": {
