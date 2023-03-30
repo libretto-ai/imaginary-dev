@@ -6,9 +6,12 @@ import {
   MaybeSelectedFunction,
   SourceFileMap,
 } from "../src-shared/source-info";
-import { focusNode } from "./editor-utils";
+import { focusNode, getEditorSelectedFunction } from "./editor-utils";
 import { ImaginaryFunctionProvider } from "./function-tree-provider";
-import { registerWebView } from "./react-webview-provider";
+import {
+  ReactWebViewProvider,
+  registerWebView,
+} from "./react-webview-provider";
 import { removeFile, updateFile } from "./source-utils";
 
 export function getRelativePathToProject(absPath: string) {
@@ -45,7 +48,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
 
   let sources: Readonly<SourceFileMap> = {};
 
-  let currentFunction: MaybeSelectedFunction = null;
+  let selectedFunction: MaybeSelectedFunction = null;
 
   const functionTreeProvider = new ImaginaryFunctionProvider(sources);
   const treeView = vscode.window.createTreeView("functions", {
@@ -81,52 +84,56 @@ export function activate(extensionContext: vscode.ExtensionContext) {
   );
   extensionContext.subscriptions.push(
     vscode.window.onDidChangeTextEditorSelection((e) => {
-      const documentFileName = getRelativePathToProject(
-        e.textEditor.document.fileName
+      const { textEditor } = e;
+      selectedFunction = updateViewsWithSelection(
+        selectedFunction,
+        sources,
+        textEditor,
+        outputsWebviewProvider
       );
-
-      const selection = e.selections[0];
-      if (!selection) {
-        return;
-      }
-
-      let newSelection = currentFunction;
-      let found = false;
-      Object.entries(sources).forEach(([fileName, fileInfo]) => {
-        if (fileName === documentFileName) {
-          const cursorPos = fileInfo.sourceFile.getPositionOfLineAndCharacter(
-            selection.active.line,
-            selection.active.character
-          );
-          fileInfo.functions.forEach((fn) => {
-            const start = fn.getStart(fileInfo.sourceFile);
-            const end = fn.getEnd();
-            if (start <= cursorPos && cursorPos <= end) {
-              const functionName = fn.name?.text;
-              if (!functionName) {
-                return;
-              }
-              newSelection = {
-                fileName,
-                functionName,
-              };
-              found = true;
-              console.log("found! ", currentFunction);
-            }
-          });
-        }
-      });
-      if (!found) {
-        newSelection = null;
-      }
-      if (newSelection !== currentFunction) {
-        currentFunction = newSelection;
-        outputsWebviewProvider.updateSelection(newSelection);
-      }
     })
   );
-
   sources = initializeOpenEditors(sources, functionTreeProvider);
+  selectedFunction = initializeSelection(
+    selectedFunction,
+    sources,
+    outputsWebviewProvider
+  );
+}
+
+function initializeSelection(
+  selectedFunction: MaybeSelectedFunction,
+  sources: Readonly<SourceFileMap>,
+  outputsWebviewProvider: ReactWebViewProvider
+) {
+  if (vscode.window.activeTextEditor) {
+    const textEditor = vscode.window.activeTextEditor;
+    selectedFunction = updateViewsWithSelection(
+      selectedFunction,
+      sources,
+      textEditor,
+      outputsWebviewProvider
+    );
+  }
+  return selectedFunction;
+}
+
+function updateViewsWithSelection(
+  selectedFunction: MaybeSelectedFunction,
+  sources: Readonly<SourceFileMap>,
+  textEditor: vscode.TextEditor,
+  outputsWebviewProvider: ReactWebViewProvider
+) {
+  const newSelection = getEditorSelectedFunction(
+    selectedFunction,
+    sources,
+    textEditor
+  );
+  if (newSelection !== selectedFunction) {
+    selectedFunction = newSelection;
+    outputsWebviewProvider.updateSelection(newSelection);
+  }
+  return selectedFunction;
 }
 
 /**

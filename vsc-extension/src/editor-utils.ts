@@ -1,6 +1,12 @@
+import * as vscode from "vscode";
+import {
+  MaybeSelectedFunction,
+  SourceFileMap,
+} from "../src-shared/source-info";
+import { getRelativePathToProject } from "./extension";
+
 import { join } from "path";
 import * as ts from "typescript";
-import * as vscode from "vscode";
 
 /**
  * Open an editor with the cursor at the start of the function
@@ -24,3 +30,49 @@ export const focusNode = async (decl: ts.Node, sourceFile: ts.SourceFile) => {
     selection: new vscode.Range(functionPosition, functionPosition),
   });
 };
+
+export function getEditorSelectedFunction(
+  selectedFunction: MaybeSelectedFunction,
+  sources: SourceFileMap,
+  textEditor: vscode.TextEditor
+) {
+  const documentFileName = getRelativePathToProject(
+    textEditor.document.fileName
+  );
+
+  const selections = textEditor.selections;
+  if (!selections?.length) {
+    return selectedFunction;
+  }
+  const selection = selections[0];
+
+  let newSelection = selectedFunction;
+  let found = false;
+  Object.entries(sources).forEach(([fileName, fileInfo]) => {
+    if (fileName === documentFileName) {
+      const cursorPos = fileInfo.sourceFile.getPositionOfLineAndCharacter(
+        selection.active.line,
+        selection.active.character
+      );
+      fileInfo.functions.forEach((fn) => {
+        const start = fn.getStart(fileInfo.sourceFile);
+        const end = fn.getEnd();
+        if (start <= cursorPos && cursorPos <= end) {
+          const functionName = fn.name?.text;
+          if (!functionName) {
+            return;
+          }
+          newSelection = {
+            fileName,
+            functionName,
+          };
+          found = true;
+        }
+      });
+    }
+  });
+  if (!found) {
+    newSelection = null;
+  }
+  return newSelection;
+}
