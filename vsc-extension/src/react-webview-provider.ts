@@ -1,10 +1,5 @@
 import html from "html-template-tag";
 import * as vscode from "vscode";
-import {
-  makeSerializable,
-  MaybeSelectedFunction,
-  SourceFileMap,
-} from "../src-shared/source-info";
 
 export function registerWebView(
   extensionContext: vscode.ExtensionContext,
@@ -18,6 +13,7 @@ export function registerWebView(
   return webviewProvider;
 }
 
+/** Generic WebviewViewProvider which wraps a react application */
 export class ReactWebViewProvider implements vscode.WebviewViewProvider {
   viewId: string;
   extensionContext: vscode.ExtensionContext;
@@ -25,25 +21,6 @@ export class ReactWebViewProvider implements vscode.WebviewViewProvider {
   constructor(extensionContext: vscode.ExtensionContext, webviewId: string) {
     this.viewId = webviewId;
     this.extensionContext = extensionContext;
-  }
-
-  async updateSources(sources: SourceFileMap) {
-    const serialized = makeSerializable(sources);
-    this.postMessage("update-sources", serialized);
-  }
-
-  async updateSelection(selection: MaybeSelectedFunction) {
-    this.postMessage("update-selection", selection);
-  }
-
-  async postMessage<T extends any[]>(messageId: string, ...params: T) {
-    if (!this.webviewView) {
-      throw new Error("webview has not been initialized");
-    }
-    return this.webviewView.webview.postMessage({
-      id: messageId,
-      params,
-    });
   }
 
   dispatch(e: any) {
