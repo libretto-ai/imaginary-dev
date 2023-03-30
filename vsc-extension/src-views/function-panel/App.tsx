@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {
+  VSCodeButton,
   VSCodeDataGrid,
   VSCodeDataGridCell,
   VSCodeDataGridRow,
@@ -25,6 +26,7 @@ const App = () => {
       })
     )
     .filter((s): s is string => !!s);
+  const [debug, setDebug] = useState(false);
   useEffect(() => {
     window.addEventListener("message", (event) => {
       switch (event.data.id as string) {
@@ -41,6 +43,7 @@ const App = () => {
             selection: MaybeSelectedFunction
           ];
           setSelectedFunction(selection);
+          break;
         }
         default:
           console.log("Unknmown message: ", event);
@@ -53,7 +56,9 @@ const App = () => {
         <>
           <p>Function:</p>
           {matchingSignatures.map((signature) => (
-            <code key="signature">{signature}</code>
+            <code key="signature" style={{ whiteSpace: "nowrap" }}>
+              {signature}
+            </code>
           ))}
         </>
       )}
@@ -70,7 +75,14 @@ const App = () => {
           </VSCodeDataGridCell>
         </VSCodeDataGridRow>
       </VSCodeDataGrid>
-      <pre>{JSON.stringify(sources, null, 4)}</pre>
+
+      <VSCodeButton
+        appearance="icon"
+        onClick={() => setDebug((prevDebug) => !prevDebug)}
+      >
+        <span>🐛</span>
+      </VSCodeButton>
+      {debug && <pre>{JSON.stringify(sources, null, 4)}</pre>}
     </RecoilRoot>
   );
 };
