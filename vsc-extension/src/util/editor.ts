@@ -1,12 +1,18 @@
+import { join, relative } from "path";
+import * as ts from "typescript";
 import * as vscode from "vscode";
 import {
   MaybeSelectedFunction,
   SourceFileMap,
-} from "../src-shared/source-info";
-import { getRelativePathToProject } from "./extension";
+} from "../../src-shared/source-info";
 
-import { join } from "path";
-import * as ts from "typescript";
+export function getRelativePathToProject(absPath: string) {
+  const projectPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
+  if (projectPath) {
+    return relative(projectPath, absPath);
+  }
+  return absPath;
+}
 
 /**
  * Open an editor with the cursor at the start of the function

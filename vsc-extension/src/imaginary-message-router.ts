@@ -3,7 +3,7 @@ import {
   MaybeSelectedFunction,
   SourceFileMap,
 } from "../src-shared/source-info";
-import { ReactWebViewProvider } from "./react-webview-provider";
+import { ReactWebViewProvider } from "./util/react-webview-provider";
 
 /** A message router to broadcast and recieve messages from multiple webviews */
 
