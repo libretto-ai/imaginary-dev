@@ -15,7 +15,7 @@ const extensionConfig = {
   entry: {
     // Make an entry for each panel
     "function-panel": "./src-views/function-panel/index.tsx",
-    "inputs-panel": "./src-views/input-panel/index.tsx",
+    "input-panel": "./src-views/input-panel/index.tsx",
   },
   output: {
     // the bundle is stored in the 'dist' folder (check package.json), 📖 -> https://webpack.js.org/configuration/output/
