@@ -36,6 +36,10 @@
         {
           "id": "functions",
           "name": "Imaginary Function List"
+        },
+        {
+          "id": "imaginary.inputs",
+          "name": "Inputs here"
         }
       ]
     }

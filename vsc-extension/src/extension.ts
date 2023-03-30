@@ -37,17 +37,12 @@ export function activate(extensionContext: vscode.ExtensionContext) {
     'Congratulations, your extension "imaginary-programming" is now active!'
   );
 
-  console.log("adding webview...");
-  const webviewProvider = new ReactWebViewProvider(
+  const outputsWebviewProvider = registerWebView(
     extensionContext,
+    "imaginary.currentfunctions",
     "function-panel"
   );
-  extensionContext.subscriptions.push(
-    vscode.window.registerWebviewViewProvider(
-      "imaginary.currentfunctions",
-      webviewProvider
-    )
-  );
+  registerWebView(extensionContext, "imaginary.inputs", "input-panel");
 
   let sources: Readonly<SourceFileMap> = {};
 
@@ -64,7 +59,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
       console.info("onDidChangeTextDocument", e.document.fileName, e.reason);
       sources = updateFile(sources, e.document);
       functionTreeProvider.update(sources);
-      webviewProvider.updateSources(sources);
+      outputsWebviewProvider.updateSources(sources);
     })
   );
 
@@ -74,7 +69,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
       sources = updateFile(sources, document);
 
       functionTreeProvider.update(sources);
-      webviewProvider.updateSources(sources);
+      outputsWebviewProvider.updateSources(sources);
     })
   );
   extensionContext.subscriptions.push(
@@ -82,7 +77,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
       console.info("onDidCloseTextDocument", document.fileName);
       sources = removeFile(document, sources);
       functionTreeProvider.update(sources);
-      webviewProvider.updateSources(sources);
+      outputsWebviewProvider.updateSources(sources);
     })
   );
   extensionContext.subscriptions.push(
@@ -127,7 +122,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
       }
       if (newSelection !== currentFunction) {
         currentFunction = newSelection;
-        webviewProvider.updateSelection(newSelection);
+        outputsWebviewProvider.updateSelection(newSelection);
       }
     })
   );
@@ -242,4 +237,16 @@ function getNonce() {
     text += possible.charAt(Math.floor(Math.random() * possible.length));
   }
   return text;
+}
+
+function registerWebView(
+  extensionContext: vscode.ExtensionContext,
+  viewName: string,
+  panelName: string
+) {
+  const webviewProvider = new ReactWebViewProvider(extensionContext, panelName);
+  extensionContext.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(viewName, webviewProvider)
+  );
+  return webviewProvider;
 }
