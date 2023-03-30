@@ -170,9 +170,7 @@ function getPromisedReturnType(
     );
   }
 
-  const returnType = type
-    .getCallSignatures()[0]
-    .getReturnType() as ts.TypeReference;
+  const returnType = type.getCallSignatures()[0].getReturnType();
 
   // Check to make sure that the return value is a Promise. This is how you make
   // async functions in TypeScript function declarations.
@@ -471,7 +469,7 @@ const tsTypeToJsonSchema = (
   }
   if (type.getFlags() & ts.TypeFlags.Object) {
     if (isArray(type)) {
-      const typeArguments = (type as ts.TypeReference).typeArguments;
+      const typeArguments = type.typeArguments;
       if (typeof typeArguments === "undefined") {
         throw new NodeError(
           `Internal imaginary function compiler error: found an array with indeterminate item type, called ${typeChecker.typeToString(
@@ -501,9 +499,7 @@ const tsTypeToJsonSchema = (
       // TODO: enable when Map rehydration is ready
       // || isBuiltInWithName(type, "Map")
     ) {
-      const { typeArguments, typeName } = getBuiltinTypeInfo(
-        type as ts.TypeReference
-      );
+      const { typeArguments, typeName } = getBuiltinTypeInfo(type);
       if (typeof typeArguments === "undefined") {
         throw new NodeError(
           `Internal imaginary function compiler error: found a ${typeName} with indeterminate item type, called ${typeChecker.typeToString(
@@ -580,14 +576,17 @@ const tsTypeToJsonSchema = (
   );
 };
 
-const isArray = (type: ts.Type): boolean => {
+const isArray = (type: ts.Type): type is ts.TypeReference => {
   return isBuiltInWithName(type, "Array");
 };
-const isPromise = (type: ts.Type): boolean => {
+const isPromise = (type: ts.Type): type is ts.TypeReference => {
   return isBuiltInWithName(type, "Promise");
 };
 
-const isBuiltInWithName = (type: ts.Type, name: string): boolean => {
+const isBuiltInWithName = (
+  type: ts.Type,
+  name: string
+): type is ts.TypeReference => {
   return (
     isBuiltInSymbol(type.getSymbol(), name) ||
     isBuiltInSymbol(type.aliasSymbol, name)
