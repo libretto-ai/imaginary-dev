@@ -1,26 +1,15 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-import { relative } from "path";
 import * as vscode from "vscode";
 import {
   MaybeSelectedFunction,
   SourceFileMap,
 } from "../src-shared/source-info";
-import { focusNode, getEditorSelectedFunction } from "./editor-utils";
 import { ImaginaryFunctionProvider } from "./function-tree-provider";
-import {
-  ReactWebViewProvider,
-  registerWebView,
-} from "./react-webview-provider";
-import { removeFile, updateFile } from "./source-utils";
-
-export function getRelativePathToProject(absPath: string) {
-  const projectPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
-  if (projectPath) {
-    return relative(projectPath, absPath);
-  }
-  return absPath;
-}
+import { ImaginaryMessageRouter } from "./imaginary-message-router";
+import { focusNode, getEditorSelectedFunction } from "./util/editor";
+import { registerWebView } from "./util/react-webview-provider";
+import { removeFile, updateFile } from "./util/source";
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -44,7 +33,15 @@ export function activate(extensionContext: vscode.ExtensionContext) {
     "imaginary.currentfunctions",
     "function-panel"
   );
-  registerWebView(extensionContext, "imaginary.inputs", "input-panel");
+  const inputsWebviewProvider = registerWebView(
+    extensionContext,
+    "imaginary.inputs",
+    "input-panel"
+  );
+  const messageRouter = new ImaginaryMessageRouter([
+    outputsWebviewProvider,
+    inputsWebviewProvider,
+  ]);
 
   let sources: Readonly<SourceFileMap> = {};
 
@@ -61,7 +58,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
       console.info("onDidChangeTextDocument", e.document.fileName, e.reason);
       sources = updateFile(sources, e.document);
       functionTreeProvider.update(sources);
-      outputsWebviewProvider.updateSources(sources);
+      messageRouter.updateSources(sources);
     })
   );
 
@@ -71,7 +68,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
       sources = updateFile(sources, document);
 
       functionTreeProvider.update(sources);
-      outputsWebviewProvider.updateSources(sources);
+      messageRouter.updateSources(sources);
     })
   );
   extensionContext.subscriptions.push(
@@ -79,7 +76,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
       console.info("onDidCloseTextDocument", document.fileName);
       sources = removeFile(document, sources);
       functionTreeProvider.update(sources);
-      outputsWebviewProvider.updateSources(sources);
+      messageRouter.updateSources(sources);
     })
   );
   extensionContext.subscriptions.push(
@@ -89,7 +86,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
         selectedFunction,
         sources,
         textEditor,
-        outputsWebviewProvider
+        messageRouter
       );
     })
   );
@@ -97,14 +94,14 @@ export function activate(extensionContext: vscode.ExtensionContext) {
   selectedFunction = initializeSelection(
     selectedFunction,
     sources,
-    outputsWebviewProvider
+    messageRouter
   );
 }
 
 function initializeSelection(
   selectedFunction: MaybeSelectedFunction,
   sources: Readonly<SourceFileMap>,
-  outputsWebviewProvider: ReactWebViewProvider
+  messageRouter: ImaginaryMessageRouter
 ) {
   if (vscode.window.activeTextEditor) {
     const textEditor = vscode.window.activeTextEditor;
@@ -112,7 +109,7 @@ function initializeSelection(
       selectedFunction,
       sources,
       textEditor,
-      outputsWebviewProvider
+      messageRouter
     );
   }
   return selectedFunction;
@@ -122,7 +119,7 @@ function updateViewsWithSelection(
   selectedFunction: MaybeSelectedFunction,
   sources: Readonly<SourceFileMap>,
   textEditor: vscode.TextEditor,
-  outputsWebviewProvider: ReactWebViewProvider
+  messageRouter: ImaginaryMessageRouter
 ) {
   const newSelection = getEditorSelectedFunction(
     selectedFunction,
@@ -131,7 +128,7 @@ function updateViewsWithSelection(
   );
   if (newSelection !== selectedFunction) {
     selectedFunction = newSelection;
-    outputsWebviewProvider.updateSelection(newSelection);
+    messageRouter.updateSelection(newSelection);
   }
   return selectedFunction;
 }
