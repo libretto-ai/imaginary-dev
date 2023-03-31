@@ -12,7 +12,6 @@ import {
   useExtensionState,
 } from "../shared/ExtensionState";
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 const App = () => {
   return (
     <RecoilRoot>
