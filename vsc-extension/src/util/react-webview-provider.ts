@@ -50,7 +50,7 @@ export class ReactWebViewProvider implements vscode.WebviewViewProvider {
     const webViewHtml = html`
       <html lang="en">
         <head>
-          <title>Foo</title>
+          <title>React Webview Provider: ${this.viewId}</title>
           <meta
             http-equiv="Content-Security-Policy"
             content="default-src 'none'; img-src vscode-resource: https:; script-src 'nonce-${nonce}';style-src vscode-resource: 'unsafe-inline' http: https: data:;"
