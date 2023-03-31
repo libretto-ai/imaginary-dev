@@ -4,6 +4,7 @@ import * as vscode from "vscode";
 import {
   MaybeSelectedFunction,
   SourceFileMap,
+  SourceFileTestCases,
 } from "../src-shared/source-info";
 import { ImaginaryFunctionProvider } from "./function-tree-provider";
 import { ImaginaryMessageRouter } from "./imaginary-message-router";
@@ -53,6 +54,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
   // These are all the local states in the extension.
   let sources: Readonly<SourceFileMap> = {};
   let selectedFunction: MaybeSelectedFunction = null;
+  let testCases: SourceFileTestCases[] = [];
 
   const functionTreeProvider = new ImaginaryFunctionProvider(sources);
   const treeView = vscode.window.createTreeView("functions", {
