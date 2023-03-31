@@ -27,7 +27,11 @@ function useExtensionStateInternal() {
   useEffect(() => {
     window.addEventListener("message", (event) => {
       const message: ImaginaryMessage = event.data;
-      console.log(`[${this.viewId}] Got ${message.id}`);
+
+      console.log(
+        `[${window.location}] Got ${message.id} from ${event.origin} /`,
+        event
+      );
 
       switch (message.id) {
         case "update-sources": {
