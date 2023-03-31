@@ -38,14 +38,12 @@ export class ImaginaryMessageRouter {
           })
         );
       });
-      const detatchDisposable = webviewProvider.onDidDetatchWebview(
-        (webview) => {
-          // TODO: dispose of attached onDidReceiveMessage disposable
-          this.attachedWebviewProviders = this.attachedWebviewProviders.filter(
-            (provider) => provider !== webviewProvider
-          );
-        }
-      );
+      const detatchDisposable = webviewProvider.onDidDetatchWebview(() => {
+        // TODO: dispose of attached onDidReceiveMessage disposable
+        this.attachedWebviewProviders = this.attachedWebviewProviders.filter(
+          (provider) => provider !== webviewProvider
+        );
+      });
       return [attachDisposable, detatchDisposable];
     });
     this.disposables.push(vscode.Disposable.from(...disposables));

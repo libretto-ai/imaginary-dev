@@ -38,12 +38,10 @@ function useExtensionStateInternal() {
           const [sources] = message.params;
           console.log("got sources: ", sources);
           return setSources(sources);
-          break;
         }
         case "update-function-selection": {
           const [selection] = message.params;
           return setSelectedFunction(selection);
-          break;
         }
         case "update-testcases": {
           const [testCases] = message.params;

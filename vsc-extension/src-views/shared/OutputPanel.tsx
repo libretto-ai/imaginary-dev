@@ -8,7 +8,7 @@ import React, { useState } from "react";
 import { useExtensionState } from "./ExtensionState";
 
 export function OutputPanel() {
-  const { sendMessage, sources, selectedFunction } = useExtensionState();
+  const { sources, selectedFunction } = useExtensionState();
 
   const matchingSignatures = Object.values(sources)
     .flatMap((sourceFileInfo) =>

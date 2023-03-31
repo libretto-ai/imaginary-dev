@@ -77,7 +77,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
   let testCases: SourceFileTestCases[] = [];
 
   const functionTreeProvider = new ImaginaryFunctionProvider(sources);
-  const treeView = vscode.window.createTreeView("functions", {
+  vscode.window.createTreeView("functions", {
     treeDataProvider: functionTreeProvider,
   });
   vscode.commands.registerCommand("imaginary.clickFunction", focusNode);
