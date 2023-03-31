@@ -20,20 +20,19 @@ export class ImaginaryMessageRouter {
   constructor(webviewProviders: readonly ReactWebViewProvider[]) {
     this.webviewProviders = webviewProviders;
 
-    webviewProviders.forEach((webviewProvider) => {
-      this.disposables.push(
-        webviewProvider.onDidAttachWebview((webview) => {
-          this.disposables.push(
-            webview.onDidReceiveMessage((message) => {
-              this._onDidReceiveMessage.fire({
-                webviewProvider,
-                message,
-              });
-            })
-          );
-        })
-      );
+    const disposables = webviewProviders.map((webviewProvider) => {
+      return webviewProvider.onDidAttachWebview((webview) => {
+        this.disposables.push(
+          webview.onDidReceiveMessage((message) => {
+            this._onDidReceiveMessage.fire({
+              webviewProvider,
+              message,
+            });
+          })
+        );
+      });
     });
+    this.disposables.push(vscode.Disposable.from(...disposables));
   }
   dispose() {
     const d = vscode.Disposable.from(...this.disposables);

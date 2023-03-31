@@ -42,6 +42,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
     outputsWebviewProvider,
     inputsWebviewProvider,
   ]);
+  extensionContext.subscriptions.push(messageRouter);
 
   extensionContext.subscriptions.push(
     messageRouter.onDidReceiveMessage((webviewMessage) => {
