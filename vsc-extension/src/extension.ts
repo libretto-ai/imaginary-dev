@@ -126,7 +126,6 @@ export function activate(extensionContext: vscode.ExtensionContext) {
     sources,
     messageRouter
   );
-  probe();
 }
 
 function initializeSelection(
@@ -185,18 +184,3 @@ function initializeOpenEditors(
 
 // This method is called when your extension is deactivated
 export function deactivate() {}
-
-async function probe() {
-  const typeScriptExtensionId = "vscode.typescript-language-features";
-  const extension = vscode.extensions.getExtension(typeScriptExtensionId);
-  if (!extension) {
-    console.log("cannot find extension");
-    return;
-  }
-  if (!extension.isActive) {
-    await extension.activate();
-  }
-  const api = extension.exports.getAPI(0);
-  const p = api.configurePlugin("imaginary-programming", { port: 12345 });
-  console.log("has api: ", api);
-}
