@@ -5,7 +5,7 @@ import {
   VSCodeDataGridCell,
   VSCodeDataGridRow,
 } from "@vscode/webview-ui-toolkit/react";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { RecoilRoot } from "recoil";
 import {
   MaybeSelectedFunction,
@@ -14,9 +14,8 @@ import {
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const App = () => {
-  const [sources, setSources] = useState<SerializableSourceFileMap>({});
-  const [selectedFunction, setSelectedFunction] =
-    useState<MaybeSelectedFunction>(null);
+  const { sendMessage, sources, selectedFunction } = useAppState();
+
   const matchingSignatures = Object.values(sources)
     .flatMap((sourceFileInfo) =>
       sourceFileInfo.functions.map((fn) => {
@@ -27,29 +26,6 @@ const App = () => {
     )
     .filter((s): s is string => !!s);
   const [debug, setDebug] = useState(false);
-  useEffect(() => {
-    window.addEventListener("message", (event) => {
-      switch (event.data.id as string) {
-        case "update-sources": {
-          const [sources] = event.data.params as [
-            sources: SerializableSourceFileMap
-          ];
-          console.log("got sources: ", sources);
-          setSources(sources);
-          break;
-        }
-        case "update-selection": {
-          const [selection] = event.data.params as [
-            selection: MaybeSelectedFunction
-          ];
-          setSelectedFunction(selection);
-          break;
-        }
-        default:
-          console.log("Unknmown message: ", event);
-      }
-    });
-  }, []);
   return (
     <RecoilRoot>
       {!!matchingSignatures.length && (
@@ -88,3 +64,43 @@ const App = () => {
 };
 
 export default App;
+
+function useAppState() {
+  const [sources, setSources] = useState<SerializableSourceFileMap>({});
+  const [selectedFunction, setSelectedFunction] =
+    useState<MaybeSelectedFunction>(null);
+  useEffect(() => {
+    window.addEventListener("message", (event) => {
+      switch (event.data.id as string) {
+        case "update-sources": {
+          const [sources] = event.data.params as [
+            sources: SerializableSourceFileMap
+          ];
+          console.log("got sources: ", sources);
+          setSources(sources);
+          break;
+        }
+        case "update-selection": {
+          const [selection] = event.data.params as [
+            selection: MaybeSelectedFunction
+          ];
+          setSelectedFunction(selection);
+          break;
+        }
+        default:
+          console.log("Unknmown message: ", event);
+      }
+    });
+  }, []);
+  const sendMessage = useCallback(
+    <P extends any[]>(messageId: string, ...params: P) => {
+      const vscode = acquireVsCodeApi();
+      vscode.postMessage({
+        id: messageId,
+        params,
+      });
+    },
+    []
+  );
+  return { sendMessage, sources, selectedFunction };
+}
