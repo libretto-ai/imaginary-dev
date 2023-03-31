@@ -16,6 +16,8 @@ export interface WebviewMessage<M extends ImaginaryMessage> {
 }
 export class ImaginaryMessageRouter {
   webviewProviders: readonly ReactWebViewProvider[];
+  // Keep track of which webviews are attached or not
+  attachedWebviewProviders: ReactWebViewProvider[] = [];
   disposables: vscode.Disposable[] = [];
   private _onDidReceiveMessage = new vscode.EventEmitter<
     WebviewMessage<ImaginaryMessage>
@@ -24,8 +26,9 @@ export class ImaginaryMessageRouter {
   constructor(webviewProviders: readonly ReactWebViewProvider[]) {
     this.webviewProviders = webviewProviders;
 
-    const disposables = webviewProviders.map((webviewProvider) => {
-      return webviewProvider.onDidAttachWebview((webview) => {
+    const disposables = webviewProviders.flatMap((webviewProvider) => {
+      const attachDisposable = webviewProvider.onDidAttachWebview((webview) => {
+        this.attachedWebviewProviders.push(webviewProvider);
         this.disposables.push(
           webview.onDidReceiveMessage((message) => {
             this._onDidReceiveMessage.fire({
@@ -35,6 +38,15 @@ export class ImaginaryMessageRouter {
           })
         );
       });
+      const detatchDisposable = webviewProvider.onDidDetatchWebview(
+        (webview) => {
+          // TODO: dispose of attached onDidReceiveMessage disposable
+          this.attachedWebviewProviders = this.attachedWebviewProviders.filter(
+            (provider) => provider !== webviewProvider
+          );
+        }
+      );
+      return [attachDisposable, detatchDisposable];
     });
     this.disposables.push(vscode.Disposable.from(...disposables));
   }
@@ -74,7 +86,7 @@ export class ImaginaryMessageRouter {
     K extends M["id"],
     T extends M["params"]
   >(messageId: K, params: T, ignoreWebview?: ReactWebViewProvider) {
-    const result = this.webviewProviders.map((provider) => {
+    const result = this.attachedWebviewProviders.map((provider) => {
       if (!provider.webviewView) {
         throw new Error("webview has not been initialized");
       }
