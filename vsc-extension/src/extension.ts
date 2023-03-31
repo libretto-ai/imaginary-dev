@@ -1,5 +1,6 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
+import { UnreachableCaseError } from "ts-essentials";
 import * as vscode from "vscode";
 import {
   MaybeSelectedFunction,
@@ -47,6 +48,23 @@ export function activate(extensionContext: vscode.ExtensionContext) {
 
   extensionContext.subscriptions.push(
     messageRouter.onDidReceiveMessage((webviewMessage) => {
+      const { message, webviewProvider } = webviewMessage;
+      switch (message.id) {
+        case "update-sources":
+          throw new Error("Only core extension is allowed to update sources");
+        case "update-selection":
+          return messageRouter.updateSelection(
+            message.params[0],
+            webviewProvider
+          );
+        case "update-testcases":
+          return messageRouter.updateTestCases(
+            message.params[0],
+            webviewProvider
+          );
+        default:
+          throw new UnreachableCaseError(message);
+      }
       console.log("got message from webview: ", webviewMessage.message);
     })
   );
@@ -105,6 +123,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
     sources,
     messageRouter
   );
+  probe();
 }
 
 function initializeSelection(
@@ -163,3 +182,18 @@ function initializeOpenEditors(
 
 // This method is called when your extension is deactivated
 export function deactivate() {}
+
+async function probe() {
+  const typeScriptExtensionId = "vscode.typescript-language-features";
+  const extension = vscode.extensions.getExtension(typeScriptExtensionId);
+  if (!extension) {
+    console.log("cannot find extension");
+    return;
+  }
+  if (!extension.isActive) {
+    await extension.activate();
+  }
+  const api = extension.exports.getAPI(0);
+  const p = api.configurePlugin("imaginary-programming", { port: 12345 });
+  console.log("has api: ", api);
+}

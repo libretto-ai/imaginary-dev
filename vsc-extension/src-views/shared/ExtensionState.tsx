@@ -8,9 +8,12 @@ import React, {
   useEffect,
   useState,
 } from "react";
+import { UnreachableCaseError } from "ts-essentials";
+import { ImaginaryMessage } from "../../src-shared/messages";
 import {
   MaybeSelectedFunction,
   SerializableSourceFileMap,
+  SourceFileTestCases,
 } from "../../src-shared/source-info";
 
 /** Main hook that wires up all messaging to/from this webview */
@@ -19,28 +22,31 @@ function useExtensionStateInternal() {
   const [sources, setSources] = useState<SerializableSourceFileMap>({});
   const [selectedFunction, setSelectedFunction] =
     useState<MaybeSelectedFunction>(null);
+  const [testCases, setTestCases] = useState<SourceFileTestCases[]>([]);
 
   // Synchronize states by listening for events
   useEffect(() => {
     window.addEventListener("message", (event) => {
-      switch (event.data.id as string) {
+      const message: ImaginaryMessage = event.data;
+      switch (message.id) {
         case "update-sources": {
-          const [sources] = event.data.params as [
-            sources: SerializableSourceFileMap
-          ];
+          const [sources] = message.params;
           console.log("got sources: ", sources);
-          setSources(sources);
+          return setSources(sources);
           break;
         }
         case "update-selection": {
-          const [selection] = event.data.params as [
-            selection: MaybeSelectedFunction
-          ];
-          setSelectedFunction(selection);
+          const [selection] = message.params;
+          return setSelectedFunction(selection);
           break;
         }
+        case "update-testcases": {
+          const [testCases] = message.params;
+          return setTestCases(testCases);
+        }
+
         default:
-          console.log("Unknmown message: ", event);
+          throw new UnreachableCaseError(message);
       }
     });
   }, []);
