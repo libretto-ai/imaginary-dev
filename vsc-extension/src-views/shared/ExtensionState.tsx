@@ -28,6 +28,8 @@ function useExtensionStateInternal() {
   useEffect(() => {
     window.addEventListener("message", (event) => {
       const message: ImaginaryMessage = event.data;
+      console.log(`[${this.viewId}] Got ${message.id}`);
+
       switch (message.id) {
         case "update-sources": {
           const [sources] = message.params;

@@ -49,6 +49,9 @@ export function activate(extensionContext: vscode.ExtensionContext) {
   extensionContext.subscriptions.push(
     messageRouter.onDidReceiveMessage((webviewMessage) => {
       const { message, webviewProvider } = webviewMessage;
+      console.log(
+        `[extension] Got ${message.id} from ${webviewProvider.viewId}`
+      );
       switch (message.id) {
         case "update-sources":
           throw new Error("Only core extension is allowed to update sources");
@@ -65,7 +68,6 @@ export function activate(extensionContext: vscode.ExtensionContext) {
         default:
           throw new UnreachableCaseError(message);
       }
-      console.log("got message from webview: ", webviewMessage.message);
     })
   );
 
