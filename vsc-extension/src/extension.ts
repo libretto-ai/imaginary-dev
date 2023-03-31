@@ -5,7 +5,7 @@ import * as vscode from "vscode";
 import {
   MaybeSelectedFunction,
   SourceFileMap,
-  SourceFileTestCases,
+  SourceFileTestCaseMap,
 } from "../src-shared/source-info";
 import { ImaginaryFunctionProvider } from "./function-tree-provider";
 import { ImaginaryMessageRouter } from "./imaginary-message-router";
@@ -56,15 +56,16 @@ export function activate(extensionContext: vscode.ExtensionContext) {
         case "update-sources":
           throw new Error("Only core extension is allowed to update sources");
         case "update-function-selection":
+          selectedFunction = message.params[0];
           return messageRouter.updateFunctionSelection(
-            message.params[0],
+            selectedFunction,
             webviewProvider
           );
+
         case "update-testcases":
-          return messageRouter.updateTestCases(
-            message.params[0],
-            webviewProvider
-          );
+          testCases = message.params[0];
+          return messageRouter.updateTestCases(testCases, webviewProvider);
+
         default:
           throw new UnreachableCaseError(message);
       }
@@ -74,7 +75,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
   // These are all the local states in the extension.
   let sources: Readonly<SourceFileMap> = {};
   let selectedFunction: MaybeSelectedFunction = null;
-  let testCases: SourceFileTestCases[] = [];
+  let testCases: Readonly<SourceFileTestCaseMap> = {};
 
   const functionTreeProvider = new ImaginaryFunctionProvider(sources);
   vscode.window.createTreeView("functions", {

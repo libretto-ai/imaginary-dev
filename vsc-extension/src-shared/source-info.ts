@@ -26,6 +26,8 @@ export interface SourceFileTestCases {
   testCases: FunctionTestCases[];
 }
 
+export type SourceFileTestCaseMap = Record<string, SourceFileTestCases>;
+
 export interface SourceFileInfo {
   sourceFile: ts.SourceFile;
   functions: ts.FunctionDeclaration[];

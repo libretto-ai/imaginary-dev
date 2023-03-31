@@ -4,7 +4,7 @@ import {
   makeSerializable,
   MaybeSelectedFunction,
   SourceFileMap,
-  SourceFileTestCases,
+  SourceFileTestCaseMap,
 } from "../src-shared/source-info";
 import { ReactWebViewProvider } from "./util/react-webview-provider";
 
@@ -73,7 +73,7 @@ export class ImaginaryMessageRouter {
   }
 
   async updateTestCases(
-    testCases: SourceFileTestCases[],
+    testCases: SourceFileTestCaseMap,
     ignoreProvider?: ReactWebViewProvider
   ) {
     return this.postMessage("update-testcases", [testCases], ignoreProvider);

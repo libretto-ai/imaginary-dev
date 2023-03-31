@@ -1,7 +1,7 @@
 import {
   MaybeSelectedFunction,
   SerializableSourceFileMap,
-  SourceFileTestCases,
+  SourceFileTestCaseMap,
 } from "./source-info";
 
 export interface UpdateSourcesMessage {
@@ -16,7 +16,7 @@ export interface UpdateFunctionSelectionMessage {
 
 export interface UpdateTestCasesMessage {
   id: "update-testcases";
-  params: [SourceFileTestCases[]];
+  params: [SourceFileTestCaseMap];
 }
 
 export type ImaginaryMessage =

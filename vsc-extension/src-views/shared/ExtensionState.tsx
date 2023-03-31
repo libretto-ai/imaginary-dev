@@ -12,7 +12,7 @@ import { ImaginaryMessage } from "../../src-shared/messages";
 import {
   MaybeSelectedFunction,
   SerializableSourceFileMap,
-  SourceFileTestCases,
+  SourceFileTestCaseMap,
 } from "../../src-shared/source-info";
 
 /** Main hook that wires up all messaging to/from this webview */
@@ -21,7 +21,7 @@ function useExtensionStateInternal() {
   const [sources, setSources] = useState<SerializableSourceFileMap>({});
   const [selectedFunction, setSelectedFunction] =
     useState<MaybeSelectedFunction>(null);
-  const [testCases, setTestCases] = useState<SourceFileTestCases[]>([]);
+  const [testCases, setTestCases] = useState<SourceFileTestCaseMap>({});
 
   // Synchronize states by listening for events
   useEffect(() => {
@@ -65,7 +65,7 @@ function useExtensionStateInternal() {
     },
     []
   );
-  return { sendMessage, sources, selectedFunction };
+  return { sendMessage, sources, selectedFunction, testCases };
 }
 
 const ExtensionState = createContext<
@@ -73,6 +73,7 @@ const ExtensionState = createContext<
 >({
   selectedFunction: null,
   sources: {},
+  testCases: {},
   sendMessage: () => {},
 });
 
