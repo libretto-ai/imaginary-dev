@@ -90,7 +90,6 @@ const transformer =
                 imaginaryComment,
                 functionName,
                 paramsAsStrings,
-                getBottomedOutType(promisedType, typeChecker, node),
                 promisedType,
                 typeChecker,
                 node
@@ -317,7 +316,6 @@ function getASTForName(
   imaginaryComment: string,
   functionName: string,
   paramTypes: { name: string; type?: ts.Type }[],
-  returnType: string,
   promisedType: ts.Type,
   typeChecker: ts.TypeChecker,
   node: ts.Node
