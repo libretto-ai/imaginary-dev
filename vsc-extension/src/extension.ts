@@ -55,8 +55,8 @@ export function activate(extensionContext: vscode.ExtensionContext) {
       switch (message.id) {
         case "update-sources":
           throw new Error("Only core extension is allowed to update sources");
-        case "update-selection":
-          return messageRouter.updateSelection(
+        case "update-function-selection":
+          return messageRouter.updateFunctionSelection(
             message.params[0],
             webviewProvider
           );
@@ -158,7 +158,7 @@ function updateViewsWithSelection(
   );
   if (newSelection !== selectedFunction) {
     selectedFunction = newSelection;
-    messageRouter.updateSelection(newSelection);
+    messageRouter.updateFunctionSelection(newSelection);
   }
   return selectedFunction;
 }

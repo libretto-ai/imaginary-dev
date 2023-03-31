@@ -9,8 +9,8 @@ export interface UpdateSourcesMessage {
   params: [Readonly<SerializableSourceFileMap>];
 }
 
-export interface UpdateSelectionMessage {
-  id: "update-selection";
+export interface UpdateFunctionSelectionMessage {
+  id: "update-function-selection";
   params: [MaybeSelectedFunction];
 }
 
@@ -20,6 +20,6 @@ export interface UpdateTestCasesMessage {
 }
 
 export type ImaginaryMessage =
-  | UpdateSelectionMessage
+  | UpdateFunctionSelectionMessage
   | UpdateSourcesMessage
   | UpdateTestCasesMessage;

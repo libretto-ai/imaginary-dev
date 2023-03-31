@@ -36,7 +36,7 @@ function useExtensionStateInternal() {
           return setSources(sources);
           break;
         }
-        case "update-selection": {
+        case "update-function-selection": {
           const [selection] = message.params;
           return setSelectedFunction(selection);
           break;

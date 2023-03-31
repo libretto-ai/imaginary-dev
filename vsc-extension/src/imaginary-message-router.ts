@@ -51,11 +51,15 @@ export class ImaginaryMessageRouter {
     return this.postMessage("update-sources", [serialized], ignoreProvider);
   }
 
-  async updateSelection(
+  async updateFunctionSelection(
     selection: MaybeSelectedFunction,
     ignoreProvider?: ReactWebViewProvider
   ) {
-    return this.postMessage("update-selection", [selection], ignoreProvider);
+    return this.postMessage(
+      "update-function-selection",
+      [selection],
+      ignoreProvider
+    );
   }
 
   async updateTestCases(
