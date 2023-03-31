@@ -15,30 +15,23 @@ export function registerWebView(
 
 /** Generic WebviewViewProvider which wraps a react application */
 export class ReactWebViewProvider implements vscode.WebviewViewProvider {
+  private _onDidAttachWebview = new vscode.EventEmitter<vscode.Webview>();
+  onDidAttachWebview = this._onDidAttachWebview.event;
   viewId: string;
-  extensionContext: vscode.ExtensionContext;
+  extensionUri: vscode.Uri;
   webviewView?: vscode.WebviewView;
   constructor(extensionContext: vscode.ExtensionContext, webviewId: string) {
     this.viewId = webviewId;
-    this.extensionContext = extensionContext;
+    this.extensionUri = extensionContext.extensionUri;
   }
 
-  dispatch(e: any) {
-    console.log("got message from webview", e);
-  }
   async resolveWebviewView(
     webviewView: vscode.WebviewView,
     context: vscode.WebviewViewResolveContext,
     token: vscode.CancellationToken
   ) {
-    const extensionRoot = vscode.Uri.joinPath(
-      this.extensionContext.extensionUri,
-      "dist"
-    );
+    const extensionRoot = vscode.Uri.joinPath(this.extensionUri, "dist");
     this.webviewView = webviewView;
-    webviewView.webview.onDidReceiveMessage((e) => {
-      this.dispatch(e);
-    });
     webviewView.webview.options = {
       enableScripts: true,
       localResourceRoots: [extensionRoot],
@@ -70,6 +63,7 @@ export class ReactWebViewProvider implements vscode.WebviewViewProvider {
     `;
 
     webviewView.webview.html = webViewHtml;
+    this._onDidAttachWebview.fire(webviewView.webview);
   }
 }
 export function getNonce() {
