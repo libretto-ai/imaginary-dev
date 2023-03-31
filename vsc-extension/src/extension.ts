@@ -42,9 +42,16 @@ export function activate(extensionContext: vscode.ExtensionContext) {
     outputsWebviewProvider,
     inputsWebviewProvider,
   ]);
+  extensionContext.subscriptions.push(messageRouter);
 
+  extensionContext.subscriptions.push(
+    messageRouter.onDidReceiveMessage((webviewMessage) => {
+      console.log("got message from webview: ", webviewMessage.message);
+    })
+  );
+
+  // These are all the local states in the extension.
   let sources: Readonly<SourceFileMap> = {};
-
   let selectedFunction: MaybeSelectedFunction = null;
 
   const functionTreeProvider = new ImaginaryFunctionProvider(sources);

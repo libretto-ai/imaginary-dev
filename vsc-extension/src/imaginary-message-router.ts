@@ -1,3 +1,4 @@
+import * as vscode from "vscode";
 import {
   makeSerializable,
   MaybeSelectedFunction,
@@ -7,10 +8,35 @@ import { ReactWebViewProvider } from "./util/react-webview-provider";
 
 /** A message router to broadcast and recieve messages from multiple webviews */
 
+export interface WebviewMessage<T = any> {
+  webviewProvider: ReactWebViewProvider;
+  message: T;
+}
 export class ImaginaryMessageRouter {
   webviewProviders: readonly ReactWebViewProvider[];
+  disposables: vscode.Disposable[] = [];
+  private _onDidReceiveMessage = new vscode.EventEmitter<WebviewMessage>();
+  onDidReceiveMessage = this._onDidReceiveMessage.event;
   constructor(webviewProviders: readonly ReactWebViewProvider[]) {
     this.webviewProviders = webviewProviders;
+
+    const disposables = webviewProviders.map((webviewProvider) => {
+      return webviewProvider.onDidAttachWebview((webview) => {
+        this.disposables.push(
+          webview.onDidReceiveMessage((message) => {
+            this._onDidReceiveMessage.fire({
+              webviewProvider,
+              message,
+            });
+          })
+        );
+      });
+    });
+    this.disposables.push(vscode.Disposable.from(...disposables));
+  }
+  dispose() {
+    const d = vscode.Disposable.from(...this.disposables);
+    d.dispose();
   }
 
   async updateSources(sources: SourceFileMap) {
