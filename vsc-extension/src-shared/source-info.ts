@@ -37,6 +37,9 @@ export type SourceFileMap = Record<string, SourceFileInfo>;
 interface SerializableFunctionDeclaration {
   name?: string;
   declaration: string;
+  parameters: {
+    name: string;
+  }[];
 }
 
 interface SerializableSourceFile {
@@ -83,6 +86,14 @@ export function makeSerializable(
                   fn,
                   sourceFileInfo.sourceFile
                 ),
+                parameters: fn.parameters.map((param) => {
+                  return {
+                    name:
+                      param.name.kind === ts.SyntaxKind.Identifier
+                        ? param.name.escapedText.toString()
+                        : "<unknown>",
+                  };
+                }),
               };
             }
           ),
