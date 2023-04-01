@@ -30,12 +30,6 @@ export const InputPanel = () => {
   const { fileName, functionName } = selectedFunction;
   const functionTestCases = findTestCases(testCases, fileName, functionName);
 
-  console.log(
-    "have functionTestCases: ",
-    functionTestCases,
-    " from ",
-    testCases
-  );
   return (
     <div>
       <p>Test cases for {selectedFunction.functionName}</p>
