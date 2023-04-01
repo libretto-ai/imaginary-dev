@@ -1,9 +1,11 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
+import { UnreachableCaseError } from "ts-essentials";
 import * as vscode from "vscode";
 import {
   MaybeSelectedFunction,
   SourceFileMap,
+  SourceFileTestCaseMap,
 } from "../src-shared/source-info";
 import { ImaginaryFunctionProvider } from "./function-tree-provider";
 import { ImaginaryMessageRouter } from "./imaginary-message-router";
@@ -46,16 +48,37 @@ export function activate(extensionContext: vscode.ExtensionContext) {
 
   extensionContext.subscriptions.push(
     messageRouter.onDidReceiveMessage((webviewMessage) => {
-      console.log("got message from webview: ", webviewMessage.message);
+      const { message, webviewProvider } = webviewMessage;
+      console.log(
+        `[extension] Got ${message.id} from ${webviewProvider.viewId}`
+      );
+      switch (message.id) {
+        case "update-sources":
+          throw new Error("Only core extension is allowed to update sources");
+        case "update-function-selection":
+          selectedFunction = message.params[0];
+          return messageRouter.updateFunctionSelection(
+            selectedFunction,
+            webviewProvider
+          );
+
+        case "update-testcases":
+          testCases = message.params[0];
+          return messageRouter.updateTestCases(testCases, webviewProvider);
+
+        default:
+          throw new UnreachableCaseError(message);
+      }
     })
   );
 
   // These are all the local states in the extension.
   let sources: Readonly<SourceFileMap> = {};
   let selectedFunction: MaybeSelectedFunction = null;
+  let testCases: Readonly<SourceFileTestCaseMap> = {};
 
   const functionTreeProvider = new ImaginaryFunctionProvider(sources);
-  const treeView = vscode.window.createTreeView("functions", {
+  vscode.window.createTreeView("functions", {
     treeDataProvider: functionTreeProvider,
   });
   vscode.commands.registerCommand("imaginary.clickFunction", focusNode);
@@ -135,7 +158,7 @@ function updateViewsWithSelection(
   );
   if (newSelection !== selectedFunction) {
     selectedFunction = newSelection;
-    messageRouter.updateSelection(newSelection);
+    messageRouter.updateFunctionSelection(newSelection);
   }
   return selectedFunction;
 }

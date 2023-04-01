@@ -70,6 +70,7 @@
     "react-dom": "^18.2.0",
     "recoil": "^0.7.7",
     "recoil-sync": "^0.2.0",
+    "ts-essentials": "^9.3.1",
     "ts-loader": "^9.4.2",
     "webpack": "^5.76.3"
   },

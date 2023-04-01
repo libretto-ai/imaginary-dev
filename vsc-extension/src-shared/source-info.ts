@@ -2,6 +2,7 @@ import * as ts from "typescript";
 
 export interface FunctionTestCase {
   /** Map of parameter name => value */
+  name: string;
   inputs: Record<string, any>;
   /**
    * The outputs from running the function with these inputs
@@ -23,8 +24,10 @@ export interface FunctionTestCases {
 /** Wrapper for all test cases in a given file */
 export interface SourceFileTestCases {
   sourceFileName: string;
-  testCases: FunctionTestCases[];
+  functionTestCases: FunctionTestCases[];
 }
+
+export type SourceFileTestCaseMap = Record<string, SourceFileTestCases>;
 
 export interface SourceFileInfo {
   sourceFile: ts.SourceFile;
@@ -35,6 +38,9 @@ export type SourceFileMap = Record<string, SourceFileInfo>;
 interface SerializableFunctionDeclaration {
   name?: string;
   declaration: string;
+  parameters: {
+    name: string;
+  }[];
 }
 
 interface SerializableSourceFile {
@@ -81,6 +87,14 @@ export function makeSerializable(
                   fn,
                   sourceFileInfo.sourceFile
                 ),
+                parameters: fn.parameters.map((param) => {
+                  return {
+                    name:
+                      param.name.kind === ts.SyntaxKind.Identifier
+                        ? param.name.escapedText.toString()
+                        : "<unknown>",
+                  };
+                }),
               };
             }
           ),

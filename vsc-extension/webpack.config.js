@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 //@ts-check
 
 "use strict";

@@ -16,7 +16,9 @@ export function registerWebView(
 /** Generic WebviewViewProvider which wraps a react application */
 export class ReactWebViewProvider implements vscode.WebviewViewProvider {
   private _onDidAttachWebview = new vscode.EventEmitter<vscode.Webview>();
+  private _onDidDetatchWebview = new vscode.EventEmitter<vscode.Webview>();
   onDidAttachWebview = this._onDidAttachWebview.event;
+  onDidDetatchWebview = this._onDidDetatchWebview.event;
   viewId: string;
   extensionUri: vscode.Uri;
   webviewView?: vscode.WebviewView;
@@ -30,6 +32,10 @@ export class ReactWebViewProvider implements vscode.WebviewViewProvider {
     context: vscode.WebviewViewResolveContext,
     token: vscode.CancellationToken
   ) {
+    token.onCancellationRequested((e) => {
+      console.log("disposing of provider", this.viewId);
+      this._onDidDetatchWebview.fire(e);
+    });
     const extensionRoot = vscode.Uri.joinPath(this.extensionUri, "dist");
     this.webviewView = webviewView;
     webviewView.webview.options = {
@@ -44,7 +50,7 @@ export class ReactWebViewProvider implements vscode.WebviewViewProvider {
     const webViewHtml = html`
       <html lang="en">
         <head>
-          <title>Foo</title>
+          <title>React Webview Provider: ${this.viewId}</title>
           <meta
             http-equiv="Content-Security-Policy"
             content="default-src 'none'; img-src vscode-resource: https:; script-src 'nonce-${nonce}';style-src vscode-resource: 'unsafe-inline' http: https: data:;"
