@@ -1,16 +1,40 @@
-import React from "react";
+import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
+import React, { useCallback } from "react";
+import { FunctionTestCase } from "../../src-shared/source-info";
+import { addFunctionTestCase, findTestCases } from "../../src-shared/testcases";
 import { useExtensionState } from "./ExtensionState";
 
 export const InputPanel = () => {
-  const { selectedFunction, testCases } = useExtensionState();
+  const { selectedFunction, testCases, updateTestCases } = useExtensionState();
 
+  const onAddTestCase = useCallback(() => {
+    if (!selectedFunction) {
+      return;
+    }
+    const { fileName, functionName } = selectedFunction;
+    const newTestCase: FunctionTestCase = {
+      name: "New test",
+      inputs: {},
+      output: {
+        prev: {},
+        current: {},
+      },
+    };
+    updateTestCases(
+      addFunctionTestCase(testCases, fileName, functionName, newTestCase)
+    );
+  }, [selectedFunction, updateTestCases, testCases]);
   if (!selectedFunction) {
     return <p>No function selected</p>;
   }
-  const functionTestCases = testCases[
-    selectedFunction.fileName
-  ]?.testCases.find(
-    ({ functionName }) => selectedFunction.functionName === functionName
+  const { fileName, functionName } = selectedFunction;
+  const functionTestCases = findTestCases(testCases, fileName, functionName);
+
+  console.log(
+    "have functionTestCases: ",
+    functionTestCases,
+    " from ",
+    testCases
   );
   return (
     <div>
@@ -21,14 +45,15 @@ export const InputPanel = () => {
         </p>
       )}
       {!!functionTestCases && (
-        <ul>
+        <ol>
           {functionTestCases.testCases.map((testCase, index) => (
-            <pre key={index}>{JSON.stringify(testCase.inputs)}</pre>
+            <li key={index}>
+              <pre>{JSON.stringify(testCase.inputs)}</pre>
+            </li>
           ))}
-          <li></li>
-        </ul>
+        </ol>
       )}
-      <pre></pre>
+      <VSCodeButton onClick={onAddTestCase}>Add test case</VSCodeButton>
     </div>
   );
 };

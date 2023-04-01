@@ -5,9 +5,11 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { UnreachableCaseError } from "ts-essentials";
+import { WebviewApi } from "vscode-webview";
 import { ImaginaryMessage } from "../../src-shared/messages";
 import {
   MaybeSelectedFunction,
@@ -22,9 +24,11 @@ function useExtensionStateInternal() {
   const [selectedFunction, setSelectedFunction] =
     useState<MaybeSelectedFunction>(null);
   const [testCases, setTestCases] = useState<SourceFileTestCaseMap>({});
+  const vscodeRef = useRef<WebviewApi<unknown>>();
 
   // Synchronize states by listening for events
   useEffect(() => {
+    vscodeRef.current = acquireVsCodeApi();
     window.addEventListener("message", (event) => {
       const message: ImaginaryMessage = event.data;
 
@@ -56,16 +60,28 @@ function useExtensionStateInternal() {
 
   // Provide a standardized communication channel back to the extension host
   const sendMessage = useCallback(
-    <P extends any[]>(messageId: string, ...params: P) => {
-      const vscode = acquireVsCodeApi();
-      vscode.postMessage({
+    <M extends ImaginaryMessage, K extends M["id"], T extends M["params"]>(
+      messageId: K,
+      ...params: T
+    ) => {
+      const message = {
         id: messageId,
         params,
-      });
+      } as M;
+      console.log("broadcasting: ", message);
+
+      vscodeRef.current?.postMessage(message);
     },
     []
   );
-  return { sendMessage, sources, selectedFunction, testCases };
+  const updateTestCases = useCallback(
+    (newTestCases: SourceFileTestCaseMap) => {
+      sendMessage("update-testcases", newTestCases);
+      setTestCases(newTestCases);
+    },
+    [sendMessage]
+  );
+  return { sources, selectedFunction, testCases, updateTestCases };
 }
 
 const ExtensionState = createContext<
@@ -74,7 +90,7 @@ const ExtensionState = createContext<
   selectedFunction: null,
   sources: {},
   testCases: {},
-  sendMessage: () => {},
+  updateTestCases: () => {},
 });
 
 /**
