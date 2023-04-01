@@ -74,6 +74,12 @@ function useExtensionStateInternal() {
     },
     []
   );
+
+  // TODO: this boilerplate sucks. We don't get rebroadcast that stuff has
+  // changed, so we need to update local state instead. It would be better to
+  // automatically send the update message when `setTestCases` is called. This
+  // is a good place to integrate recoil/recoil-sync or another stateful library
+  // that can persist state
   const updateTestCases = useCallback(
     (newTestCases: SourceFileTestCaseMap) => {
       sendMessage("update-testcases", newTestCases);
