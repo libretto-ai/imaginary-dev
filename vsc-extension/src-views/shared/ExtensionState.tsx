@@ -33,7 +33,7 @@ function useExtensionStateInternal() {
       const message: ImaginaryMessage = event.data;
 
       console.log(
-        `[${window.location}] Got ${message.id} from ${event.origin} /`,
+        `[${window.origin}] Got ${message.id} from ${event.origin} /`,
         event
       );
 
