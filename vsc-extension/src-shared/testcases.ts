@@ -36,7 +36,10 @@ function addTestCaseToFile(
     ({ functionName }) => functionName === targetFunctionName
   );
   if (!matchingFunctionTestCases) {
-    return [{ functionName: targetFunctionName, testCases: [newTestCase] }];
+    return [
+      ...functionTestCases,
+      { functionName: targetFunctionName, testCases: [newTestCase] },
+    ];
   }
   return functionTestCases.map((prevFunctionTestCase: FunctionTestCases) =>
     addTestCaseToFunction(prevFunctionTestCase, targetFunctionName, newTestCase)
