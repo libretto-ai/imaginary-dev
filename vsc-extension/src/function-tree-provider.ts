@@ -73,12 +73,22 @@ export class ImaginaryFunctionProvider
     );
     return tooltip;
   }
+
+  getParent(
+    element: ImaginaryTreeItem
+  ): vscode.ProviderResult<ImaginaryTreeItem> {
+    if (element.itemType === "file") {
+      return null;
+    }
+    return element.parent;
+  }
 }
 
 export class FunctionItem extends vscode.TreeItem {
   itemType = "function" as const;
   node: ts.FunctionDeclaration;
   sourceFile: ts.SourceFile;
+  parent?: FileItem;
   constructor(
     node: ts.FunctionDeclaration,
     sourceFile: ts.SourceFile,
