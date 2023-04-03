@@ -9,6 +9,7 @@ export function removeFile(
   sources: Readonly<SourceFileMap>
 ) {
   const relativeFilePath = getRelativePathToProject(document.fileName);
+  // eslint-disable-next-line no-unused-vars
   const { [relativeFilePath]: removed, ...newSources } = sources;
   return newSources;
 }

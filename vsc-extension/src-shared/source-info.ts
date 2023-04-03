@@ -40,6 +40,9 @@ interface SerializableFunctionDeclaration {
   declaration: string;
   parameters: {
     name: string;
+
+    /** Quick hack for POC of parameters */
+    tempType: "number" | "string" | "object" | "array";
   }[];
 }
 
@@ -93,6 +96,7 @@ export function makeSerializable(
                       param.name.kind === ts.SyntaxKind.Identifier
                         ? param.name.escapedText.toString()
                         : "<unknown>",
+                    tempType: getTempType(param),
                   };
                 }),
               };
@@ -103,4 +107,26 @@ export function makeSerializable(
     }
   );
   return Object.fromEntries(resultList);
+}
+
+/** A quick hack to get types on screen */
+function getTempType(
+  param: ts.ParameterDeclaration
+): SerializableFunctionDeclaration["parameters"][0]["tempType"] {
+  const paramName =
+    param.name.kind === ts.SyntaxKind.Identifier
+      ? param.name.escapedText.toString()
+      : "<unknown>";
+  console.log("trying to translate?", paramName, ": ", param.type?.kind);
+  const { type } = param;
+  switch (type?.kind) {
+    case ts.SyntaxKind.StringKeyword:
+      return "string";
+    case ts.SyntaxKind.NumberKeyword:
+      return "number";
+    case ts.SyntaxKind.ArrayType:
+      return "array";
+    default:
+      return "object";
+  }
 }
