@@ -92,7 +92,7 @@ export class ReactWebViewProvider implements vscode.WebviewViewProvider {
     this._onDidAttachWebview.fire(webviewView.webview);
   }
 }
-export function getNonce() {
+function getNonce() {
   let text = "";
   const possible =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
