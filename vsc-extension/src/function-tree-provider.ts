@@ -29,9 +29,7 @@ export class ImaginaryFunctionProvider
     }
   }
 
-  getTreeItem(
-    element: ImaginaryTreeItem
-  ): vscode.TreeItem | Thenable<vscode.TreeItem> {
+  getTreeItem(element: ImaginaryTreeItem) {
     return element;
   }
   getChildren(element?: ImaginaryTreeItem | undefined) {
