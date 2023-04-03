@@ -5,32 +5,21 @@ import {
   VSCodeDataGridRow,
 } from "@vscode/webview-ui-toolkit/react";
 import React, { useState } from "react";
+import { findMatchingFunction } from "../../src/util/serialized-source";
 import { useExtensionState } from "./ExtensionState";
 
 export function OutputPanel() {
   const { sources, selectedFunction } = useExtensionState();
 
-  const matchingSignatures = Object.values(sources)
-    .flatMap((sourceFileInfo) =>
-      sourceFileInfo.functions.map((fn) => {
-        if (fn.name === selectedFunction?.functionName) {
-          return fn.declaration;
-        }
-      })
-    )
-    .filter((s): s is string => !!s);
+  const fn = findMatchingFunction(sources, selectedFunction);
   const [debug, setDebug] = useState(false);
 
   return (
     <>
-      {!!matchingSignatures.length && (
+      {!!fn && (
         <>
           <p>Function:</p>
-          {matchingSignatures.map((signature) => (
-            <code key="signature" style={{ whiteSpace: "nowrap" }}>
-              {signature}
-            </code>
-          ))}
+          <code style={{ whiteSpace: "nowrap" }}>{fn.declaration}</code>
         </>
       )}
       <VSCodeDataGrid gridTemplateColumns="2fr 1fr 1fr" generateHeader="sticky">

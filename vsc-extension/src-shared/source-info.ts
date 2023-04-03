@@ -35,7 +35,7 @@ export interface SourceFileInfo {
 }
 export type SourceFileMap = Record<string, SourceFileInfo>;
 
-interface SerializableFunctionDeclaration {
+export interface SerializableFunctionDeclaration {
   name?: string;
   declaration: string;
   parameters: {

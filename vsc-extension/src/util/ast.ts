@@ -1,7 +1,10 @@
+/** Utilities for managing traversing the Typescript AST */
+
 import { getImaginaryTsDocComments } from "@imaginary-dev/typescript-transformer";
 import * as ts from "typescript";
 
-export function findFunctions(sourceFile: ts.SourceFile) {
+/** Find all imaginary functions in a source file */
+export function findImaginaryFunctions(sourceFile: ts.SourceFile) {
   const imaginaryFunctions: ts.FunctionDeclaration[] = [];
   const visitor = (node: ts.Node): ts.VisitResult<ts.Node> => {
     if (ts.isFunctionDeclaration(node)) {

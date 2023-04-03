@@ -1,11 +1,20 @@
-import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
+import {
+  VSCodeButton,
+  VSCodeDropdown,
+  VSCodeOption,
+} from "@vscode/webview-ui-toolkit/react";
 import React, { useCallback } from "react";
-import { FunctionTestCase } from "../../src-shared/source-info";
+import {
+  FunctionTestCase,
+  SerializableFunctionDeclaration,
+} from "../../src-shared/source-info";
 import { addFunctionTestCase, findTestCases } from "../../src-shared/testcases";
+import { findMatchingFunction } from "../../src/util/serialized-source";
 import { useExtensionState } from "./ExtensionState";
 
 export const InputPanel = () => {
-  const { selectedFunction, testCases, updateTestCases } = useExtensionState();
+  const { selectedFunction, testCases, updateTestCases, sources } =
+    useExtensionState();
 
   const onAddTestCase = useCallback(() => {
     if (!selectedFunction) {
@@ -29,6 +38,7 @@ export const InputPanel = () => {
   }
   const { fileName, functionName } = selectedFunction;
   const functionTestCases = findTestCases(testCases, fileName, functionName);
+  const selectedFunctionInfo = findMatchingFunction(sources, selectedFunction);
 
   return (
     <div>
@@ -39,15 +49,33 @@ export const InputPanel = () => {
         </p>
       )}
       {!!functionTestCases && (
-        <ol>
+        <VSCodeDropdown>
           {functionTestCases.testCases.map((testCase, index) => (
-            <li key={index}>
-              <pre>{JSON.stringify(testCase.inputs)}</pre>
-            </li>
+            <VSCodeOption key={index}>
+              {formatTestCase(selectedFunctionInfo, testCase)}
+            </VSCodeOption>
           ))}
-        </ol>
+        </VSCodeDropdown>
       )}
       <VSCodeButton onClick={onAddTestCase}>Add test case</VSCodeButton>
     </div>
   );
 };
+
+function formatTestCase(
+  fnDecl: SerializableFunctionDeclaration | undefined,
+  testCase: FunctionTestCase
+) {
+  if (!fnDecl) {
+    return "<no declaration>";
+  }
+  if (fnDecl.parameters.length === 1) {
+    return testCase.inputs[fnDecl.parameters[0].name];
+  }
+  if (fnDecl.parameters.length === 0) {
+    return "<no parameters>";
+  }
+  return fnDecl.parameters
+    .map((param) => `${param.name}:${testCase.inputs[param.name]}`)
+    .join(",");
+}
