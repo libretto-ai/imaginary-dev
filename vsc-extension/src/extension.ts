@@ -160,7 +160,7 @@ function updateViewsWithSelection(
     selectedFunction = newSelection;
     messageRouter.updateFunctionSelection(newSelection);
   }
-  return selectedFunction;
+  return newSelection;
 }
 
 /**
