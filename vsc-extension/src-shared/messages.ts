@@ -1,3 +1,4 @@
+import { RpcProvider } from "worker-rpc";
 import {
   MaybeSelectedFunction,
   SerializableSourceFileMap,
@@ -19,7 +20,13 @@ export interface UpdateTestCasesMessage {
   params: [SourceFileTestCaseMap];
 }
 
+export interface RpcMessage {
+  id: "rpc";
+  params: [message: RpcProvider.Message, transfer?: any[]];
+}
+
 export type ImaginaryMessage =
   | UpdateFunctionSelectionMessage
   | UpdateSourcesMessage
-  | UpdateTestCasesMessage;
+  | UpdateTestCasesMessage
+  | RpcMessage;
