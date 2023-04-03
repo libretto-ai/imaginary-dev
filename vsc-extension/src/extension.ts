@@ -65,6 +65,10 @@ export function activate(extensionContext: vscode.ExtensionContext) {
         case "update-testcases":
           testCases = message.params[0];
           return messageRouter.updateTestCases(testCases, webviewProvider);
+        case "rpc": {
+          // ignore them here, they will be handled outside this router
+          return null;
+        }
 
         default:
           throw new UnreachableCaseError(message);
