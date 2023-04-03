@@ -10,6 +10,7 @@ import React, {
 } from "react";
 import { UnreachableCaseError } from "ts-essentials";
 import { WebviewApi } from "vscode-webview";
+import { RpcProvider } from "worker-rpc";
 import { ImaginaryMessage } from "../../src-shared/messages";
 import {
   MaybeSelectedFunction,
@@ -25,10 +26,26 @@ function useExtensionStateInternal() {
     useState<MaybeSelectedFunction>(null);
   const [testCases, setTestCases] = useState<SourceFileTestCaseMap>({});
   const vscodeRef = useRef<WebviewApi<unknown>>();
+  const rpcProvider = useRef<RpcProvider>();
 
   // Synchronize states by listening for events
   useEffect(() => {
     vscodeRef.current = acquireVsCodeApi();
+    rpcProvider.current = new RpcProvider((message, transfer) => {
+      // Used to send an RPC message out to the extension, i.e. to originate a call
+      const msg = {
+        id: "rpc",
+        params: [message, transfer],
+      } satisfies ImaginaryMessage;
+      vscodeRef.current?.postMessage(msg);
+    });
+    rpcProvider.current.registerRpcHandler(
+      "getViewOrigin",
+      async (payload: string) => {
+        console.log("Handler in view with payload:", payload);
+        return window.origin;
+      }
+    );
     window.addEventListener("message", (event) => {
       const message: ImaginaryMessage = event.data;
 
@@ -50,6 +67,15 @@ function useExtensionStateInternal() {
         case "update-testcases": {
           const [testCases] = message.params;
           return setTestCases(testCases);
+        }
+        case "rpc": {
+          // Called when we get a response from a call - rpcMessage will be the resolution of the promise
+          const [rpcMessage, transfer] = message.params;
+          if (transfer?.length) {
+            console.error("Unexpected transfer param from 'rpc' message");
+          }
+          rpcProvider.current?.dispatch(rpcMessage);
+          return;
         }
 
         default:
@@ -87,7 +113,13 @@ function useExtensionStateInternal() {
     },
     [sendMessage]
   );
-  return { sources, selectedFunction, testCases, updateTestCases };
+  return {
+    sources,
+    selectedFunction,
+    testCases,
+    updateTestCases,
+    rpcProvider: rpcProvider.current,
+  };
 }
 
 const ExtensionState = createContext<
@@ -97,6 +129,7 @@ const ExtensionState = createContext<
   sources: {},
   testCases: {},
   updateTestCases: () => {},
+  rpcProvider: undefined,
 });
 
 /**
