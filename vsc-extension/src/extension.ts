@@ -111,6 +111,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
   );
   extensionContext.subscriptions.push(
     vscode.window.onDidChangeTextEditorSelection((e) => {
+      // TODO: update tree view with treeView.reveal()
       const { textEditor } = e;
       selectedFunction = updateViewsWithSelection(
         selectedFunction,
@@ -160,7 +161,7 @@ function updateViewsWithSelection(
     selectedFunction = newSelection;
     messageRouter.updateFunctionSelection(newSelection);
   }
-  return selectedFunction;
+  return newSelection;
 }
 
 /**

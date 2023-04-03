@@ -19,7 +19,10 @@ export function getRelativePathToProject(absPath: string) {
  * @param decl The AST node to put the cursor at
  * @param sourceFile The source file
  */
-export const focusNode = async (decl: ts.Node, sourceFile: ts.SourceFile) => {
+export const focusNode = async (
+  decl: ts.FunctionDeclaration,
+  sourceFile: ts.SourceFile
+) => {
   const ws = vscode.workspace.workspaceFolders?.[0];
   if (!ws) {
     return;
@@ -27,7 +30,9 @@ export const focusNode = async (decl: ts.Node, sourceFile: ts.SourceFile) => {
   const f = await vscode.workspace.openTextDocument(
     join(ws.uri.fsPath, sourceFile.fileName)
   );
-  const declLocation = sourceFile.getLineAndCharacterOfPosition(decl.pos);
+  const declLocation = sourceFile.getLineAndCharacterOfPosition(
+    decl.getStart(sourceFile)
+  );
   const functionPosition = new vscode.Position(
     declLocation.line,
     declLocation.character
@@ -61,7 +66,10 @@ export function getEditorSelectedFunction(
         selection.active.character
       );
       fileInfo.functions.forEach((fn) => {
-        const start = fn.getStart(fileInfo.sourceFile);
+        // `pos` is actually the position of the first non-code before the
+        // function. i.e. it is just before any leading comments/tsdocs. this
+        // means we treat being in the docstring as being in the function
+        const start = fn.pos;
         const end = fn.getEnd();
         if (start <= cursorPos && cursorPos <= end) {
           const functionName = fn.name?.text;
