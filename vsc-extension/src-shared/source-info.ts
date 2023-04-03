@@ -42,7 +42,7 @@ export interface SerializableFunctionDeclaration {
     name: string;
 
     /** Quick hack for POC of parameters */
-    tempType: "number" | "string" | "object" | "array";
+    tempType: "number" | "string" | "object" | "array" | string;
   }[];
 }
 
@@ -67,66 +67,71 @@ export interface SelectedFunction {
 
 export type MaybeSelectedFunction = SelectedFunction | null;
 
+export type SelectedFunctionTestCase = Record<
+  string,
+  {
+    testCaseIndex: number;
+  }
+>;
+
+export type SelectedFileTestCase = Record<string, SelectedFunctionTestCase>;
+
 export function makeSerializable(
   sources: SourceFileMap
 ): SerializableSourceFileMap {
   const printer = ts.createPrinter({ removeComments: true });
   const resultList = Object.entries(sources).map(
-    ([key, sourceFileInfo]): [string, SerializableSourceFileInfo] => {
-      const { fileName } = sourceFileInfo.sourceFile;
-      return [
-        key,
-        {
-          sourceFile: {
-            fileName,
-          },
-          functions: sourceFileInfo.functions.map(
-            (fn): SerializableFunctionDeclaration => {
-              const { name } = fn;
-              return {
-                name: name?.text,
-                declaration: printer.printNode(
-                  ts.EmitHint.Unspecified,
-                  fn,
-                  sourceFileInfo.sourceFile
-                ),
-                parameters: fn.parameters.map((param) => {
-                  return {
-                    name:
-                      param.name.kind === ts.SyntaxKind.Identifier
-                        ? param.name.escapedText.toString()
-                        : "<unknown>",
-                    tempType: getTempType(param),
-                  };
-                }),
-              };
-            }
-          ),
-        },
-      ];
-    }
+    ([key, sourceFileInfo]): [string, SerializableSourceFileInfo] => [
+      key,
+      makeSerializableSourceFile(sourceFileInfo, printer),
+    ]
   );
   return Object.fromEntries(resultList);
 }
 
-/** A quick hack to get types on screen */
-function getTempType(
-  param: ts.ParameterDeclaration
-): SerializableFunctionDeclaration["parameters"][0]["tempType"] {
-  const paramName =
-    param.name.kind === ts.SyntaxKind.Identifier
-      ? param.name.escapedText.toString()
-      : "<unknown>";
-  console.log("trying to translate?", paramName, ": ", param.type?.kind);
-  const { type } = param;
-  switch (type?.kind) {
-    case ts.SyntaxKind.StringKeyword:
-      return "string";
-    case ts.SyntaxKind.NumberKeyword:
-      return "number";
-    case ts.SyntaxKind.ArrayType:
-      return "array";
-    default:
-      return "object";
-  }
+function makeSerializableSourceFile(
+  sourceFileInfo: SourceFileInfo,
+  printer: ts.Printer
+): SerializableSourceFileInfo {
+  const { fileName } = sourceFileInfo.sourceFile;
+
+  return {
+    sourceFile: {
+      fileName,
+    },
+    functions: sourceFileInfo.functions.map((fn) =>
+      makeSerialiableFunction(fn, sourceFileInfo, printer)
+    ),
+  };
+}
+
+function makeSerialiableFunction(
+  fn: ts.FunctionDeclaration,
+  sourceFileInfo: SourceFileInfo,
+  printer: ts.Printer
+): SerializableFunctionDeclaration {
+  const { name } = fn;
+  return {
+    name: name?.text,
+    declaration: printer.printNode(
+      ts.EmitHint.Unspecified,
+      fn,
+      sourceFileInfo.sourceFile
+    ),
+    parameters: fn.parameters.map((param) => {
+      return {
+        name:
+          param.name.kind === ts.SyntaxKind.Identifier
+            ? param.name.escapedText.toString()
+            : "<unknown>",
+        tempType: param.type
+          ? (printer.printNode(
+              ts.EmitHint.Unspecified,
+              param.type,
+              sourceFileInfo.sourceFile
+            ) as any)
+          : "object",
+      };
+    }),
+  };
 }
