@@ -1,5 +1,7 @@
 import html from "html-template-tag";
 import * as vscode from "vscode";
+import { RpcProvider } from "worker-rpc";
+import { ImaginaryMessage } from "../../src-shared/messages";
 
 export function registerWebView(
   extensionContext: vscode.ExtensionContext,
@@ -22,9 +24,20 @@ export class ReactWebViewProvider implements vscode.WebviewViewProvider {
   viewId: string;
   extensionUri: vscode.Uri;
   webviewView?: vscode.WebviewView;
+  rpcProvider: RpcProvider;
   constructor(extensionContext: vscode.ExtensionContext, webviewId: string) {
     this.viewId = webviewId;
     this.extensionUri = extensionContext.extensionUri;
+    this.rpcProvider = new RpcProvider((message, transfer) => {
+      this.webviewView?.webview.postMessage({
+        id: "rpc",
+        params: [message, transfer],
+      });
+    });
+  }
+
+  rpc<T = void, U = void>(id: string, payload?: T, transfer?: any): Promise<U> {
+    return this.rpcProvider.rpc(id, payload, transfer);
   }
 
   async resolveWebviewView(
@@ -69,6 +82,13 @@ export class ReactWebViewProvider implements vscode.WebviewViewProvider {
     `;
 
     webviewView.webview.html = webViewHtml;
+    // TODO: stop leaking this! maybe dispose in onCancellationRequested?
+    this.webviewView.webview.onDidReceiveMessage((e: ImaginaryMessage) => {
+      if (e.id === "rpc") {
+        const [message] = e.params;
+        this.rpcProvider.dispatch(message);
+      }
+    });
     this._onDidAttachWebview.fire(webviewView.webview);
   }
 }
