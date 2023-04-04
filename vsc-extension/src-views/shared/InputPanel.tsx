@@ -140,8 +140,7 @@ export const InputPanel = () => {
   const { fileName, functionName } = selectedFunction;
   const functionTestCases = findTestCases(testCases, fileName, functionName);
   const selectedFunctionInfo = findMatchingFunction(sources, selectedFunction);
-  const selectedTestCase =
-    functionTestCases?.testCases[selectedTestCaseIndex] ?? emptyTestCase;
+  const selectedTestCase = functionTestCases?.testCases[selectedTestCaseIndex];
   return (
     <div>
       <p>
@@ -169,30 +168,32 @@ export const InputPanel = () => {
         </VSCodeDropdown>
       )}
       <VSCodeButton onClick={onAddTestCase}>Add test case</VSCodeButton>
-      <div>
-        {selectedFunctionInfo?.parameters.map((param) => (
-          <div key={param.name}>
-            <VSCodeTextArea
-              value={selectedTestCase.inputs[param.name] ?? ""}
-              onChange={(e: any) => {
-                onUpdateTestCase(
-                  fileName,
-                  functionName,
-                  param.name,
-                  selectedTestCaseIndex,
-                  e.target.value
-                );
-                console.log(
-                  `trying to change ${param.name} to`,
-                  e.target.value
-                );
-              }}
-            >
-              {param.name}
-            </VSCodeTextArea>
-          </div>
-        ))}
-      </div>
+      {!!selectedTestCase && (
+        <div>
+          {selectedFunctionInfo?.parameters.map((param) => (
+            <div key={param.name}>
+              <VSCodeTextArea
+                value={selectedTestCase.inputs[param.name] ?? ""}
+                onChange={(e: any) => {
+                  onUpdateTestCase(
+                    fileName,
+                    functionName,
+                    param.name,
+                    selectedTestCaseIndex,
+                    e.target.value
+                  );
+                  console.log(
+                    `trying to change ${param.name} to`,
+                    e.target.value
+                  );
+                }}
+              >
+                {param.name}
+              </VSCodeTextArea>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -210,7 +211,12 @@ function formatTestCase(
   if (fnDecl.parameters.length === 0) {
     return "<no parameters>";
   }
-  return fnDecl.parameters
+  const name = fnDecl.parameters
+    .filter((param) => testCase.inputs[param.name] !== undefined)
     .map((param) => `${param.name}:${testCase.inputs[param.name]}`)
     .join(",");
+  if (!name) {
+    return "<new>";
+  }
+  return name;
 }
