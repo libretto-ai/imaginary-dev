@@ -142,7 +142,7 @@ export const InputPanel = () => {
   const selectedFunctionInfo = findMatchingFunction(sources, selectedFunction);
   const selectedTestCase = functionTestCases?.testCases[selectedTestCaseIndex];
   return (
-    <div>
+    <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
       <p>
         Test cases for <code>{selectedFunction.functionName}</code>
       </p>
@@ -151,28 +151,31 @@ export const InputPanel = () => {
           <i>No test cases yet</i>
         </p>
       )}
-      {!!functionTestCases && (
-        <VSCodeDropdown
-          onChange={(e) => {
-            const indexStr = (e.target as HTMLOptionElement).value;
-            const index = parseInt(indexStr);
-            setSelectedTestCaseIndex(index);
-          }}
-          value={`${selectedTestCaseIndex}`}
-        >
-          {functionTestCases.testCases.map((testCase, index) => (
-            <VSCodeOption key={index} value={`${index}`}>
-              {formatTestCase(selectedFunctionInfo, testCase)}
-            </VSCodeOption>
-          ))}
-        </VSCodeDropdown>
-      )}
-      <VSCodeButton onClick={onAddTestCase}>Add test case</VSCodeButton>
+      <div style={{ display: "flex" }}>
+        {!!functionTestCases && (
+          <VSCodeDropdown
+            onChange={(e) => {
+              const indexStr = (e.target as HTMLOptionElement).value;
+              const index = parseInt(indexStr);
+              setSelectedTestCaseIndex(index);
+            }}
+            value={`${selectedTestCaseIndex}`}
+          >
+            {functionTestCases.testCases.map((testCase, index) => (
+              <VSCodeOption key={index} value={`${index}`}>
+                {formatTestCase(selectedFunctionInfo, testCase)}
+              </VSCodeOption>
+            ))}
+          </VSCodeDropdown>
+        )}
+        <VSCodeButton onClick={onAddTestCase}>Add test case</VSCodeButton>
+      </div>
       {!!selectedTestCase && (
-        <div>
+        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           {selectedFunctionInfo?.parameters.map((param) => (
-            <div key={param.name}>
+            <div key={param.name} style={{ display: "flex" }}>
               <VSCodeTextArea
+                style={{ flex: 1 }}
                 value={selectedTestCase.inputs[param.name] ?? ""}
                 onChange={(e: any) => {
                   onUpdateTestCase(
@@ -182,13 +185,9 @@ export const InputPanel = () => {
                     selectedTestCaseIndex,
                     e.target.value
                   );
-                  console.log(
-                    `trying to change ${param.name} to`,
-                    e.target.value
-                  );
                 }}
               >
-                {param.name}
+                <code>{param.name}</code>
               </VSCodeTextArea>
             </div>
           ))}
@@ -212,7 +211,7 @@ function formatTestCase(
     return "<no parameters>";
   }
   const name = fnDecl.parameters
-    .filter((param) => testCase.inputs[param.name] !== undefined)
+    .filter((param) => param.name in testCase.inputs[param.name])
     .map((param) => `${param.name}:${testCase.inputs[param.name]}`)
     .join(",");
   if (!name) {
