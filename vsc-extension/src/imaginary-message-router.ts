@@ -28,26 +28,37 @@ export class ImaginaryMessageRouter {
 
     const disposables = webviewProviders.flatMap((webviewProvider) => {
       const attachDisposable = webviewProvider.onDidAttachWebview((webview) => {
-        this.attachedWebviewProviders.push(webviewProvider);
-        this.disposables.push(
-          webview.onDidReceiveMessage((message) => {
-            this._onDidReceiveMessage.fire({
-              webviewProvider,
-              message,
-            });
-          })
-        );
+        this._onDidAttachWebview(webviewProvider, webview);
       });
       const detatchDisposable = webviewProvider.onDidDetatchWebview(() => {
         // TODO: dispose of attached onDidReceiveMessage disposable
-        this.attachedWebviewProviders = this.attachedWebviewProviders.filter(
-          (provider) => provider !== webviewProvider
-        );
+        this._onDidDetachWebview(webviewProvider);
       });
       return [attachDisposable, detatchDisposable];
     });
-    this.disposables.push(vscode.Disposable.from(...disposables));
+    this.disposables.push(...disposables);
   }
+  private _onDidDetachWebview(webviewProvider: ReactWebViewProvider) {
+    this.attachedWebviewProviders = this.attachedWebviewProviders.filter(
+      (provider) => provider !== webviewProvider
+    );
+  }
+
+  private _onDidAttachWebview(
+    webviewProvider: ReactWebViewProvider,
+    webview: vscode.Webview
+  ) {
+    this.attachedWebviewProviders.push(webviewProvider);
+    this.disposables.push(
+      webview.onDidReceiveMessage((message) => {
+        this._onDidReceiveMessage.fire({
+          webviewProvider,
+          message,
+        });
+      })
+    );
+  }
+
   dispose() {
     const d = vscode.Disposable.from(...this.disposables);
     d.dispose();
