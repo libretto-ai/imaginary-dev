@@ -45,10 +45,6 @@ export class ReactWebViewProvider implements vscode.WebviewViewProvider {
     context: vscode.WebviewViewResolveContext,
     token: vscode.CancellationToken
   ) {
-    token.onCancellationRequested((e) => {
-      console.log("disposing of provider", this.viewId);
-      this._onDidDetatchWebview.fire(e);
-    });
     const extensionRoot = vscode.Uri.joinPath(this.extensionUri, "dist");
     this.webviewView = webviewView;
     webviewView.webview.options = {
@@ -82,13 +78,20 @@ export class ReactWebViewProvider implements vscode.WebviewViewProvider {
     `;
 
     webviewView.webview.html = webViewHtml;
-    // TODO: stop leaking this! maybe dispose in onCancellationRequested?
-    this.webviewView.webview.onDidReceiveMessage((e: ImaginaryMessage) => {
-      if (e.id === "rpc") {
-        const [message] = e.params;
-        this.rpcProvider.dispatch(message);
-      }
+    let messageDispose: vscode.Disposable | null =
+      this.webviewView.webview.onDidReceiveMessage((e: ImaginaryMessage) => {
+        if (e.id === "rpc") {
+          const [message] = e.params;
+          this.rpcProvider.dispatch(message);
+        }
+      });
+    token.onCancellationRequested((e) => {
+      console.log("disposing of provider", this.viewId);
+      this._onDidDetatchWebview.fire(e);
+      messageDispose?.dispose();
+      messageDispose = null;
     });
+
     this._onDidAttachWebview.fire(webviewView.webview);
   }
 }
