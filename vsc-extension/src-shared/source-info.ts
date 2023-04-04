@@ -27,6 +27,7 @@ export interface SourceFileTestCases {
   functionTestCases: FunctionTestCases[];
 }
 
+/** Map of filename => test for that filename */
 export type SourceFileTestCaseMap = Record<string, SourceFileTestCases>;
 
 export interface SourceFileInfo {
@@ -60,6 +61,7 @@ export type SerializableSourceFileMap = Record<
   SerializableSourceFileInfo
 >;
 
+/** Currently selected function */
 export interface SelectedFunction {
   fileName: string;
   functionName: string;
@@ -67,14 +69,17 @@ export interface SelectedFunction {
 
 export type MaybeSelectedFunction = SelectedFunction | null;
 
-export type SelectedFunctionTestCase = Record<
-  string,
-  {
-    testCaseIndex: number;
-  }
->;
+interface SelectedTestCase {
+  /** Doing this by index for now, but maybe we need test case ids or something */
+  testCaseIndex: number;
+}
 
-export type SelectedFileTestCase = Record<string, SelectedFunctionTestCase>;
+export type MaybeSelectedTestCase = SelectedTestCase | null;
+
+export type SelectedFunctionTestCases = Record<string, MaybeSelectedTestCase>;
+
+/** Map of filename -> functionName -> selected test index */
+export type SelectedFileTestCases = Record<string, SelectedFunctionTestCases>;
 
 export function makeSerializable(
   sources: SourceFileMap

@@ -25,6 +25,8 @@ function useExtensionStateInternal() {
   const [selectedFunction, setSelectedFunction] =
     useState<MaybeSelectedFunction>(null);
   const [testCases, setTestCases] = useState<SourceFileTestCaseMap>({});
+  const [selectedTestCases, setSelectedTestCases] =
+    useState<SourceFileTestCaseMap>({});
   const vscodeRef = useRef<WebviewApi<unknown>>();
   const rpcProvider = useRef<RpcProvider>();
 
@@ -68,6 +70,10 @@ function useExtensionStateInternal() {
           const [testCases] = message.params;
           return setTestCases(testCases);
         }
+        case "update-selected-test-cases": {
+          const [selectedTestCases] = message.params;
+          return setSelectedTestCases(selectedTestCases);
+        }
         case "rpc": {
           // Called when we get a response from a call - rpcMessage will be the resolution of the promise
           const [rpcMessage, transfer] = message.params;
@@ -106,18 +112,28 @@ function useExtensionStateInternal() {
   // automatically send the update message when `setTestCases` is called. This
   // is a good place to integrate recoil/recoil-sync or another stateful library
   // that can persist state
-  const updateTestCases = useCallback(
-    (newTestCases: SourceFileTestCaseMap) => {
-      sendMessage("update-testcases", newTestCases);
-      setTestCases(newTestCases);
-    },
-    [sendMessage]
-  );
+
+  const updateTestCases: React.Dispatch<
+    React.SetStateAction<SourceFileTestCaseMap>
+  > = (newValueOrUpdate) => {
+    if (typeof newValueOrUpdate === "function") {
+      const newValue = newValueOrUpdate(testCases);
+      setTestCases(newValue);
+      if (newValue !== testCases) {
+        sendMessage("update-testcases", testCases);
+      }
+    } else {
+      setTestCases(newValueOrUpdate);
+      sendMessage("update-testcases", newValueOrUpdate);
+    }
+  };
+
   return {
     sources,
     selectedFunction,
     testCases,
     updateTestCases,
+    selectedTestCases,
     rpcProvider: rpcProvider.current,
   };
 }
@@ -128,6 +144,7 @@ const ExtensionState = createContext<
   selectedFunction: null,
   sources: {},
   testCases: {},
+  selectedTestCases: {},
   updateTestCases: () => {},
   rpcProvider: undefined,
 });
