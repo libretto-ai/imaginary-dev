@@ -120,7 +120,7 @@ function useExtensionStateInternal() {
       const newValue = newValueOrUpdate(testCases);
       setTestCases(newValue);
       if (newValue !== testCases) {
-        sendMessage("update-testcases", testCases);
+        sendMessage("update-testcases", newValue);
       }
     } else {
       setTestCases(newValueOrUpdate);
