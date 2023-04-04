@@ -34,6 +34,20 @@ export class ReactWebViewProvider implements vscode.WebviewViewProvider {
         params: [message, transfer],
       });
     });
+    this.rpcProvider.registerRpcHandler(
+      "read-state",
+      async (itemKey: string) => {
+        // return state.get(itemKey)
+      }
+    );
+    this.rpcProvider.registerRpcHandler(
+      "write-state",
+      async (partialState: Record<string, unknown>) => {
+        Object.entries(partialState).forEach(([key, value]) => {
+          // return state.set(key, value)
+        });
+      }
+    );
   }
 
   rpc<T = void, U = void>(id: string, payload?: T, transfer?: any): Promise<U> {
