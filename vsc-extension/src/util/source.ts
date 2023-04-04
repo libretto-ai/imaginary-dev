@@ -1,7 +1,7 @@
 import * as ts from "typescript";
 import * as vscode from "vscode";
 import { SourceFileMap } from "../../src-shared/source-info";
-import { findFunctions } from "./ast";
+import { findImaginaryFunctions } from "./ast";
 import { getRelativePathToProject } from "./editor";
 
 export function removeFile(
@@ -9,6 +9,7 @@ export function removeFile(
   sources: Readonly<SourceFileMap>
 ) {
   const relativeFilePath = getRelativePathToProject(document.fileName);
+  // eslint-disable-next-line no-unused-vars
   const { [relativeFilePath]: removed, ...newSources } = sources;
   return newSources;
 }
@@ -36,7 +37,7 @@ export function updateFile(
     ts.ScriptTarget.Latest
   );
 
-  const functions = findFunctions(sourceFile);
+  const functions = findImaginaryFunctions(sourceFile);
   return {
     ...prevSources,
     [relativeFileName]: {

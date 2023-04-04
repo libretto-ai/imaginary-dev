@@ -1,5 +1,5 @@
 import { join, relative } from "path";
-import * as ts from "typescript";
+import ts from "typescript";
 import * as vscode from "vscode";
 import {
   MaybeSelectedFunction,

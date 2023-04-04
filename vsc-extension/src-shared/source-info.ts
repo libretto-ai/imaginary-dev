@@ -27,6 +27,7 @@ export interface SourceFileTestCases {
   functionTestCases: FunctionTestCases[];
 }
 
+/** Map of filename => test for that filename */
 export type SourceFileTestCaseMap = Record<string, SourceFileTestCases>;
 
 export interface SourceFileInfo {
@@ -35,11 +36,14 @@ export interface SourceFileInfo {
 }
 export type SourceFileMap = Record<string, SourceFileInfo>;
 
-interface SerializableFunctionDeclaration {
+export interface SerializableFunctionDeclaration {
   name?: string;
   declaration: string;
   parameters: {
     name: string;
+
+    /** Quick hack for POC of parameters */
+    tempType: "number" | "string" | "object" | "array" | string;
   }[];
 }
 
@@ -57,6 +61,7 @@ export type SerializableSourceFileMap = Record<
   SerializableSourceFileInfo
 >;
 
+/** Currently selected function */
 export interface SelectedFunction {
   fileName: string;
   functionName: string;
@@ -64,43 +69,74 @@ export interface SelectedFunction {
 
 export type MaybeSelectedFunction = SelectedFunction | null;
 
+interface SelectedTestCase {
+  /** Doing this by index for now, but maybe we need test case ids or something */
+  testCaseIndex: number;
+}
+
+export type MaybeSelectedTestCase = SelectedTestCase | null;
+
+export type SelectedFunctionTestCases = Record<string, MaybeSelectedTestCase>;
+
+/** Map of filename -> functionName -> selected test index */
+export type SelectedFileTestCases = Record<string, SelectedFunctionTestCases>;
+
 export function makeSerializable(
   sources: SourceFileMap
 ): SerializableSourceFileMap {
   const printer = ts.createPrinter({ removeComments: true });
   const resultList = Object.entries(sources).map(
-    ([key, sourceFileInfo]): [string, SerializableSourceFileInfo] => {
-      const { fileName } = sourceFileInfo.sourceFile;
-      return [
-        key,
-        {
-          sourceFile: {
-            fileName,
-          },
-          functions: sourceFileInfo.functions.map(
-            (fn): SerializableFunctionDeclaration => {
-              const { name } = fn;
-              return {
-                name: name?.text,
-                declaration: printer.printNode(
-                  ts.EmitHint.Unspecified,
-                  fn,
-                  sourceFileInfo.sourceFile
-                ),
-                parameters: fn.parameters.map((param) => {
-                  return {
-                    name:
-                      param.name.kind === ts.SyntaxKind.Identifier
-                        ? param.name.escapedText.toString()
-                        : "<unknown>",
-                  };
-                }),
-              };
-            }
-          ),
-        },
-      ];
-    }
+    ([key, sourceFileInfo]): [string, SerializableSourceFileInfo] => [
+      key,
+      makeSerializableSourceFile(sourceFileInfo, printer),
+    ]
   );
   return Object.fromEntries(resultList);
+}
+
+function makeSerializableSourceFile(
+  sourceFileInfo: SourceFileInfo,
+  printer: ts.Printer
+): SerializableSourceFileInfo {
+  const { fileName } = sourceFileInfo.sourceFile;
+
+  return {
+    sourceFile: {
+      fileName,
+    },
+    functions: sourceFileInfo.functions.map((fn) =>
+      makeSerialiableFunction(fn, sourceFileInfo, printer)
+    ),
+  };
+}
+
+function makeSerialiableFunction(
+  fn: ts.FunctionDeclaration,
+  sourceFileInfo: SourceFileInfo,
+  printer: ts.Printer
+): SerializableFunctionDeclaration {
+  const { name } = fn;
+  return {
+    name: name?.text,
+    declaration: printer.printNode(
+      ts.EmitHint.Unspecified,
+      fn,
+      sourceFileInfo.sourceFile
+    ),
+    parameters: fn.parameters.map((param) => {
+      return {
+        name:
+          param.name.kind === ts.SyntaxKind.Identifier
+            ? param.name.escapedText.toString()
+            : "<unknown>",
+        tempType: param.type
+          ? (printer.printNode(
+              ts.EmitHint.Unspecified,
+              param.type,
+              sourceFileInfo.sourceFile
+            ) as any)
+          : "object",
+      };
+    }),
+  };
 }
