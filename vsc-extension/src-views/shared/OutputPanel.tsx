@@ -9,7 +9,7 @@ import { findMatchingFunction } from "../../src/util/serialized-source";
 import { useExtensionState } from "./ExtensionState";
 
 export function OutputPanel() {
-  const { sources, selectedFunction } = useExtensionState();
+  const { sources, testCases, selectedFunction } = useExtensionState();
 
   const fn = findMatchingFunction(sources, selectedFunction);
   const [debug, setDebug] = useState(false);
@@ -42,7 +42,14 @@ export function OutputPanel() {
       >
         <span>🐛</span>
       </VSCodeButton>
-      {debug && <pre>{JSON.stringify(sources, null, 4)}</pre>}
+      {debug && (
+        <div>
+          <p>Functions</p>
+          <pre>{JSON.stringify(sources, null, 4)}</pre>
+          <p>Inputs/Outputs</p>
+          <pre>{JSON.stringify(testCases, null, 4)}</pre>
+        </div>
+      )}
     </>
   );
 }
