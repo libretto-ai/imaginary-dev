@@ -140,25 +140,59 @@ export const InputPanel = () => {
   const { fileName, functionName } = selectedFunction;
   const functionTestCases = findTestCases(testCases, fileName, functionName);
   const selectedFunctionInfo = findMatchingFunction(sources, selectedFunction);
-
+  const selectedTestCase =
+    functionTestCases?.testCases[selectedTestCaseIndex] ?? emptyTestCase;
   return (
     <div>
-      <p>Test cases for {selectedFunction.functionName}</p>
+      <p>
+        Test cases for <code>{selectedFunction.functionName}</code>
+      </p>
       {!functionTestCases && (
         <p>
           <i>No test cases yet</i>
         </p>
       )}
       {!!functionTestCases && (
-        <VSCodeDropdown>
+        <VSCodeDropdown
+          onChange={(e) => {
+            const indexStr = (e.target as HTMLOptionElement).value;
+            const index = parseInt(indexStr);
+            setSelectedTestCaseIndex(index);
+          }}
+          value={`${selectedTestCaseIndex}`}
+        >
           {functionTestCases.testCases.map((testCase, index) => (
-            <VSCodeOption key={index}>
+            <VSCodeOption key={index} value={`${index}`}>
               {formatTestCase(selectedFunctionInfo, testCase)}
             </VSCodeOption>
           ))}
         </VSCodeDropdown>
       )}
       <VSCodeButton onClick={onAddTestCase}>Add test case</VSCodeButton>
+      <div>
+        {selectedFunctionInfo?.parameters.map((param) => (
+          <div key={param.name}>
+            <VSCodeTextArea
+              value={selectedTestCase.inputs[param.name] ?? ""}
+              onChange={(e: any) => {
+                onUpdateTestCase(
+                  fileName,
+                  functionName,
+                  param.name,
+                  selectedTestCaseIndex,
+                  e.target.value
+                );
+                console.log(
+                  `trying to change ${param.name} to`,
+                  e.target.value
+                );
+              }}
+            >
+              {param.name}
+            </VSCodeTextArea>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
