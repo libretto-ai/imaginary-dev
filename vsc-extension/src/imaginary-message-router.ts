@@ -36,17 +36,26 @@ export class ImaginaryMessageRouter {
       });
       const updateStateDisposable = webviewProvider.onDidUpdateState(
         ({ webview, diff }) => {
-          this.attachedWebviewProviders.forEach((provider) => {
-            if (provider.webviewView?.webview !== webview) {
-              provider.sendStateUpdate(diff);
-            }
-          });
+          this._onDidUpdateState(webview, diff);
         }
       );
       return [attachDisposable, detatchDisposable, updateStateDisposable];
     });
     this.disposables.push(...disposables);
   }
+
+  /** When one webview updates state, broadcast that change to other webviews */
+  private _onDidUpdateState(
+    webview: vscode.Webview,
+    partialState: Record<string, any>
+  ) {
+    this.attachedWebviewProviders.forEach((provider) => {
+      if (provider.webviewView?.webview !== webview) {
+        provider.sendStateUpdate(partialState);
+      }
+    });
+  }
+
   private _onDidDetachWebview(webviewProvider: ReactWebViewProvider) {
     this.attachedWebviewProviders = this.attachedWebviewProviders.filter(
       (provider) => provider !== webviewProvider
