@@ -6,6 +6,7 @@ import {
 } from "@vscode/webview-ui-toolkit/react";
 import { produce } from "immer";
 import React, { useCallback, useState } from "react";
+import { useRecoilValue } from "recoil";
 import {
   FunctionTestCase,
   FunctionTestCases,
@@ -15,6 +16,7 @@ import {
 import { addFunctionTestCase, findTestCases } from "../../src-shared/testcases";
 import { findMatchingFunction } from "../../src/util/serialized-source";
 import { useExtensionState } from "./ExtensionState";
+import { debugState } from "./state";
 
 const emptyTestCase: FunctionTestCase = {
   inputs: {},
@@ -117,6 +119,8 @@ export const InputPanel = () => {
     },
     [updateTestCases]
   );
+  const isDebugMode = useRecoilValue(debugState);
+
   const onAddTestCase = useCallback(() => {
     if (!selectedFunction) {
       return;
@@ -138,6 +142,7 @@ export const InputPanel = () => {
     return <p>No function selected</p>;
   }
   const { fileName, functionName } = selectedFunction;
+
   const functionTestCases = findTestCases(testCases, fileName, functionName);
   const selectedFunctionInfo = findMatchingFunction(sources, selectedFunction);
   const selectedTestCase = functionTestCases?.testCases[selectedTestCaseIndex];
@@ -146,6 +151,7 @@ export const InputPanel = () => {
       <p>
         Test cases for <code>{selectedFunction.functionName}</code>
       </p>
+      <p>Debug state: {`${isDebugMode}`}</p>
       {!functionTestCases && (
         <p>
           <i>No test cases yet</i>
