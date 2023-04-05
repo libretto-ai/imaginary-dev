@@ -31,6 +31,8 @@ export function activate(extensionContext: vscode.ExtensionContext) {
   );
 
   const state = new Map<string, any>();
+  // Set defaults so that recoil sync's custom() does not explode
+  state.set("app.debugMode", false);
 
   const outputsWebviewProvider = registerWebView(
     extensionContext,
