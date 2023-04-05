@@ -8,6 +8,10 @@ export const RecoilSyncWebview: FC<PropsWithChildren<{}>> = ({ children }) => {
   const { rpcProvider } = useExtensionState();
 
   const { reader, writer, listen } = useRpc(rpcProvider);
+  if (!rpcProvider) {
+    // do not render without an rpcProvider, because RecoilSync starts reading from the store immediately
+    return null;
+  }
   return (
     <RecoilSync read={reader} write={writer} listen={listen}>
       {children}
@@ -23,7 +27,10 @@ function useRpc(rpcProvider: RpcProvider | undefined): {
   return useMemo(() => {
     if (!rpcProvider) {
       return {
-        reader: () => new DefaultValue(),
+        reader: (itemKey) => {
+          console.warn(`[webview] reading ${itemKey} before provider is ready`);
+          return new DefaultValue();
+        },
         writer: () => {},
         listen: () => {},
       };
