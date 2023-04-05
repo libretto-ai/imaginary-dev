@@ -34,7 +34,16 @@ export class ImaginaryMessageRouter {
         // TODO: dispose of attached onDidReceiveMessage disposable
         this._onDidDetachWebview(webviewProvider);
       });
-      return [attachDisposable, detatchDisposable];
+      const updateStateDisposable = webviewProvider.onDidUpdateState(
+        ({ webview, diff }) => {
+          this.attachedWebviewProviders.forEach((provider) => {
+            if (provider.webviewView?.webview !== webview) {
+              provider.sendStateUpdate(diff);
+            }
+          });
+        }
+      );
+      return [attachDisposable, detatchDisposable, updateStateDisposable];
     });
     this.disposables.push(...disposables);
   }
