@@ -1,4 +1,5 @@
 import React, { FC, PropsWithChildren, useMemo } from "react";
+import { DefaultValue } from "recoil";
 import { ListenToItems, ReadItem, RecoilSync, WriteItems } from "recoil-sync";
 import { RpcProvider } from "worker-rpc";
 import { useExtensionState } from "./ExtensionState";
@@ -20,18 +21,31 @@ function useRpc(rpcProvider: RpcProvider | undefined): {
   listen: ListenToItems;
 } {
   return useMemo(() => {
+    if (!rpcProvider) {
+      return {
+        reader: () => new DefaultValue(),
+        writer: () => {},
+        listen: () => {},
+      };
+    }
     const reader: ReadItem = async (itemKey) => {
-      return rpcProvider?.rpc("read-state", itemKey);
+      console.log(`[webview ${!!rpcProvider}] reading key: `, itemKey);
+      const value = rpcProvider?.rpc("read-state", itemKey);
+      if (value === undefined) {
+        return new DefaultValue();
+      }
+      return value;
     };
-    const writer: WriteItems = async ({ allItems }) => {
-      const entries = [...allItems];
+    const writer: WriteItems = async ({ diff }) => {
+      console.log("[webview] writing items: ", diff.keys());
+      const entries = [...diff];
       const values = Object.fromEntries(entries);
       return rpcProvider?.rpc("write-state", values);
     };
 
     // Note there is no unregister here
     const listen: ListenToItems = ({ updateItems }) => {
-      rpcProvider?.registerRpcHandler<Record<string, any>, any>(
+      rpcProvider.registerRpcHandler<Record<string, any>, any>(
         "update-state",
         (values) => {
           updateItems(new Map(Object.entries(values)));
