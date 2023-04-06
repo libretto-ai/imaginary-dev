@@ -2,7 +2,6 @@ import * as vscode from "vscode";
 import { ImaginaryMessage } from "../src-shared/messages";
 import {
   makeSerializable,
-  MaybeSelectedFunction,
   SourceFileMap,
   SourceFileTestCaseMap,
 } from "../src-shared/source-info";
@@ -88,17 +87,6 @@ export class ImaginaryMessageRouter {
   ) {
     const serialized = makeSerializable(sources);
     return this.postMessage("update-sources", [serialized], ignoreProvider);
-  }
-
-  async updateFunctionSelection(
-    selection: MaybeSelectedFunction,
-    ignoreProvider?: ReactWebViewProvider
-  ) {
-    return this.postMessage(
-      "update-function-selection",
-      [selection],
-      ignoreProvider
-    );
   }
 
   async updateTestCases(

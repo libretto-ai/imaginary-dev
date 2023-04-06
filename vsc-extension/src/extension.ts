@@ -31,9 +31,11 @@ export function activate(extensionContext: vscode.ExtensionContext) {
   );
 
   const state = new Map<string, any>();
+
   // Set defaults so that recoil sync's custom() does not explode
   state.set("app.debugMode", false);
   state.set("sources", {});
+  state.set("selectedFunction", null);
 
   const outputsWebviewProvider = registerWebView(
     extensionContext,
@@ -62,12 +64,6 @@ export function activate(extensionContext: vscode.ExtensionContext) {
       switch (message.id) {
         case "update-sources":
           throw new Error("Only core extension is allowed to update sources");
-        case "update-function-selection":
-          selectedFunction = message.params[0];
-          return messageRouter.updateFunctionSelection(
-            selectedFunction,
-            webviewProvider
-          );
         case "update-testcases":
           testCases = message.params[0];
           return messageRouter.updateTestCases(testCases, webviewProvider);
@@ -86,7 +82,6 @@ export function activate(extensionContext: vscode.ExtensionContext) {
   );
 
   // These are all the local states in the extension.
-  let selectedFunction: MaybeSelectedFunction = null;
   let testCases: Readonly<SourceFileTestCaseMap> = {};
 
   let selectedTestCases: Readonly<SourceFileTestCaseMap> = {};
@@ -130,12 +125,12 @@ export function activate(extensionContext: vscode.ExtensionContext) {
     vscode.window.onDidChangeTextEditorSelection((e) => {
       // TODO: update tree view with treeView.reveal()
       const { textEditor } = e;
-      selectedFunction = updateViewsWithSelection(
-        selectedFunction,
+      const selectedFunction = updateViewsWithSelection(
+        state.get("selectedFunction"),
         state.get("sources"),
-        textEditor,
-        messageRouter
+        textEditor
       );
+      state.set("selectedFunction", selectedFunction);
     })
   );
   {
@@ -144,26 +139,24 @@ export function activate(extensionContext: vscode.ExtensionContext) {
       functionTreeProvider
     );
     state.set("sources", sources);
-    selectedFunction = initializeSelection(
-      selectedFunction,
-      sources,
-      messageRouter
+    const selectedFunction = initializeSelection(
+      state.get("selectedFunction"),
+      sources
     );
+    state.set("selectedFunction", selectedFunction);
   }
 }
 
 function initializeSelection(
   selectedFunction: MaybeSelectedFunction,
-  sources: Readonly<SourceFileMap>,
-  messageRouter: ImaginaryMessageRouter
+  sources: Readonly<SourceFileMap>
 ) {
   if (vscode.window.activeTextEditor) {
     const textEditor = vscode.window.activeTextEditor;
     selectedFunction = updateViewsWithSelection(
       selectedFunction,
       sources,
-      textEditor,
-      messageRouter
+      textEditor
     );
   }
   return selectedFunction;
@@ -172,8 +165,7 @@ function initializeSelection(
 function updateViewsWithSelection(
   selectedFunction: MaybeSelectedFunction,
   sources: Readonly<SourceFileMap>,
-  textEditor: vscode.TextEditor,
-  messageRouter: ImaginaryMessageRouter
+  textEditor: vscode.TextEditor
 ) {
   const newSelection = getEditorSelectedFunction(
     selectedFunction,
@@ -182,7 +174,6 @@ function updateViewsWithSelection(
   );
   if (newSelection !== selectedFunction) {
     selectedFunction = newSelection;
-    messageRouter.updateFunctionSelection(newSelection);
   }
   return newSelection;
 }

@@ -1,6 +1,5 @@
 import { RpcProvider } from "worker-rpc";
 import {
-  MaybeSelectedFunction,
   SerializableSourceFileMap,
   SourceFileTestCaseMap,
 } from "./source-info";
@@ -8,11 +7,6 @@ import {
 export interface UpdateSourcesMessage {
   id: "update-sources";
   params: [Readonly<SerializableSourceFileMap>];
-}
-
-export interface UpdateFunctionSelectionMessage {
-  id: "update-function-selection";
-  params: [MaybeSelectedFunction];
 }
 
 export interface UpdateTestCasesMessage {
@@ -31,7 +25,6 @@ export interface UpdateFunctionTestCases {
 }
 
 export type ImaginaryMessage =
-  | UpdateFunctionSelectionMessage
   | UpdateSourcesMessage
   | UpdateTestCasesMessage
   | UpdateFunctionTestCases

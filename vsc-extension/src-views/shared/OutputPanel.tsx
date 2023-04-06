@@ -5,13 +5,14 @@ import {
   VSCodeDataGridRow,
 } from "@vscode/webview-ui-toolkit/react";
 import React from "react";
-import { useRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import { findMatchingFunction } from "../../src/util/serialized-source";
 import { useExtensionState } from "./ExtensionState";
-import { debugState } from "./state";
+import { debugState, selectedFunctionState } from "./state";
 
 export function OutputPanel() {
-  const { sources, testCases, selectedFunction } = useExtensionState();
+  const { sources, testCases } = useExtensionState();
+  const selectedFunction = useRecoilValue(selectedFunctionState);
 
   const fn = findMatchingFunction(sources, selectedFunction);
   const [debug, setDebug] = useRecoilState(debugState);

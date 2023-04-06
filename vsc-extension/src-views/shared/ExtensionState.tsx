@@ -13,7 +13,6 @@ import { WebviewApi } from "vscode-webview";
 import { RpcProvider } from "worker-rpc";
 import { ImaginaryMessage } from "../../src-shared/messages";
 import {
-  MaybeSelectedFunction,
   SerializableSourceFileMap,
   SourceFileTestCaseMap,
 } from "../../src-shared/source-info";
@@ -22,8 +21,6 @@ import {
 function useExtensionStateInternal() {
   // Local copies of state as broadcast from extension host
   const [sources, setSources] = useState<SerializableSourceFileMap>({});
-  const [selectedFunction, setSelectedFunction] =
-    useState<MaybeSelectedFunction>(null);
   const [testCases, setTestCases] = useState<SourceFileTestCaseMap>({});
   const [selectedTestCases, setSelectedTestCases] =
     useState<SourceFileTestCaseMap>({});
@@ -59,10 +56,6 @@ function useExtensionStateInternal() {
           const [sources] = message.params;
           console.log("got sources: ", sources);
           return setSources(sources);
-        }
-        case "update-function-selection": {
-          const [selection] = message.params;
-          return setSelectedFunction(selection);
         }
         case "update-testcases": {
           const [testCases] = message.params;
@@ -128,7 +121,7 @@ function useExtensionStateInternal() {
 
   return {
     sources,
-    selectedFunction,
+    // selectedFunction,
     testCases,
     updateTestCases,
     selectedTestCases,
@@ -139,7 +132,7 @@ function useExtensionStateInternal() {
 const ExtensionState = createContext<
   ReturnType<typeof useExtensionStateInternal>
 >({
-  selectedFunction: null,
+  // selectedFunction: null,
   sources: {},
   testCases: {},
   selectedTestCases: {},

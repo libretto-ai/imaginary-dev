@@ -16,7 +16,7 @@ import {
 import { addFunctionTestCase, findTestCases } from "../../src-shared/testcases";
 import { findMatchingFunction } from "../../src/util/serialized-source";
 import { useExtensionState } from "./ExtensionState";
-import { debugState } from "./state";
+import { debugState, selectedFunctionState } from "./state";
 
 const emptyTestCase: FunctionTestCase = {
   inputs: {},
@@ -94,8 +94,8 @@ function updateSourcefileTestCase<T>(
 }
 
 export const InputPanel = () => {
-  const { selectedFunction, testCases, updateTestCases, sources } =
-    useExtensionState();
+  const { testCases, updateTestCases, sources } = useExtensionState();
+  const selectedFunction = useRecoilValue(selectedFunctionState);
   const [selectedTestCaseIndex, setSelectedTestCaseIndex] = useState(0);
 
   const onUpdateTestCase = useCallback(
@@ -146,6 +146,9 @@ export const InputPanel = () => {
   const functionTestCases = findTestCases(testCases, fileName, functionName);
   const selectedFunctionInfo = findMatchingFunction(sources, selectedFunction);
   const selectedTestCase = functionTestCases?.testCases[selectedTestCaseIndex];
+  if (!selectedFunctionInfo) {
+    console.log("could not find ", selectedFunction, " in ", sources);
+  }
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
       <p>
