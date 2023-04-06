@@ -96,17 +96,6 @@ export class ImaginaryMessageRouter {
     return this.postMessage("update-testcases", [testCases], ignoreProvider);
   }
 
-  async updateSelectedTestCases(
-    selectedTestCases: SourceFileTestCaseMap,
-    ignoreProvider?: ReactWebViewProvider
-  ) {
-    return this.postMessage(
-      "update-selected-test-cases",
-      [selectedTestCases],
-      ignoreProvider
-    );
-  }
-
   async postMessage<
     M extends ImaginaryMessage,
     K extends M["id"],

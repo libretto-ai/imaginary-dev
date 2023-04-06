@@ -22,8 +22,6 @@ function useExtensionStateInternal() {
   // Local copies of state as broadcast from extension host
   const [sources, setSources] = useState<SerializableSourceFileMap>({});
   const [testCases, setTestCases] = useState<SourceFileTestCaseMap>({});
-  const [selectedTestCases, setSelectedTestCases] =
-    useState<SourceFileTestCaseMap>({});
   const vscodeRef = useRef<WebviewApi<unknown>>();
   const [rpcProvider, setRpcProvider] = useState<RpcProvider>();
 
@@ -60,10 +58,6 @@ function useExtensionStateInternal() {
         case "update-testcases": {
           const [testCases] = message.params;
           return setTestCases(testCases);
-        }
-        case "update-selected-test-cases": {
-          const [selectedTestCases] = message.params;
-          return setSelectedTestCases(selectedTestCases);
         }
         case "rpc": {
           // Called when we get a response from a call - rpcMessage will be the resolution of the promise
@@ -124,7 +118,6 @@ function useExtensionStateInternal() {
     // selectedFunction,
     testCases,
     updateTestCases,
-    selectedTestCases,
     rpcProvider: rpcProvider,
   };
 }
@@ -135,7 +128,6 @@ const ExtensionState = createContext<
   // selectedFunction: null,
   sources: {},
   testCases: {},
-  selectedTestCases: {},
   updateTestCases: () => {},
   rpcProvider: undefined,
 });

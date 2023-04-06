@@ -19,13 +19,7 @@ export interface RpcMessage {
   params: [message: RpcProvider.Message, transfer?: any[]];
 }
 
-export interface UpdateFunctionTestCases {
-  id: "update-selected-test-cases";
-  params: [SourceFileTestCaseMap];
-}
-
 export type ImaginaryMessage =
   | UpdateSourcesMessage
   | UpdateTestCasesMessage
-  | UpdateFunctionTestCases
   | RpcMessage;

@@ -67,9 +67,6 @@ export function activate(extensionContext: vscode.ExtensionContext) {
         case "update-testcases":
           testCases = message.params[0];
           return messageRouter.updateTestCases(testCases, webviewProvider);
-        case "update-selected-test-cases":
-          [selectedTestCases] = message.params;
-          return messageRouter.updateSelectedTestCases(selectedTestCases);
         case "rpc": {
           // ignore them here, they will be handled outside this router
           return null;
@@ -83,8 +80,6 @@ export function activate(extensionContext: vscode.ExtensionContext) {
 
   // These are all the local states in the extension.
   let testCases: Readonly<SourceFileTestCaseMap> = {};
-
-  let selectedTestCases: Readonly<SourceFileTestCaseMap> = {};
 
   const functionTreeProvider = new ImaginaryFunctionProvider(
     state.get("sources")
