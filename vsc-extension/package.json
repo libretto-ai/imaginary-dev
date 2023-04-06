@@ -54,11 +54,10 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "webpack && tsc -p ./",
+    "vscode:prepublish": "npm run build",
+    "build": "webpack && tsc -p ./",
     "watch": "tsc -watch -p ./",
     "test": "jest",
-    "pretestX": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "test-disabled": "node ./dist/test/runTest.js"
   },
