@@ -35,25 +35,14 @@ export class ImaginaryMessageRouter {
         this._onDidDetachWebview(webviewProvider);
       });
       const updateStateDisposable = webviewProvider.onDidUpdateState(
-        ({ webview, diff }) => {
-          this._onDidUpdateState(webview, diff);
+        ({ provider, diff }) => {
+          // When one webview updates state, broadcast that change to other webviews
+          this.updateState(diff, provider);
         }
       );
       return [attachDisposable, detatchDisposable, updateStateDisposable];
     });
     this.disposables.push(...disposables);
-  }
-
-  /** When one webview updates state, broadcast that change to other webviews */
-  private _onDidUpdateState(
-    webview: vscode.Webview,
-    partialState: Record<string, any>
-  ) {
-    this.attachedWebviewProviders.forEach((provider) => {
-      if (provider.webviewView?.webview !== webview) {
-        provider.sendStateUpdate(partialState);
-      }
-    });
   }
 
   private _onDidDetachWebview(webviewProvider: ReactWebViewProvider) {
@@ -75,6 +64,17 @@ export class ImaginaryMessageRouter {
         });
       })
     );
+  }
+
+  updateState(
+    partialState: Record<string, any>,
+    ignoreProvider?: ReactWebViewProvider
+  ) {
+    this.attachedWebviewProviders.forEach((provider) => {
+      if (provider !== ignoreProvider) {
+        provider.sendStateUpdate(partialState);
+      }
+    });
   }
 
   dispose() {

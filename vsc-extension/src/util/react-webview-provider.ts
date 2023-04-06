@@ -25,7 +25,7 @@ export class ReactWebViewProvider implements vscode.WebviewViewProvider {
   private _onDidAttachWebview = new vscode.EventEmitter<vscode.Webview>();
   private _onDidDetatchWebview = new vscode.EventEmitter<vscode.Webview>();
   private _onDidUpdateState = new vscode.EventEmitter<{
-    webview: vscode.Webview;
+    provider: ReactWebViewProvider;
     diff: Record<string, any>;
   }>();
   onDidAttachWebview = this._onDidAttachWebview.event;
@@ -67,7 +67,7 @@ export class ReactWebViewProvider implements vscode.WebviewViewProvider {
         });
         if (this.webviewView) {
           this._onDidUpdateState.fire({
-            webview: this.webviewView.webview,
+            provider: this,
             diff: partialState,
           });
         }
@@ -80,8 +80,8 @@ export class ReactWebViewProvider implements vscode.WebviewViewProvider {
   }
 
   /** Broadcast out to the webview that some state has changed */
-  sendStateUpdate(newState: Record<string, any>) {
-    this.rpc("update-state", newState);
+  async sendStateUpdate(newState: Record<string, any>) {
+    return this.rpc("update-state", newState);
   }
 
   async resolveWebviewView(
