@@ -28,26 +28,55 @@ export class ImaginaryMessageRouter {
 
     const disposables = webviewProviders.flatMap((webviewProvider) => {
       const attachDisposable = webviewProvider.onDidAttachWebview((webview) => {
-        this.attachedWebviewProviders.push(webviewProvider);
-        this.disposables.push(
-          webview.onDidReceiveMessage((message) => {
-            this._onDidReceiveMessage.fire({
-              webviewProvider,
-              message,
-            });
-          })
-        );
+        this._onDidAttachWebview(webviewProvider, webview);
       });
       const detatchDisposable = webviewProvider.onDidDetatchWebview(() => {
         // TODO: dispose of attached onDidReceiveMessage disposable
-        this.attachedWebviewProviders = this.attachedWebviewProviders.filter(
-          (provider) => provider !== webviewProvider
-        );
+        this._onDidDetachWebview(webviewProvider);
       });
-      return [attachDisposable, detatchDisposable];
+      const updateStateDisposable = webviewProvider.onDidUpdateState(
+        ({ webview, diff }) => {
+          this._onDidUpdateState(webview, diff);
+        }
+      );
+      return [attachDisposable, detatchDisposable, updateStateDisposable];
     });
-    this.disposables.push(vscode.Disposable.from(...disposables));
+    this.disposables.push(...disposables);
   }
+
+  /** When one webview updates state, broadcast that change to other webviews */
+  private _onDidUpdateState(
+    webview: vscode.Webview,
+    partialState: Record<string, any>
+  ) {
+    this.attachedWebviewProviders.forEach((provider) => {
+      if (provider.webviewView?.webview !== webview) {
+        provider.sendStateUpdate(partialState);
+      }
+    });
+  }
+
+  private _onDidDetachWebview(webviewProvider: ReactWebViewProvider) {
+    this.attachedWebviewProviders = this.attachedWebviewProviders.filter(
+      (provider) => provider !== webviewProvider
+    );
+  }
+
+  private _onDidAttachWebview(
+    webviewProvider: ReactWebViewProvider,
+    webview: vscode.Webview
+  ) {
+    this.attachedWebviewProviders.push(webviewProvider);
+    this.disposables.push(
+      webview.onDidReceiveMessage((message) => {
+        this._onDidReceiveMessage.fire({
+          webviewProvider,
+          message,
+        });
+      })
+    );
+  }
+
   dispose() {
     const d = vscode.Disposable.from(...this.disposables);
     d.dispose();

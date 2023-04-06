@@ -28,12 +28,12 @@ function useExtensionStateInternal() {
   const [selectedTestCases, setSelectedTestCases] =
     useState<SourceFileTestCaseMap>({});
   const vscodeRef = useRef<WebviewApi<unknown>>();
-  const rpcProvider = useRef<RpcProvider>();
+  const [rpcProvider, setRpcProvider] = useState<RpcProvider>();
 
   // Synchronize states by listening for events
   useEffect(() => {
     vscodeRef.current = acquireVsCodeApi();
-    rpcProvider.current = new RpcProvider((message, transfer) => {
+    const rpcProvider = new RpcProvider((message, transfer) => {
       // Used to send an RPC message out to the extension, i.e. to originate a call
       const msg = {
         id: "rpc",
@@ -41,13 +41,11 @@ function useExtensionStateInternal() {
       } satisfies ImaginaryMessage;
       vscodeRef.current?.postMessage(msg);
     });
-    rpcProvider.current.registerRpcHandler(
-      "getViewOrigin",
-      async (payload: string) => {
-        console.log("Handler in view with payload:", payload);
-        return window.origin;
-      }
-    );
+    rpcProvider.registerRpcHandler("getViewOrigin", async (payload: string) => {
+      console.log("Handler in view with payload:", payload);
+      return window.origin;
+    });
+    setRpcProvider(rpcProvider);
     window.addEventListener("message", (event) => {
       const message: ImaginaryMessage = event.data;
 
@@ -80,7 +78,7 @@ function useExtensionStateInternal() {
           if (transfer?.length) {
             console.error("Unexpected transfer param from 'rpc' message");
           }
-          rpcProvider.current?.dispatch(rpcMessage);
+          rpcProvider.dispatch(rpcMessage);
           return;
         }
 
@@ -134,7 +132,7 @@ function useExtensionStateInternal() {
     testCases,
     updateTestCases,
     selectedTestCases,
-    rpcProvider: rpcProvider.current,
+    rpcProvider: rpcProvider,
   };
 }
 

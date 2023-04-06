@@ -6,9 +6,14 @@ import { ImaginaryMessage } from "../../src-shared/messages";
 export function registerWebView(
   extensionContext: vscode.ExtensionContext,
   viewName: string,
-  panelName: string
+  panelName: string,
+  state: Map<string, any>
 ) {
-  const webviewProvider = new ReactWebViewProvider(extensionContext, panelName);
+  const webviewProvider = new ReactWebViewProvider(
+    extensionContext,
+    panelName,
+    state
+  );
   extensionContext.subscriptions.push(
     vscode.window.registerWebviewViewProvider(viewName, webviewProvider)
   );
@@ -19,25 +24,64 @@ export function registerWebView(
 export class ReactWebViewProvider implements vscode.WebviewViewProvider {
   private _onDidAttachWebview = new vscode.EventEmitter<vscode.Webview>();
   private _onDidDetatchWebview = new vscode.EventEmitter<vscode.Webview>();
+  private _onDidUpdateState = new vscode.EventEmitter<{
+    webview: vscode.Webview;
+    diff: Record<string, any>;
+  }>();
   onDidAttachWebview = this._onDidAttachWebview.event;
   onDidDetatchWebview = this._onDidDetatchWebview.event;
+  onDidUpdateState = this._onDidUpdateState.event;
   viewId: string;
   extensionUri: vscode.Uri;
   webviewView?: vscode.WebviewView;
   rpcProvider: RpcProvider;
-  constructor(extensionContext: vscode.ExtensionContext, webviewId: string) {
+
+  localStateRef: Map<string, any>;
+  constructor(
+    extensionContext: vscode.ExtensionContext,
+    webviewId: string,
+    state: Map<string, any>
+  ) {
     this.viewId = webviewId;
     this.extensionUri = extensionContext.extensionUri;
+    this.localStateRef = state;
     this.rpcProvider = new RpcProvider((message, transfer) => {
       this.webviewView?.webview.postMessage({
         id: "rpc",
         params: [message, transfer],
       });
     });
+    this.rpcProvider.registerRpcHandler(
+      "read-state",
+      async (itemKey: string) => {
+        console.log(`[extension ${this.viewId}] read-state`, itemKey);
+        return this.localStateRef.get(itemKey);
+      }
+    );
+    this.rpcProvider.registerRpcHandler(
+      "write-state",
+      async (partialState: Record<string, unknown>) => {
+        console.log(`[extension ${this.viewId}] write-state`, partialState);
+        Object.entries(partialState).forEach(([key, value]) => {
+          this.localStateRef.set(key, value);
+        });
+        if (this.webviewView) {
+          this._onDidUpdateState.fire({
+            webview: this.webviewView.webview,
+            diff: partialState,
+          });
+        }
+      }
+    );
   }
 
   rpc<T = void, U = void>(id: string, payload?: T, transfer?: any): Promise<U> {
     return this.rpcProvider.rpc(id, payload, transfer);
+  }
+
+  /** Broadcast out to the webview that some state has changed */
+  sendStateUpdate(newState: Record<string, any>) {
+    this.rpc("update-state", newState);
   }
 
   async resolveWebviewView(

@@ -30,15 +30,21 @@ export function activate(extensionContext: vscode.ExtensionContext) {
     'Congratulations, your extension "imaginary-programming" is now active!'
   );
 
+  const state = new Map<string, any>();
+  // Set defaults so that recoil sync's custom() does not explode
+  state.set("app.debugMode", false);
+
   const outputsWebviewProvider = registerWebView(
     extensionContext,
     "imaginary.currentfunctions",
-    "function-panel"
+    "function-panel",
+    state
   );
   const inputsWebviewProvider = registerWebView(
     extensionContext,
     "imaginary.inputs",
-    "input-panel"
+    "input-panel",
+    state
   );
   const messageRouter = new ImaginaryMessageRouter([
     outputsWebviewProvider,
@@ -47,7 +53,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
   extensionContext.subscriptions.push(messageRouter);
 
   extensionContext.subscriptions.push(
-    messageRouter.onDidReceiveMessage((webviewMessage) => {
+    messageRouter.onDidReceiveMessage(async (webviewMessage) => {
       const { message, webviewProvider } = webviewMessage;
       console.log(
         `[extension] Got ${message.id} from ${webviewProvider.viewId}`
