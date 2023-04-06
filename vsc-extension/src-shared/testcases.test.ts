@@ -3,7 +3,7 @@ import {
   addFunctionTestCase,
   findTestCases,
   updateSourcefileTestCase,
-} from "./testCases";
+} from "./testcases";
 
 describe("addFunctionTestCase", () => {
   it("should add a new test case for a new function", () => {

@@ -12,7 +12,7 @@ import {
   selectedFunctionState,
   sourcesState,
   testCasesState,
-} from "./state";
+} from "../shared/state";
 
 export function OutputPanel() {
   const sources = useRecoilValue(sourcesState);
