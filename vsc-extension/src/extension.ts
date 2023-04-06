@@ -14,6 +14,12 @@ import { removeFile, updateFile } from "./util/source";
 import { State } from "./util/state";
 import { TypedMap } from "./util/types";
 
+const initialState: State = {
+  "app.debugMode": false,
+  selectedFunction: null,
+  sources: {},
+  testCases: {},
+};
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(extensionContext: vscode.ExtensionContext) {
@@ -32,12 +38,11 @@ export function activate(extensionContext: vscode.ExtensionContext) {
   );
 
   const state: TypedMap<State> = new Map();
+  Object.entries(initialState).forEach(([key, value]) => {
+    state.set(key as keyof State, value);
+  });
 
   // Set defaults so that recoil sync's custom() does not explode
-  state.set("app.debugMode", false);
-  state.set("sources", {});
-  state.set("selectedFunction", null);
-  state.set("testCases", {});
   let nativeSources: SourceFileMap = {};
 
   const outputsWebviewProvider = registerWebView(
