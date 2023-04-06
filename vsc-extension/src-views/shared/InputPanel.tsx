@@ -217,7 +217,7 @@ function formatTestCase(
     return "<no parameters>";
   }
   const name = fnDecl.parameters
-    .filter((param) => param.name in testCase.inputs[param.name])
+    .filter((param) => param.name in testCase.inputs)
     .map((param) => `${param.name}:${testCase.inputs[param.name]}`)
     .join(",");
   if (!name) {
