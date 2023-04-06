@@ -33,6 +33,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
   const state = new Map<string, any>();
   // Set defaults so that recoil sync's custom() does not explode
   state.set("app.debugMode", false);
+  state.set("sources", {});
 
   const outputsWebviewProvider = registerWebView(
     extensionContext,
@@ -85,13 +86,14 @@ export function activate(extensionContext: vscode.ExtensionContext) {
   );
 
   // These are all the local states in the extension.
-  let sources: Readonly<SourceFileMap> = {};
   let selectedFunction: MaybeSelectedFunction = null;
   let testCases: Readonly<SourceFileTestCaseMap> = {};
 
   let selectedTestCases: Readonly<SourceFileTestCaseMap> = {};
 
-  const functionTreeProvider = new ImaginaryFunctionProvider(sources);
+  const functionTreeProvider = new ImaginaryFunctionProvider(
+    state.get("sources")
+  );
   vscode.window.createTreeView("functions", {
     treeDataProvider: functionTreeProvider,
   });
@@ -100,7 +102,8 @@ export function activate(extensionContext: vscode.ExtensionContext) {
   extensionContext.subscriptions.push(
     vscode.workspace.onDidChangeTextDocument((e) => {
       console.info("onDidChangeTextDocument", e.document.fileName, e.reason);
-      sources = updateFile(sources, e.document);
+      const sources = updateFile(state.get("sources"), e.document);
+      state.set("sources", sources);
       functionTreeProvider.update(sources);
       messageRouter.updateSources(sources);
     })
@@ -109,8 +112,8 @@ export function activate(extensionContext: vscode.ExtensionContext) {
   extensionContext.subscriptions.push(
     vscode.workspace.onDidOpenTextDocument((document) => {
       console.info("onDidOpenTextDocument", document.fileName);
-      sources = updateFile(sources, document);
-
+      const sources = updateFile(state.get("sources"), document);
+      state.set("sources", sources);
       functionTreeProvider.update(sources);
       messageRouter.updateSources(sources);
     })
@@ -118,7 +121,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
   extensionContext.subscriptions.push(
     vscode.workspace.onDidCloseTextDocument((document) => {
       console.info("onDidCloseTextDocument", document.fileName);
-      sources = removeFile(document, sources);
+      const sources = removeFile(document, state.get("sources"));
       functionTreeProvider.update(sources);
       messageRouter.updateSources(sources);
     })
@@ -129,18 +132,24 @@ export function activate(extensionContext: vscode.ExtensionContext) {
       const { textEditor } = e;
       selectedFunction = updateViewsWithSelection(
         selectedFunction,
-        sources,
+        state.get("sources"),
         textEditor,
         messageRouter
       );
     })
   );
-  sources = initializeOpenEditors(sources, functionTreeProvider);
-  selectedFunction = initializeSelection(
-    selectedFunction,
-    sources,
-    messageRouter
-  );
+  {
+    const sources = initializeOpenEditors(
+      state.get("sources"),
+      functionTreeProvider
+    );
+    state.set("sources", sources);
+    selectedFunction = initializeSelection(
+      selectedFunction,
+      sources,
+      messageRouter
+    );
+  }
 }
 
 function initializeSelection(
