@@ -8,10 +8,11 @@ import React from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { findMatchingFunction } from "../../src/util/serialized-source";
 import { useExtensionState } from "./ExtensionState";
-import { debugState, selectedFunctionState } from "./state";
+import { debugState, selectedFunctionState, testCasesState } from "./state";
 
 export function OutputPanel() {
-  const { sources, testCases } = useExtensionState();
+  const { sources } = useExtensionState();
+  const testCases = useRecoilValue(testCasesState);
   const selectedFunction = useRecoilValue(selectedFunctionState);
 
   const fn = findMatchingFunction(sources, selectedFunction);
@@ -49,6 +50,8 @@ export function OutputPanel() {
         <div>
           <p>Functions</p>
           <pre>{JSON.stringify(sources, null, 4)}</pre>
+          <p>SelectedFunction</p>
+          <pre>{JSON.stringify(selectedFunction, null, 4)}</pre>
           <p>Inputs/Outputs</p>
           <pre>{JSON.stringify(testCases, null, 4)}</pre>
         </div>

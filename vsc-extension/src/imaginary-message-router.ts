@@ -1,10 +1,6 @@
 import * as vscode from "vscode";
 import { ImaginaryMessage } from "../src-shared/messages";
-import {
-  makeSerializable,
-  SourceFileMap,
-  SourceFileTestCaseMap,
-} from "../src-shared/source-info";
+import { makeSerializable, SourceFileMap } from "../src-shared/source-info";
 import { ReactWebViewProvider } from "./util/react-webview-provider";
 
 /** A message router to broadcast and recieve messages from multiple webviews */
@@ -87,13 +83,6 @@ export class ImaginaryMessageRouter {
   ) {
     const serialized = makeSerializable(sources);
     return this.postMessage("update-sources", [serialized], ignoreProvider);
-  }
-
-  async updateTestCases(
-    testCases: SourceFileTestCaseMap,
-    ignoreProvider?: ReactWebViewProvider
-  ) {
-    return this.postMessage("update-testcases", [testCases], ignoreProvider);
   }
 
   async postMessage<

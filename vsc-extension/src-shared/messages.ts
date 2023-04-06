@@ -1,17 +1,9 @@
 import { RpcProvider } from "worker-rpc";
-import {
-  SerializableSourceFileMap,
-  SourceFileTestCaseMap,
-} from "./source-info";
+import { SerializableSourceFileMap } from "./source-info";
 
 export interface UpdateSourcesMessage {
   id: "update-sources";
   params: [Readonly<SerializableSourceFileMap>];
-}
-
-export interface UpdateTestCasesMessage {
-  id: "update-testcases";
-  params: [SourceFileTestCaseMap];
 }
 
 export interface RpcMessage {
@@ -19,7 +11,4 @@ export interface RpcMessage {
   params: [message: RpcProvider.Message, transfer?: any[]];
 }
 
-export type ImaginaryMessage =
-  | UpdateSourcesMessage
-  | UpdateTestCasesMessage
-  | RpcMessage;
+export type ImaginaryMessage = UpdateSourcesMessage | RpcMessage;

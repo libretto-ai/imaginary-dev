@@ -6,7 +6,7 @@ import {
 } from "@vscode/webview-ui-toolkit/react";
 import { produce } from "immer";
 import React, { useCallback, useState } from "react";
-import { useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import {
   FunctionTestCase,
   FunctionTestCases,
@@ -16,7 +16,7 @@ import {
 import { addFunctionTestCase, findTestCases } from "../../src-shared/testcases";
 import { findMatchingFunction } from "../../src/util/serialized-source";
 import { useExtensionState } from "./ExtensionState";
-import { debugState, selectedFunctionState } from "./state";
+import { debugState, selectedFunctionState, testCasesState } from "./state";
 
 const emptyTestCase: FunctionTestCase = {
   inputs: {},
@@ -94,8 +94,9 @@ function updateSourcefileTestCase<T>(
 }
 
 export const InputPanel = () => {
-  const { testCases, updateTestCases, sources } = useExtensionState();
+  const { sources } = useExtensionState();
   const selectedFunction = useRecoilValue(selectedFunctionState);
+  const [testCases, setTestCases] = useRecoilState(testCasesState);
   const [selectedTestCaseIndex, setSelectedTestCaseIndex] = useState(0);
 
   const onUpdateTestCase = useCallback(
@@ -106,7 +107,7 @@ export const InputPanel = () => {
       testCaseIndex: number,
       value: string
     ) => {
-      updateTestCases((prevFileTestCases) => {
+      setTestCases((prevFileTestCases) => {
         return updateSourcefileTestCase(
           prevFileTestCases,
           sourceFileName,
@@ -117,7 +118,7 @@ export const InputPanel = () => {
         );
       });
     },
-    [updateTestCases]
+    [setTestCases]
   );
   const isDebugMode = useRecoilValue(debugState);
 
@@ -134,10 +135,10 @@ export const InputPanel = () => {
         current: {},
       },
     };
-    updateTestCases(
+    setTestCases(
       addFunctionTestCase(testCases, fileName, functionName, newTestCase)
     );
-  }, [selectedFunction, updateTestCases, testCases]);
+  }, [selectedFunction, setTestCases, testCases]);
   if (!selectedFunction) {
     return <p>No function selected</p>;
   }

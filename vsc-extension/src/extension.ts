@@ -5,7 +5,6 @@ import * as vscode from "vscode";
 import {
   MaybeSelectedFunction,
   SourceFileMap,
-  SourceFileTestCaseMap,
 } from "../src-shared/source-info";
 import { ImaginaryFunctionProvider } from "./function-tree-provider";
 import { ImaginaryMessageRouter } from "./imaginary-message-router";
@@ -36,6 +35,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
   state.set("app.debugMode", false);
   state.set("sources", {});
   state.set("selectedFunction", null);
+  state.set("testCases", {});
 
   const outputsWebviewProvider = registerWebView(
     extensionContext,
@@ -64,9 +64,6 @@ export function activate(extensionContext: vscode.ExtensionContext) {
       switch (message.id) {
         case "update-sources":
           throw new Error("Only core extension is allowed to update sources");
-        case "update-testcases":
-          testCases = message.params[0];
-          return messageRouter.updateTestCases(testCases, webviewProvider);
         case "rpc": {
           // ignore them here, they will be handled outside this router
           return null;
@@ -79,7 +76,6 @@ export function activate(extensionContext: vscode.ExtensionContext) {
   );
 
   // These are all the local states in the extension.
-  let testCases: Readonly<SourceFileTestCaseMap> = {};
 
   const functionTreeProvider = new ImaginaryFunctionProvider(
     state.get("sources")
