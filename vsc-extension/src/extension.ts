@@ -122,6 +122,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
         textEditor
       );
       state.set("selectedFunction", selectedFunction);
+      messageRouter.updateState({ selectedFunction });
     })
   );
   {
@@ -135,6 +136,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
       sources
     );
     state.set("selectedFunction", selectedFunction);
+    messageRouter.updateState({ selectedFunction });
   }
 }
 
