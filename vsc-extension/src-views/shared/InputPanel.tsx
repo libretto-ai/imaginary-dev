@@ -15,12 +15,7 @@ import {
 } from "../../src-shared/source-info";
 import { addFunctionTestCase, findTestCases } from "../../src-shared/testcases";
 import { findMatchingFunction } from "../../src/util/serialized-source";
-import {
-  debugState,
-  selectedFunctionState,
-  sourcesState,
-  testCasesState,
-} from "./state";
+import { selectedFunctionState, sourcesState, testCasesState } from "./state";
 
 const emptyTestCase: FunctionTestCase = {
   inputs: {},
@@ -124,7 +119,6 @@ export const InputPanel = () => {
     },
     [setTestCases]
   );
-  const isDebugMode = useRecoilValue(debugState);
 
   const onAddTestCase = useCallback(() => {
     if (!selectedFunction) {
@@ -159,7 +153,6 @@ export const InputPanel = () => {
       <p>
         Test cases for <code>{selectedFunction.functionName}</code>
       </p>
-      <p>Debug state: {`${isDebugMode}`}</p>
       {!functionTestCases && (
         <p>
           <i>No test cases yet</i>
