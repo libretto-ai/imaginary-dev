@@ -11,6 +11,8 @@ import { ImaginaryMessageRouter } from "./imaginary-message-router";
 import { focusNode, getEditorSelectedFunction } from "./util/editor";
 import { registerWebView } from "./util/react-webview-provider";
 import { removeFile, updateFile } from "./util/source";
+import { State } from "./util/state";
+import { TypedMap } from "./util/types";
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -29,7 +31,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
     'Congratulations, your extension "imaginary-programming" is now active!'
   );
 
-  const state = new Map<string, any>();
+  const state: TypedMap<State> = new Map();
 
   // Set defaults so that recoil sync's custom() does not explode
   state.set("app.debugMode", false);
