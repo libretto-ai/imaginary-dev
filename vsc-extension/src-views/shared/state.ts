@@ -3,6 +3,7 @@ import { atom, DefaultValue } from "recoil";
 import { syncEffect } from "recoil-sync";
 import {
   MaybeSelectedFunction,
+  SerializableSourceFileMap,
   SourceFileTestCaseMap,
 } from "../../src-shared/source-info";
 
@@ -30,5 +31,11 @@ export const selectedFunctionState = atom<MaybeSelectedFunction>({
 export const testCasesState = atom<SourceFileTestCaseMap>({
   default: {},
   key: "testCases",
-  effects: [synced<SourceFileTestCaseMap>({})],
+  effects: [synced({})],
+});
+
+export const sourcesState = atom<SerializableSourceFileMap>({
+  default: {},
+  key: "sources",
+  effects: [synced({})],
 });

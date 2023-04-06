@@ -15,8 +15,12 @@ import {
 } from "../../src-shared/source-info";
 import { addFunctionTestCase, findTestCases } from "../../src-shared/testcases";
 import { findMatchingFunction } from "../../src/util/serialized-source";
-import { useExtensionState } from "./ExtensionState";
-import { debugState, selectedFunctionState, testCasesState } from "./state";
+import {
+  debugState,
+  selectedFunctionState,
+  sourcesState,
+  testCasesState,
+} from "./state";
 
 const emptyTestCase: FunctionTestCase = {
   inputs: {},
@@ -94,8 +98,8 @@ function updateSourcefileTestCase<T>(
 }
 
 export const InputPanel = () => {
-  const { sources } = useExtensionState();
   const selectedFunction = useRecoilValue(selectedFunctionState);
+  const sources = useRecoilValue(sourcesState);
   const [testCases, setTestCases] = useRecoilState(testCasesState);
   const [selectedTestCaseIndex, setSelectedTestCaseIndex] = useState(0);
 

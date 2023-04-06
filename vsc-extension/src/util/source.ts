@@ -7,7 +7,7 @@ import { getRelativePathToProject } from "./editor";
 export function removeFile(
   document: vscode.TextDocument,
   sources: Readonly<SourceFileMap>
-) {
+): Readonly<SourceFileMap> {
   const relativeFilePath = getRelativePathToProject(document.fileName);
   // eslint-disable-next-line no-unused-vars
   const { [relativeFilePath]: removed, ...newSources } = sources;

@@ -7,11 +7,15 @@ import {
 import React from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { findMatchingFunction } from "../../src/util/serialized-source";
-import { useExtensionState } from "./ExtensionState";
-import { debugState, selectedFunctionState, testCasesState } from "./state";
+import {
+  debugState,
+  selectedFunctionState,
+  sourcesState,
+  testCasesState,
+} from "./state";
 
 export function OutputPanel() {
-  const { sources } = useExtensionState();
+  const sources = useRecoilValue(sourcesState);
   const testCases = useRecoilValue(testCasesState);
   const selectedFunction = useRecoilValue(selectedFunctionState);
 

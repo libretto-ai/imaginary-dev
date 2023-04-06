@@ -7,16 +7,13 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { UnreachableCaseError } from "ts-essentials";
 import { WebviewApi } from "vscode-webview";
 import { RpcProvider } from "worker-rpc";
 import { ImaginaryMessage } from "../../src-shared/messages";
-import { SerializableSourceFileMap } from "../../src-shared/source-info";
 
 /** Main hook that wires up all messaging to/from this webview */
 function useExtensionStateInternal() {
   // Local copies of state as broadcast from extension host
-  const [sources, setSources] = useState<SerializableSourceFileMap>({});
   const vscodeRef = useRef<WebviewApi<unknown>>();
   const [rpcProvider, setRpcProvider] = useState<RpcProvider>();
 
@@ -43,31 +40,20 @@ function useExtensionStateInternal() {
         `[${window.origin}] Got ${message.id} from ${event.origin} /`,
         event
       );
-
-      switch (message.id) {
-        case "update-sources": {
-          const [sources] = message.params;
-          console.log("got sources: ", sources);
-          return setSources(sources);
+      if (message.id === "rpc") {
+        // Called when we get a response from a call - rpcMessage will be the resolution of the promise
+        const [rpcMessage, transfer] = message.params;
+        if (transfer?.length) {
+          console.error("Unexpected transfer param from 'rpc' message");
         }
-        case "rpc": {
-          // Called when we get a response from a call - rpcMessage will be the resolution of the promise
-          const [rpcMessage, transfer] = message.params;
-          if (transfer?.length) {
-            console.error("Unexpected transfer param from 'rpc' message");
-          }
-          rpcProvider.dispatch(rpcMessage);
-          return;
-        }
-
-        default:
-          throw new UnreachableCaseError(message);
+        rpcProvider.dispatch(rpcMessage);
+        return;
       }
+      console.error("unknown message recieved");
     });
   }, []);
 
   return {
-    sources,
     rpcProvider: rpcProvider,
   };
 }
@@ -75,8 +61,6 @@ function useExtensionStateInternal() {
 const ExtensionState = createContext<
   ReturnType<typeof useExtensionStateInternal>
 >({
-  // selectedFunction: null,
-  sources: {},
   rpcProvider: undefined,
 });
 

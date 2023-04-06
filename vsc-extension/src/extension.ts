@@ -1,8 +1,8 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-import { UnreachableCaseError } from "ts-essentials";
 import * as vscode from "vscode";
 import {
+  makeSerializable,
   MaybeSelectedFunction,
   SourceFileMap,
 } from "../src-shared/source-info";
@@ -36,6 +36,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
   state.set("sources", {});
   state.set("selectedFunction", null);
   state.set("testCases", {});
+  let nativeSources: SourceFileMap = {};
 
   const outputsWebviewProvider = registerWebView(
     extensionContext,
@@ -55,31 +56,8 @@ export function activate(extensionContext: vscode.ExtensionContext) {
   ]);
   extensionContext.subscriptions.push(messageRouter);
 
-  extensionContext.subscriptions.push(
-    messageRouter.onDidReceiveMessage(async (webviewMessage) => {
-      const { message, webviewProvider } = webviewMessage;
-      console.log(
-        `[extension] Got ${message.id} from ${webviewProvider.viewId}`
-      );
-      switch (message.id) {
-        case "update-sources":
-          throw new Error("Only core extension is allowed to update sources");
-        case "rpc": {
-          // ignore them here, they will be handled outside this router
-          return null;
-        }
-
-        default:
-          throw new UnreachableCaseError(message);
-      }
-    })
-  );
-
   // These are all the local states in the extension.
-
-  const functionTreeProvider = new ImaginaryFunctionProvider(
-    state.get("sources")
-  );
+  const functionTreeProvider = new ImaginaryFunctionProvider(nativeSources);
   vscode.window.createTreeView("functions", {
     treeDataProvider: functionTreeProvider,
   });
@@ -88,28 +66,41 @@ export function activate(extensionContext: vscode.ExtensionContext) {
   extensionContext.subscriptions.push(
     vscode.workspace.onDidChangeTextDocument((e) => {
       console.info("onDidChangeTextDocument", e.document.fileName, e.reason);
-      const sources = updateFile(state.get("sources"), e.document);
-      state.set("sources", sources);
-      functionTreeProvider.update(sources);
-      messageRouter.updateSources(sources);
+
+      nativeSources = updateFile(nativeSources, e.document);
+      updateSourceState(
+        nativeSources,
+        state,
+        functionTreeProvider,
+        messageRouter
+      );
     })
   );
 
   extensionContext.subscriptions.push(
     vscode.workspace.onDidOpenTextDocument((document) => {
       console.info("onDidOpenTextDocument", document.fileName);
-      const sources = updateFile(state.get("sources"), document);
-      state.set("sources", sources);
-      functionTreeProvider.update(sources);
-      messageRouter.updateSources(sources);
+
+      nativeSources = updateFile(nativeSources, document);
+      updateSourceState(
+        nativeSources,
+        state,
+        functionTreeProvider,
+        messageRouter
+      );
     })
   );
   extensionContext.subscriptions.push(
     vscode.workspace.onDidCloseTextDocument((document) => {
       console.info("onDidCloseTextDocument", document.fileName);
-      const sources = removeFile(document, state.get("sources"));
-      functionTreeProvider.update(sources);
-      messageRouter.updateSources(sources);
+
+      nativeSources = removeFile(document, nativeSources);
+      updateSourceState(
+        nativeSources,
+        state,
+        functionTreeProvider,
+        messageRouter
+      );
     })
   );
   extensionContext.subscriptions.push(
@@ -118,7 +109,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
       const { textEditor } = e;
       const selectedFunction = updateViewsWithSelection(
         state.get("selectedFunction"),
-        state.get("sources"),
+        nativeSources,
         textEditor
       );
       state.set("selectedFunction", selectedFunction);
@@ -126,18 +117,34 @@ export function activate(extensionContext: vscode.ExtensionContext) {
     })
   );
   {
-    const sources = initializeOpenEditors(
-      state.get("sources"),
-      functionTreeProvider
+    nativeSources = initializeOpenEditors(nativeSources, functionTreeProvider);
+    updateSourceState(
+      nativeSources,
+      state,
+      functionTreeProvider,
+      messageRouter
     );
-    state.set("sources", sources);
     const selectedFunction = initializeSelection(
       state.get("selectedFunction"),
-      sources
+      nativeSources
     );
     state.set("selectedFunction", selectedFunction);
     messageRouter.updateState({ selectedFunction });
   }
+}
+
+/** Broadcast all changes to sources */
+function updateSourceState(
+  nativeSources: Readonly<SourceFileMap>,
+  state: Map<string, any>,
+  functionTreeProvider: ImaginaryFunctionProvider,
+  messageRouter: ImaginaryMessageRouter
+) {
+  const sources = makeSerializable(nativeSources);
+
+  functionTreeProvider.update(nativeSources);
+  state.set("sources", sources);
+  messageRouter.updateState({ sources });
 }
 
 function initializeSelection(
