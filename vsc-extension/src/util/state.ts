@@ -1,11 +1,11 @@
 import {
   MaybeSelectedFunction,
-  SourceFileMap,
+  SerializableSourceFileMap,
   SourceFileTestCaseMap,
 } from "../../src-shared/source-info";
 
 export interface State {
-  sources: SourceFileMap;
+  sources: SerializableSourceFileMap;
   selectedFunction: MaybeSelectedFunction;
   "app.debugMode": boolean;
   testCases: SourceFileTestCaseMap;

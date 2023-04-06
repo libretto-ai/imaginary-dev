@@ -138,7 +138,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
 /** Broadcast all changes to sources */
 function updateSourceState(
   nativeSources: Readonly<SourceFileMap>,
-  state: Map<string, any>,
+  state: TypedMap<State>,
   functionTreeProvider: ImaginaryFunctionProvider,
   messageRouter: ImaginaryMessageRouter
 ) {
