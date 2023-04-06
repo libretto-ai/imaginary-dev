@@ -6,7 +6,7 @@ import {
 } from "@vscode/webview-ui-toolkit/react";
 import { produce } from "immer";
 import React, { useCallback, useState } from "react";
-import { useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import {
   FunctionTestCase,
   FunctionTestCases,
@@ -15,8 +15,12 @@ import {
 } from "../../src-shared/source-info";
 import { addFunctionTestCase, findTestCases } from "../../src-shared/testcases";
 import { findMatchingFunction } from "../../src/util/serialized-source";
-import { useExtensionState } from "./ExtensionState";
-import { debugState } from "./state";
+import {
+  debugState,
+  selectedFunctionState,
+  sourcesState,
+  testCasesState,
+} from "./state";
 
 const emptyTestCase: FunctionTestCase = {
   inputs: {},
@@ -94,8 +98,9 @@ function updateSourcefileTestCase<T>(
 }
 
 export const InputPanel = () => {
-  const { selectedFunction, testCases, updateTestCases, sources } =
-    useExtensionState();
+  const selectedFunction = useRecoilValue(selectedFunctionState);
+  const sources = useRecoilValue(sourcesState);
+  const [testCases, setTestCases] = useRecoilState(testCasesState);
   const [selectedTestCaseIndex, setSelectedTestCaseIndex] = useState(0);
 
   const onUpdateTestCase = useCallback(
@@ -106,7 +111,7 @@ export const InputPanel = () => {
       testCaseIndex: number,
       value: string
     ) => {
-      updateTestCases((prevFileTestCases) => {
+      setTestCases((prevFileTestCases) => {
         return updateSourcefileTestCase(
           prevFileTestCases,
           sourceFileName,
@@ -117,7 +122,7 @@ export const InputPanel = () => {
         );
       });
     },
-    [updateTestCases]
+    [setTestCases]
   );
   const isDebugMode = useRecoilValue(debugState);
 
@@ -134,10 +139,10 @@ export const InputPanel = () => {
         current: {},
       },
     };
-    updateTestCases(
+    setTestCases(
       addFunctionTestCase(testCases, fileName, functionName, newTestCase)
     );
-  }, [selectedFunction, updateTestCases, testCases]);
+  }, [selectedFunction, setTestCases, testCases]);
   if (!selectedFunction) {
     return <p>No function selected</p>;
   }
@@ -146,6 +151,9 @@ export const InputPanel = () => {
   const functionTestCases = findTestCases(testCases, fileName, functionName);
   const selectedFunctionInfo = findMatchingFunction(sources, selectedFunction);
   const selectedTestCase = functionTestCases?.testCases[selectedTestCaseIndex];
+  if (!selectedFunctionInfo) {
+    console.log("could not find ", selectedFunction, " in ", sources);
+  }
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
       <p>
@@ -217,7 +225,7 @@ function formatTestCase(
     return "<no parameters>";
   }
   const name = fnDecl.parameters
-    .filter((param) => param.name in testCase.inputs[param.name])
+    .filter((param) => param.name in testCase.inputs)
     .map((param) => `${param.name}:${testCase.inputs[param.name]}`)
     .join(",");
   if (!name) {

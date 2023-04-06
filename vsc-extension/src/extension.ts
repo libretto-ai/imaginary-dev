@@ -1,18 +1,25 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-import { UnreachableCaseError } from "ts-essentials";
 import * as vscode from "vscode";
 import {
+  makeSerializable,
   MaybeSelectedFunction,
   SourceFileMap,
-  SourceFileTestCaseMap,
 } from "../src-shared/source-info";
 import { ImaginaryFunctionProvider } from "./function-tree-provider";
 import { ImaginaryMessageRouter } from "./imaginary-message-router";
 import { focusNode, getEditorSelectedFunction } from "./util/editor";
 import { registerWebView } from "./util/react-webview-provider";
 import { removeFile, updateFile } from "./util/source";
+import { State } from "./util/state";
+import { TypedMap } from "./util/types";
 
+const initialState: State = {
+  "app.debugMode": false,
+  selectedFunction: null,
+  sources: {},
+  testCases: {},
+};
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(extensionContext: vscode.ExtensionContext) {
@@ -30,9 +37,13 @@ export function activate(extensionContext: vscode.ExtensionContext) {
     'Congratulations, your extension "imaginary-programming" is now active!'
   );
 
-  const state = new Map<string, any>();
+  const state: TypedMap<State> = new Map();
+  Object.entries(initialState).forEach(([key, value]) => {
+    state.set(key as keyof State, value);
+  });
+
   // Set defaults so that recoil sync's custom() does not explode
-  state.set("app.debugMode", false);
+  let nativeSources: SourceFileMap = {};
 
   const outputsWebviewProvider = registerWebView(
     extensionContext,
@@ -52,46 +63,8 @@ export function activate(extensionContext: vscode.ExtensionContext) {
   ]);
   extensionContext.subscriptions.push(messageRouter);
 
-  extensionContext.subscriptions.push(
-    messageRouter.onDidReceiveMessage(async (webviewMessage) => {
-      const { message, webviewProvider } = webviewMessage;
-      console.log(
-        `[extension] Got ${message.id} from ${webviewProvider.viewId}`
-      );
-      switch (message.id) {
-        case "update-sources":
-          throw new Error("Only core extension is allowed to update sources");
-        case "update-function-selection":
-          selectedFunction = message.params[0];
-          return messageRouter.updateFunctionSelection(
-            selectedFunction,
-            webviewProvider
-          );
-        case "update-testcases":
-          testCases = message.params[0];
-          return messageRouter.updateTestCases(testCases, webviewProvider);
-        case "update-selected-test-cases":
-          [selectedTestCases] = message.params;
-          return messageRouter.updateSelectedTestCases(selectedTestCases);
-        case "rpc": {
-          // ignore them here, they will be handled outside this router
-          return null;
-        }
-
-        default:
-          throw new UnreachableCaseError(message);
-      }
-    })
-  );
-
   // These are all the local states in the extension.
-  let sources: Readonly<SourceFileMap> = {};
-  let selectedFunction: MaybeSelectedFunction = null;
-  let testCases: Readonly<SourceFileTestCaseMap> = {};
-
-  let selectedTestCases: Readonly<SourceFileTestCaseMap> = {};
-
-  const functionTreeProvider = new ImaginaryFunctionProvider(sources);
+  const functionTreeProvider = new ImaginaryFunctionProvider(nativeSources);
   vscode.window.createTreeView("functions", {
     treeDataProvider: functionTreeProvider,
   });
@@ -100,61 +73,97 @@ export function activate(extensionContext: vscode.ExtensionContext) {
   extensionContext.subscriptions.push(
     vscode.workspace.onDidChangeTextDocument((e) => {
       console.info("onDidChangeTextDocument", e.document.fileName, e.reason);
-      sources = updateFile(sources, e.document);
-      functionTreeProvider.update(sources);
-      messageRouter.updateSources(sources);
+
+      nativeSources = updateFile(nativeSources, e.document);
+      updateSourceState(
+        nativeSources,
+        state,
+        functionTreeProvider,
+        messageRouter
+      );
     })
   );
 
   extensionContext.subscriptions.push(
     vscode.workspace.onDidOpenTextDocument((document) => {
       console.info("onDidOpenTextDocument", document.fileName);
-      sources = updateFile(sources, document);
 
-      functionTreeProvider.update(sources);
-      messageRouter.updateSources(sources);
+      nativeSources = updateFile(nativeSources, document);
+      updateSourceState(
+        nativeSources,
+        state,
+        functionTreeProvider,
+        messageRouter
+      );
     })
   );
   extensionContext.subscriptions.push(
     vscode.workspace.onDidCloseTextDocument((document) => {
       console.info("onDidCloseTextDocument", document.fileName);
-      sources = removeFile(document, sources);
-      functionTreeProvider.update(sources);
-      messageRouter.updateSources(sources);
+
+      nativeSources = removeFile(document, nativeSources);
+      updateSourceState(
+        nativeSources,
+        state,
+        functionTreeProvider,
+        messageRouter
+      );
     })
   );
   extensionContext.subscriptions.push(
     vscode.window.onDidChangeTextEditorSelection((e) => {
       // TODO: update tree view with treeView.reveal()
       const { textEditor } = e;
-      selectedFunction = updateViewsWithSelection(
-        selectedFunction,
-        sources,
-        textEditor,
-        messageRouter
+      const selectedFunction = updateViewsWithSelection(
+        state.get("selectedFunction"),
+        nativeSources,
+        textEditor
       );
+      state.set("selectedFunction", selectedFunction);
+      messageRouter.updateState({ selectedFunction });
     })
   );
-  sources = initializeOpenEditors(sources, functionTreeProvider);
-  selectedFunction = initializeSelection(
-    selectedFunction,
-    sources,
-    messageRouter
-  );
+  {
+    nativeSources = initializeOpenEditors(nativeSources, functionTreeProvider);
+    updateSourceState(
+      nativeSources,
+      state,
+      functionTreeProvider,
+      messageRouter
+    );
+    const selectedFunction = initializeSelection(
+      state.get("selectedFunction"),
+      nativeSources
+    );
+    state.set("selectedFunction", selectedFunction);
+    messageRouter.updateState({ selectedFunction });
+  }
+}
+
+/** Broadcast all changes to sources */
+function updateSourceState(
+  nativeSources: Readonly<SourceFileMap>,
+  state: TypedMap<State>,
+  functionTreeProvider: ImaginaryFunctionProvider,
+  messageRouter: ImaginaryMessageRouter
+) {
+  const sources = makeSerializable(nativeSources);
+
+  functionTreeProvider.update(nativeSources);
+  state.set("sources", sources);
+  messageRouter.updateState({ sources });
 }
 
 function initializeSelection(
   selectedFunction: MaybeSelectedFunction,
-  sources: Readonly<SourceFileMap>,
-  messageRouter: ImaginaryMessageRouter
+  sources: Readonly<SourceFileMap>
 ) {
   if (vscode.window.activeTextEditor) {
     const textEditor = vscode.window.activeTextEditor;
     selectedFunction = updateViewsWithSelection(
       selectedFunction,
       sources,
-      textEditor,
-      messageRouter
+      textEditor
     );
   }
   return selectedFunction;
@@ -163,8 +172,7 @@ function initializeSelection(
 function updateViewsWithSelection(
   selectedFunction: MaybeSelectedFunction,
   sources: Readonly<SourceFileMap>,
-  textEditor: vscode.TextEditor,
-  messageRouter: ImaginaryMessageRouter
+  textEditor: vscode.TextEditor
 ) {
   const newSelection = getEditorSelectedFunction(
     selectedFunction,
@@ -173,7 +181,6 @@ function updateViewsWithSelection(
   );
   if (newSelection !== selectedFunction) {
     selectedFunction = newSelection;
-    messageRouter.updateFunctionSelection(newSelection);
   }
   return newSelection;
 }
