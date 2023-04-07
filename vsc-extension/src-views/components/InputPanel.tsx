@@ -2,7 +2,6 @@ import {
   VSCodeButton,
   VSCodeDropdown,
   VSCodeOption,
-  VSCodeTextArea,
 } from "@vscode/webview-ui-toolkit/react";
 import React, { useCallback, useState } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
@@ -21,6 +20,7 @@ import {
   sourcesState,
   testCasesState,
 } from "../shared/state";
+import { TestCaseEditor } from "./TestCaseEditor";
 
 export const InputPanel = () => {
   const selectedFunction = useRecoilValue(selectedFunctionState);
@@ -107,29 +107,14 @@ export const InputPanel = () => {
         )}
         <VSCodeButton onClick={onAddTestCase}>Add test case</VSCodeButton>
       </div>
-      {!!selectedTestCase && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          {selectedFunctionInfo?.parameters.map((param) => (
-            <div key={param.name} style={{ display: "flex" }}>
-              <VSCodeTextArea
-                style={{ flex: 1 }}
-                value={selectedTestCase.inputs[param.name] ?? ""}
-                onChange={(e: any) => {
-                  onUpdateTestCase(
-                    fileName,
-                    functionName,
-                    param.name,
-                    selectedTestCaseIndex,
-                    e.target.value
-                  );
-                }}
-              >
-                <code>{param.name}</code>
-              </VSCodeTextArea>
-            </div>
-          ))}
-        </div>
-      )}
+      {!!selectedTestCase &&
+        TestCaseEditor({
+          selectedFunctionInfo,
+          selectedTestCase,
+          onUpdateTestCase,
+          selectedFunction,
+          selectedTestCaseIndex,
+        })}
     </div>
   );
 };
