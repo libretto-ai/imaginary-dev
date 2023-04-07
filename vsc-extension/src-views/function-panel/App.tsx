@@ -1,8 +1,8 @@
 import React from "react";
 import { RecoilRoot } from "recoil";
-import { ExtensionStateProvider } from "../shared/ExtensionState";
-import { OutputPanel } from "../shared/OutputPanel";
-import { RecoilSyncWebview } from "../shared/RecoilSyncWebview";
+import { ExtensionStateProvider } from "../components/ExtensionState";
+import { OutputPanel } from "../components/OutputPanel";
+import { RecoilSyncWebview } from "../components/RecoilSyncWebview";
 
 const App = () => {
   return (

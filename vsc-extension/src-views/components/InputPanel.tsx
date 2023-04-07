@@ -4,98 +4,23 @@ import {
   VSCodeOption,
   VSCodeTextArea,
 } from "@vscode/webview-ui-toolkit/react";
-import { produce } from "immer";
 import React, { useCallback, useState } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import {
   FunctionTestCase,
-  FunctionTestCases,
   SerializableFunctionDeclaration,
-  SourceFileTestCaseMap,
 } from "../../src-shared/source-info";
-import { addFunctionTestCase, findTestCases } from "../../src-shared/testcases";
+import {
+  addFunctionTestCase,
+  findTestCases,
+  updateSourcefileTestCase,
+} from "../../src-shared/testcases";
 import { findMatchingFunction } from "../../src/util/serialized-source";
 import {
-  debugState,
   selectedFunctionState,
   sourcesState,
   testCasesState,
-} from "./state";
-
-const emptyTestCase: FunctionTestCase = {
-  inputs: {},
-  name: "New test case",
-  output: {
-    current: null,
-    prev: null,
-  },
-};
-
-function updateFunctionTestCase<T>(
-  functionTestCase: FunctionTestCase,
-  paramName: string,
-  value: T
-): FunctionTestCase {
-  return produce(functionTestCase, (draft) => {
-    draft.inputs[paramName] = value;
-  });
-}
-
-function updateFunctionTestCases<T>(
-  functionTestCases: FunctionTestCases,
-  index: number,
-  paramName: string,
-  value: T
-): FunctionTestCases {
-  return produce(functionTestCases, (draft) => {
-    draft.testCases = produce(draft.testCases, (draftTestCases) => {
-      draftTestCases[index] = updateFunctionTestCase(
-        draftTestCases[index] ?? emptyTestCase,
-        paramName,
-        value
-      );
-    });
-  });
-}
-
-function updateSourcefileTestCase<T>(
-  sourceFileTestCases: SourceFileTestCaseMap,
-  sourceFileName: string,
-  functionName: string,
-  index: number,
-  paramName: string,
-  value: T
-): SourceFileTestCaseMap {
-  return produce(sourceFileTestCases, (draft) => {
-    draft[sourceFileName] = produce(
-      draft[sourceFileName] ?? { sourceFileName, functionTestCases: [] },
-      (draftTestCases) => {
-        const functionTestCaseIndex =
-          draftTestCases.functionTestCases.findIndex(
-            (testCase) => testCase.functionName === functionName
-          ) ?? { functionName, testCases: [] };
-        if (functionTestCaseIndex !== -1) {
-          draftTestCases.functionTestCases[functionTestCaseIndex] =
-            updateFunctionTestCases(
-              draftTestCases.functionTestCases[functionTestCaseIndex],
-              index,
-              paramName,
-              value
-            );
-        } else {
-          draftTestCases.functionTestCases.push(
-            updateFunctionTestCases(
-              { functionName, testCases: [] },
-              index,
-              paramName,
-              value
-            )
-          );
-        }
-      }
-    );
-  });
-}
+} from "../shared/state";
 
 export const InputPanel = () => {
   const selectedFunction = useRecoilValue(selectedFunctionState);
@@ -124,7 +49,6 @@ export const InputPanel = () => {
     },
     [setTestCases]
   );
-  const isDebugMode = useRecoilValue(debugState);
 
   const onAddTestCase = useCallback(() => {
     if (!selectedFunction) {
@@ -159,7 +83,6 @@ export const InputPanel = () => {
       <p>
         Test cases for <code>{selectedFunction.functionName}</code>
       </p>
-      <p>Debug state: {`${isDebugMode}`}</p>
       {!functionTestCases && (
         <p>
           <i>No test cases yet</i>
