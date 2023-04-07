@@ -30,7 +30,6 @@ function TestCasesList({
   selectedIndex: number | null;
   onSelect: (selectedIndex: number) => void;
 }) {
-  console.log(`selected scenario: ${selectedIndex}`);
   return (
     <div className="input-scenarios-list" style={{ minWidth: "120px" }}>
       {testCases.map((testCase, index) => (
