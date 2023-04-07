@@ -64,7 +64,7 @@ export const selectedTestCaseIndexState = selectorFamily({
       }
       const { fileName, functionName } = params;
       const stcs = get(selectedTestCaseState);
-      return stcs[functionName]?.[fileName]?.testCaseIndex ?? 0;
+      return stcs[fileName]?.[functionName]?.testCaseIndex ?? 0;
     },
   set:
     (params: { functionName: string; fileName: string } | null) =>
