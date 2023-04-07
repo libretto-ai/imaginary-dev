@@ -32,19 +32,30 @@ export const ParameterValueEditor: FC<Props> = ({
   return (
     <div key={param.name} style={{ display: "flex" }}>
       <VSCodeTextArea
-        style={{ flex: 1 }}
+        style={{ flex: 1, width: "100%" }}
         value={selectedTestCase.inputs[param.name] ?? ""}
-        onChange={(e) => {
+        onChange={(e: any) => {
           onUpdateTestCase(
             fileName,
             functionName,
             param.name,
             selectedTestCaseIndex,
-            e.target.value
+            e.target?.value
           );
         }}
       >
-        <code>{param.name}</code>
+        <div style={{ display: "flex" }}>
+          <code
+            style={{
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              gap: "1rem",
+            }}
+          >
+            {param.name}
+          </code>
+          <span>({param.tempType})</span>
+        </div>
       </VSCodeTextArea>
     </div>
   );
