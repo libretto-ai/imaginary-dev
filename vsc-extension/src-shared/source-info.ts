@@ -1,3 +1,4 @@
+import { ServiceParameters } from "@imaginary-dev/util";
 import * as ts from "typescript";
 
 export interface FunctionTestCase {
@@ -13,6 +14,8 @@ export interface FunctionTestCase {
     prev: any;
     current: any;
   };
+
+  serviceParameters?: ServiceParameters;
 }
 
 /** Wrapper for all test cases for a given function */
@@ -36,15 +39,17 @@ export interface SourceFileInfo {
 }
 export type SourceFileMap = Record<string, SourceFileInfo>;
 
+/** TODO: replace with JSONSchema */
+export interface ParameterDescriptor {
+  name: string;
+  /** Quick hack for POC of parameters */
+  tempType: "number" | "string" | "object" | "array" | string;
+}
+
 export interface SerializableFunctionDeclaration {
   name?: string;
   declaration: string;
-  parameters: {
-    name: string;
-
-    /** Quick hack for POC of parameters */
-    tempType: "number" | "string" | "object" | "array" | string;
-  }[];
+  parameters: ParameterDescriptor[];
 }
 
 interface SerializableSourceFile {

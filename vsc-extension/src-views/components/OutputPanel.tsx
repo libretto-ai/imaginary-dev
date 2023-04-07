@@ -10,6 +10,7 @@ import { findMatchingFunction } from "../../src/util/serialized-source";
 import {
   debugState,
   selectedFunctionState,
+  selectedTestCaseState,
   sourcesState,
   testCasesState,
 } from "../shared/state";
@@ -18,6 +19,7 @@ export function OutputPanel() {
   const sources = useRecoilValue(sourcesState);
   const testCases = useRecoilValue(testCasesState);
   const selectedFunction = useRecoilValue(selectedFunctionState);
+  const selectedTestCaseIndexes = useRecoilValue(selectedTestCaseState);
 
   const fn = findMatchingFunction(sources, selectedFunction);
   const [debug, setDebug] = useRecoilState(debugState);
@@ -58,6 +60,8 @@ export function OutputPanel() {
           <pre>{JSON.stringify(selectedFunction, null, 4)}</pre>
           <p>Inputs/Outputs</p>
           <pre>{JSON.stringify(testCases, null, 4)}</pre>
+          <p>TestCaseIndexes</p>
+          <pre>{JSON.stringify(selectedTestCaseIndexes, null, 4)}</pre>
         </div>
       )}
     </>

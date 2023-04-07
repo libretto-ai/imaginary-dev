@@ -2,9 +2,8 @@ import {
   VSCodeButton,
   VSCodeDropdown,
   VSCodeOption,
-  VSCodeTextArea,
 } from "@vscode/webview-ui-toolkit/react";
-import React, { useCallback, useState } from "react";
+import React, { useCallback } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import {
   FunctionTestCase,
@@ -18,15 +17,19 @@ import {
 import { findMatchingFunction } from "../../src/util/serialized-source";
 import {
   selectedFunctionState,
+  selectedTestCaseIndexState,
   sourcesState,
   testCasesState,
 } from "../shared/state";
+import { TestCaseEditor } from "./TestCaseEditor";
 
 export const InputPanel = () => {
   const selectedFunction = useRecoilValue(selectedFunctionState);
   const sources = useRecoilValue(sourcesState);
   const [testCases, setTestCases] = useRecoilState(testCasesState);
-  const [selectedTestCaseIndex, setSelectedTestCaseIndex] = useState(0);
+  const [selectedTestCaseIndex, setSelectedTestCaseIndex] = useRecoilState(
+    selectedTestCaseIndexState(selectedFunction)
+  );
 
   const onUpdateTestCase = useCallback(
     (
@@ -80,56 +83,39 @@ export const InputPanel = () => {
   }
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-      <p>
+      <div>
         Test cases for <code>{selectedFunction.functionName}</code>
-      </p>
-      {!functionTestCases && (
-        <p>
-          <i>No test cases yet</i>
-        </p>
-      )}
-      <div style={{ display: "flex" }}>
-        {!!functionTestCases && (
-          <VSCodeDropdown
-            onChange={(e) => {
-              const indexStr = (e.target as HTMLOptionElement).value;
-              const index = parseInt(indexStr);
-              setSelectedTestCaseIndex(index);
-            }}
-            value={`${selectedTestCaseIndex}`}
-          >
-            {functionTestCases.testCases.map((testCase, index) => (
-              <VSCodeOption key={index} value={`${index}`}>
-                {formatTestCase(selectedFunctionInfo, testCase)}
-              </VSCodeOption>
-            ))}
-          </VSCodeDropdown>
-        )}
-        <VSCodeButton onClick={onAddTestCase}>Add test case</VSCodeButton>
       </div>
-      {!!selectedTestCase && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          {selectedFunctionInfo?.parameters.map((param) => (
-            <div key={param.name} style={{ display: "flex" }}>
-              <VSCodeTextArea
-                style={{ flex: 1 }}
-                value={selectedTestCase.inputs[param.name] ?? ""}
-                onChange={(e: any) => {
-                  onUpdateTestCase(
-                    fileName,
-                    functionName,
-                    param.name,
-                    selectedTestCaseIndex,
-                    e.target.value
-                  );
-                }}
-              >
-                <code>{param.name}</code>
-              </VSCodeTextArea>
-            </div>
-          ))}
+      {!functionTestCases && (
+        <div>
+          <i>No test cases yet</i>
         </div>
       )}
+      {!!functionTestCases && (
+        <VSCodeDropdown
+          onChange={(e) => {
+            const indexStr = (e.target as HTMLOptionElement).value;
+            const index = parseInt(indexStr);
+            setSelectedTestCaseIndex(index);
+          }}
+          value={`${selectedTestCaseIndex}`}
+        >
+          {functionTestCases.testCases.map((testCase, index) => (
+            <VSCodeOption key={index} value={`${index}`}>
+              {formatTestCase(selectedFunctionInfo, testCase)}
+            </VSCodeOption>
+          ))}
+        </VSCodeDropdown>
+      )}
+      <VSCodeButton onClick={onAddTestCase}>Add test case</VSCodeButton>
+      {!!selectedTestCase &&
+        TestCaseEditor({
+          selectedFunctionInfo,
+          selectedTestCase,
+          onUpdateTestCase,
+          selectedFunction,
+          selectedTestCaseIndex,
+        })}
     </div>
   );
 };
