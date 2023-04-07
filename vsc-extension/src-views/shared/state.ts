@@ -47,6 +47,13 @@ export const selectedTestCaseState = atom<SelectedFileTestCases>({
   effects: [synced({})],
 });
 
+/** This is a kind of helper selector that lets you just update the selected index for a given state, e.g.
+ *
+ * ```
+ * const selectedFunction = useRecoilValue(selectedFunctionState);
+ * const [testIndex, setTestIndex] = useRecoilState(selectedTestCaseIndexState(selectedFunction));
+ * ```
+ */
 export const selectedTestCaseIndexState = selectorFamily({
   key: "yyy",
   get:
