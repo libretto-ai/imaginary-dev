@@ -35,7 +35,7 @@
       "imaginary": [
         {
           "id": "imaginary.inputs",
-          "name": "Inputs here",
+          "name": "Test Inputs",
           "type": "webview"
         },
         {
