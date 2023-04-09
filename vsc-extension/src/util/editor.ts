@@ -1,6 +1,6 @@
 import { join, relative } from "path";
 import ts from "typescript";
-import * as vscode from "vscode";
+import vscode from "vscode";
 import {
   MaybeSelectedFunction,
   SourceFileMap,
