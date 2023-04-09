@@ -9,7 +9,10 @@ const jestConfig: JestConfigWithTsJest = {
     prefix: "<rootDir>/..",
   }),
   modulePathIgnorePatterns: ["<rootDir>/dist/"],
-  collectCoverageFrom: ["<rootDir>/src/**/*.{ts,tsx}"],
+  collectCoverageFrom: [
+    "<rootDir>/src/**/*.{ts,tsx}",
+    "<rootDir>/src-*/**/*.{ts,tsx}",
+  ],
 };
 
 export default jestConfig;
