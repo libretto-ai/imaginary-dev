@@ -8,14 +8,8 @@ import {
 
 interface Props {
   param: ParameterDescriptor;
-  selectedTestCase: FunctionTestCase;
-  onUpdateTestCase: (
-    sourceFileName: string,
-    functionName: string,
-    paramName: string,
-    testCaseIndex: number,
-    value: string
-  ) => void;
+  selectedTestCase: FunctionTestCase | undefined;
+  onUpdateTestCase: (paramName: string, value: string) => void;
 
   selectedFunction: SelectedFunction;
   selectedTestCaseIndex: number;
@@ -33,15 +27,9 @@ export const ParameterValueEditor: FC<Props> = ({
     <div key={param.name} style={{ display: "flex" }}>
       <VSCodeTextArea
         style={{ flex: 1, width: "100%" }}
-        value={selectedTestCase.inputs[param.name] ?? ""}
+        value={selectedTestCase?.inputs[param.name] ?? ""}
         onChange={(e: any) => {
-          onUpdateTestCase(
-            fileName,
-            functionName,
-            param.name,
-            selectedTestCaseIndex,
-            e.target?.value
-          );
+          onUpdateTestCase(param.name, e.target?.value);
         }}
       >
         <div style={{ display: "flex" }}>

@@ -1,9 +1,10 @@
+import { provideVSCodeDesignSystem } from "@vscode/webview-ui-toolkit";
 import {
   VSCodeButton,
   VSCodeDropdown,
   VSCodeOption,
 } from "@vscode/webview-ui-toolkit/react";
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import {
   findMatchingFunction,
@@ -23,6 +24,15 @@ import {
 } from "../shared/state";
 import { TestCaseEditor } from "./TestCaseEditor";
 
+const blankTestCase = {
+  name: "New test",
+  inputs: {},
+  output: {
+    prev: {},
+    current: {},
+  },
+};
+
 export const InputPanel = () => {
   const selectedFunction = useRecoilValue(selectedFunctionState);
   const sources = useRecoilValue(sourcesState);
@@ -31,45 +41,48 @@ export const InputPanel = () => {
     selectedTestCaseIndexState(selectedFunction)
   );
 
-  const onUpdateTestCase = useCallback(
-    (
-      sourceFileName: string,
-      functionName: string,
-      paramName: string,
-      testCaseIndex: number,
-      value: string
-    ) => {
-      setTestCases((prevFileTestCases) => {
-        return updateSourcefileTestCase(
-          prevFileTestCases,
-          sourceFileName,
-          functionName,
-          testCaseIndex,
-          paramName,
-          value
-        );
-      });
-    },
-    [setTestCases]
-  );
+  const [newTestCase, setNewTestCase] =
+    useState<FunctionTestCase>(blankTestCase);
+
+  const onUpdateTestCase = (paramName: string, value: string) => {
+    setNewTestCase((prevTestCase) => {
+      return {
+        name: prevTestCase.name,
+        inputs: Object.assign({}, prevTestCase.inputs, {
+          [paramName]: value,
+        }),
+        output: prevTestCase.output,
+      };
+    });
+  };
 
   const onAddTestCase = useCallback(() => {
     if (!selectedFunction) {
       return;
     }
     const { fileName, functionName } = selectedFunction;
-    const newTestCase: FunctionTestCase = {
-      name: "New test",
-      inputs: {},
-      output: {
-        prev: {},
-        current: {},
-      },
-    };
-    setTestCases(
-      addFunctionTestCase(testCases, fileName, functionName, newTestCase)
+
+    // add the form's test case into the object model.
+    const newTestCases = addFunctionTestCase(
+      testCases,
+      fileName,
+      functionName,
+      newTestCase
     );
-  }, [selectedFunction, setTestCases, testCases]);
+    setTestCases(newTestCases);
+
+    // reset the form.
+    setNewTestCase(blankTestCase);
+
+    // select the most recently added input.
+    const currentLength = newTestCases[fileName]?.functionTestCases.find(
+      ({ functionName: arg }) => arg === functionName
+    )?.testCases.length;
+    setSelectedTestCaseIndex(
+      typeof currentLength === "undefined" ? 0 : currentLength - 1
+    );
+  }, [selectedFunction, setTestCases, testCases, newTestCase]);
+
   if (!selectedFunction) {
     return <p>No function selected</p>;
   }
@@ -77,7 +90,6 @@ export const InputPanel = () => {
 
   const functionTestCases = findTestCases(testCases, fileName, functionName);
   const selectedFunctionInfo = findMatchingFunction(sources, selectedFunction);
-  const selectedTestCase = functionTestCases?.testCases[selectedTestCaseIndex];
   if (!selectedFunctionInfo) {
     console.log("could not find ", selectedFunction, " in ", sources);
   }
@@ -107,15 +119,14 @@ export const InputPanel = () => {
           ))}
         </VSCodeDropdown>
       )}
+      <TestCaseEditor
+        selectedFunctionInfo={selectedFunctionInfo}
+        selectedTestCase={newTestCase}
+        onUpdateTestCase={onUpdateTestCase}
+        selectedFunction={selectedFunction}
+        selectedTestCaseIndex={selectedTestCaseIndex}
+      />
       <VSCodeButton onClick={onAddTestCase}>Add test case</VSCodeButton>
-      {!!selectedTestCase &&
-        TestCaseEditor({
-          selectedFunctionInfo,
-          selectedTestCase,
-          onUpdateTestCase,
-          selectedFunction,
-          selectedTestCaseIndex,
-        })}
     </div>
   );
 };

@@ -8,14 +8,8 @@ import { ParameterValueEditor } from "./ParameterValueEditor";
 
 interface Props {
   selectedFunctionInfo: SerializableFunctionDeclaration | undefined;
-  selectedTestCase: FunctionTestCase;
-  onUpdateTestCase: (
-    sourceFileName: string,
-    functionName: string,
-    paramName: string,
-    testCaseIndex: number,
-    value: string
-  ) => void;
+  selectedTestCase: FunctionTestCase | undefined;
+  onUpdateTestCase: (paramName: string, value: string) => void;
   selectedFunction: SelectedFunction;
   selectedTestCaseIndex: number;
 }
