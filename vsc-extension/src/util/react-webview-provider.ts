@@ -5,16 +5,18 @@ import { ImaginaryMessage } from "../../src-shared/messages";
 import { State } from "./state";
 import { TypedMap } from "./types";
 
-export function registerWebView(
+export function registerWebView<R extends {}>(
   extensionContext: vscode.ExtensionContext,
   viewName: string,
   panelName: string,
-  state: TypedMap<State>
+  state: TypedMap<State>,
+  rpcHandlers: R
 ) {
   const webviewProvider = new ReactWebViewProvider(
     extensionContext,
     panelName,
-    state
+    state,
+    rpcHandlers
   );
   extensionContext.subscriptions.push(
     vscode.window.registerWebviewViewProvider(viewName, webviewProvider)
@@ -23,13 +25,15 @@ export function registerWebView(
 }
 
 /** Generic WebviewViewProvider which wraps a react application */
-export class ReactWebViewProvider<S extends object>
-  implements vscode.WebviewViewProvider
+export class ReactWebViewProvider<
+  S extends object,
+  R extends { [handlerName: string]: () => Promise<unknown> }
+> implements vscode.WebviewViewProvider
 {
   private _onDidAttachWebview = new vscode.EventEmitter<vscode.Webview>();
   private _onDidDetatchWebview = new vscode.EventEmitter<vscode.Webview>();
   private _onDidUpdateState = new vscode.EventEmitter<{
-    provider: ReactWebViewProvider<S>;
+    provider: ReactWebViewProvider<S, R>;
     diff: Partial<S>;
   }>();
   onDidAttachWebview = this._onDidAttachWebview.event;
@@ -39,12 +43,14 @@ export class ReactWebViewProvider<S extends object>
   extensionUri: vscode.Uri;
   webviewView?: vscode.WebviewView;
   rpcProvider: RpcProvider;
+  rpcHandlers: R;
 
   localStateRef: TypedMap<S>;
   constructor(
     extensionContext: vscode.ExtensionContext,
     webviewId: string,
-    state: TypedMap<S>
+    state: TypedMap<S>,
+    rpcHandlers: R
   ) {
     this.viewId = webviewId;
     this.extensionUri = extensionContext.extensionUri;
@@ -55,6 +61,7 @@ export class ReactWebViewProvider<S extends object>
         params: [message, transfer],
       });
     });
+    this.rpcHandlers = rpcHandlers;
     this.rpcProvider.registerRpcHandler(
       "read-state",
       async (itemKey: keyof S) => {
@@ -77,6 +84,9 @@ export class ReactWebViewProvider<S extends object>
         }
       }
     );
+    Object.entries(this.rpcHandlers).forEach(([messageId, handler]) => {
+      this.rpcProvider.registerRpcHandler(messageId, handler);
+    });
   }
 
   rpc<T = void, U = void>(id: string, payload?: T, transfer?: any): Promise<U> {

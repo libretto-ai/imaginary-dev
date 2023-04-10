@@ -1,19 +1,15 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-import { callImaginaryFunction } from "@imaginary-dev/runtime";
-import { getImaginaryTsDocComments } from "@imaginary-dev/typescript-transformer";
-import { JSONSchema7 } from "json-schema";
-import ts from "typescript";
 import * as vscode from "vscode";
 import { MaybeSelectedFunction } from "../src-shared/source-info";
-import { findTestCases } from "../src-shared/testcases";
 import { ImaginaryFunctionProvider } from "./function-tree-provider";
 import { ImaginaryMessageRouter } from "./imaginary-message-router";
+import { makeRpcHandlers } from "./rpc-handlers";
 import { focusNode, getEditorSelectedFunction } from "./util/editor";
+import { ExtensionHostState } from "./util/extension-state";
 import { registerWebView } from "./util/react-webview-provider";
-import { SecretInfo, SecretsProxy } from "./util/secrets";
 import { makeSerializable } from "./util/serialize-source";
-import { findNativeFunction, removeFile, updateFile } from "./util/source";
+import { removeFile, updateFile } from "./util/source";
 import { State } from "./util/state";
 import { SourceFileMap } from "./util/ts-source";
 import { TypedMap } from "./util/types";
@@ -25,16 +21,6 @@ const initialState: State = {
   testCases: {},
   selectedTestCases: {},
 };
-interface ExtensionLocalState {
-  nativeSources: SourceFileMap;
-}
-
-const globalSecretInfo: SecretInfo[] = [
-  {
-    key: "openaiApiKey",
-    prompt: "Enter your OpenAI API Key",
-  },
-];
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -58,19 +44,22 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     state.set(key as keyof State, value);
   });
 
-  const localState: TypedMap<ExtensionLocalState> = new Map();
+  const localState: TypedMap<ExtensionHostState> = new Map();
 
+  const rpcHandlers = makeRpcHandlers(extensionContext, state, localState);
   const outputsWebviewProvider = registerWebView(
     extensionContext,
     "imaginary.currentfunctions",
     "function-panel",
-    state
+    state,
+    rpcHandlers
   );
   const inputsWebviewProvider = registerWebView(
     extensionContext,
     "imaginary.inputs",
     "input-panel",
-    state
+    state,
+    rpcHandlers
   );
   const messageRouter = new ImaginaryMessageRouter([
     outputsWebviewProvider,
@@ -168,11 +157,11 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
 }
 
 /** Broadcast all changes to sources */
-function updateSourceState(
+function updateSourceState<R extends {}>(
   nativeSources: Readonly<SourceFileMap>,
   state: TypedMap<State>,
   functionTreeProvider: ImaginaryFunctionProvider,
-  messageRouter: ImaginaryMessageRouter
+  messageRouter: ImaginaryMessageRouter<R>
 ) {
   const sources = makeSerializable(nativeSources);
 
