@@ -37,7 +37,7 @@ function useRpc(rpcProvider: RpcProvider | undefined): {
     }
     const reader: ReadItem = async (itemKey) => {
       console.log(`[webview ${!!rpcProvider}] reading key: `, itemKey);
-      const value = rpcProvider?.rpc("read-state", itemKey);
+      const value = rpcProvider.rpc("read-state", itemKey);
       if (value === undefined) {
         return new DefaultValue();
       }
@@ -47,7 +47,7 @@ function useRpc(rpcProvider: RpcProvider | undefined): {
       console.log("[webview] writing items: ", diff.keys());
       const entries = [...diff];
       const values = Object.fromEntries(entries);
-      return rpcProvider?.rpc("write-state", values);
+      return rpcProvider.rpc("write-state", values);
     };
 
     // Note there is no unregister here
