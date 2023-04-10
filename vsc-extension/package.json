@@ -12,7 +12,7 @@
   "activationEvents": [
     "onLanguage:typescript"
   ],
-  "main": "./dist/src/extension.js",
+  "main": "./dist/vsc-extension/src/extension.js",
   "contributes": {
     "commands": [],
     "viewsContainers": {
@@ -59,8 +59,7 @@
     "coverage": "jest --coverage",
     "watch": "tsc -watch -p ./",
     "test": "jest",
-    "lint": "eslint src --ext ts",
-    "test-disabled": "node ./dist/test/runTest.js"
+    "lint": "eslint src --ext ts"
   },
   "dependencies": {
     "@imaginary-dev/typescript-transformer": "*",

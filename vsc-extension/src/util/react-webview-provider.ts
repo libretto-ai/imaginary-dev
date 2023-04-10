@@ -93,7 +93,10 @@ export class ReactWebViewProvider<S extends object>
     context: vscode.WebviewViewResolveContext,
     token: vscode.CancellationToken
   ) {
-    const extensionRoot = vscode.Uri.joinPath(this.extensionUri, "dist");
+    const extensionRoot = vscode.Uri.joinPath(
+      this.extensionUri,
+      "dist/vsc-extension/src"
+    );
     this.webviewView = webviewView;
     webviewView.webview.options = {
       enableScripts: true,
