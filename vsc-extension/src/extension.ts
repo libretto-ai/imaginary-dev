@@ -2,16 +2,14 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
 import { makeSerializable } from "../src-shared/serialize-source";
-import {
-  MaybeSelectedFunction,
-  SourceFileMap,
-} from "../src-shared/source-info";
+import { MaybeSelectedFunction } from "../src-shared/source-info";
 import { ImaginaryFunctionProvider } from "./function-tree-provider";
 import { ImaginaryMessageRouter } from "./imaginary-message-router";
 import { focusNode, getEditorSelectedFunction } from "./util/editor";
 import { registerWebView } from "./util/react-webview-provider";
 import { removeFile, updateFile } from "./util/source";
 import { State } from "./util/state";
+import { SourceFileMap } from "./util/ts-source";
 import { TypedMap } from "./util/types";
 
 const initialState: State = {

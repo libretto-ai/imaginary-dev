@@ -1,8 +1,8 @@
 import * as ts from "typescript";
 import * as vscode from "vscode";
-import { SourceFileMap } from "../../src-shared/source-info";
 import { findImaginaryFunctions } from "./ast";
 import { getRelativePathToProject } from "./editor";
+import { SourceFileMap } from "./ts-source";
 
 export function removeFile(
   document: vscode.TextDocument,

@@ -1,5 +1,4 @@
 import { ServiceParameters } from "@imaginary-dev/util";
-import * as ts from "typescript";
 
 export interface FunctionTestCase {
   /** Map of parameter name => value */
@@ -32,12 +31,6 @@ export interface SourceFileTestCases {
 
 /** Map of filename => test for that filename */
 export type SourceFileTestCaseMap = Record<string, SourceFileTestCases>;
-
-export interface SourceFileInfo {
-  sourceFile: ts.SourceFile;
-  functions: ts.FunctionDeclaration[];
-}
-export type SourceFileMap = Record<string, SourceFileInfo>;
 
 /** TODO: replace with JSONSchema */
 export interface ParameterDescriptor {

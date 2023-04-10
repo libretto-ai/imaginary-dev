@@ -3,9 +3,8 @@ import {
   SerializableFunctionDeclaration,
   SerializableSourceFileInfo,
   SerializableSourceFileMap,
-  SourceFileInfo,
-  SourceFileMap,
 } from "../../src-shared/source-info";
+import { SourceFileInfo, SourceFileMap } from "./ts-source";
 
 export function makeSerializable(
   sources: SourceFileMap
