@@ -1,13 +1,19 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
+import { callImaginaryFunction } from "@imaginary-dev/runtime";
+import { getImaginaryTsDocComments } from "@imaginary-dev/typescript-transformer";
+import { JSONSchema7 } from "json-schema";
+import ts from "typescript";
 import * as vscode from "vscode";
 import { MaybeSelectedFunction } from "../src-shared/source-info";
+import { findTestCases } from "../src-shared/testcases";
 import { ImaginaryFunctionProvider } from "./function-tree-provider";
 import { ImaginaryMessageRouter } from "./imaginary-message-router";
 import { focusNode, getEditorSelectedFunction } from "./util/editor";
 import { registerWebView } from "./util/react-webview-provider";
+import { SecretInfo, SecretsProxy } from "./util/secrets";
 import { makeSerializable } from "./util/serialize-source";
-import { removeFile, updateFile } from "./util/source";
+import { findNativeFunction, removeFile, updateFile } from "./util/source";
 import { State } from "./util/state";
 import { SourceFileMap } from "./util/ts-source";
 import { TypedMap } from "./util/types";
@@ -19,9 +25,20 @@ const initialState: State = {
   testCases: {},
   selectedTestCases: {},
 };
+interface ExtensionLocalState {
+  nativeSources: SourceFileMap;
+}
+
+const globalSecretInfo: SecretInfo[] = [
+  {
+    key: "openaiApiKey",
+    prompt: "Enter your OpenAI API Key",
+  },
+];
+
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
-export function activate(extensionContext: vscode.ExtensionContext) {
+export async function activate(extensionContext: vscode.ExtensionContext) {
   const ipChannel = vscode.window.createOutputChannel(
     "Imaginary Programming Extension"
   );
@@ -41,8 +58,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
     state.set(key as keyof State, value);
   });
 
-  // Set defaults so that recoil sync's custom() does not explode
-  let nativeSources: SourceFileMap = {};
+  const localState: TypedMap<ExtensionLocalState> = new Map();
 
   const outputsWebviewProvider = registerWebView(
     extensionContext,
@@ -63,7 +79,9 @@ export function activate(extensionContext: vscode.ExtensionContext) {
   extensionContext.subscriptions.push(messageRouter);
 
   // These are all the local states in the extension.
-  const functionTreeProvider = new ImaginaryFunctionProvider(nativeSources);
+  const functionTreeProvider = new ImaginaryFunctionProvider(
+    localState.get("nativeSources")
+  );
   vscode.window.createTreeView("functions", {
     treeDataProvider: functionTreeProvider,
   });
@@ -73,9 +91,13 @@ export function activate(extensionContext: vscode.ExtensionContext) {
     vscode.workspace.onDidChangeTextDocument((e) => {
       console.info("onDidChangeTextDocument", e.document.fileName, e.reason);
 
-      nativeSources = updateFile(nativeSources, e.document);
+      const newSources = updateFile(
+        localState.get("nativeSources"),
+        e.document
+      );
+      localState.set("nativeSources", newSources);
       updateSourceState(
-        nativeSources,
+        localState.get("nativeSources"),
         state,
         functionTreeProvider,
         messageRouter
@@ -87,9 +109,10 @@ export function activate(extensionContext: vscode.ExtensionContext) {
     vscode.workspace.onDidOpenTextDocument((document) => {
       console.info("onDidOpenTextDocument", document.fileName);
 
-      nativeSources = updateFile(nativeSources, document);
+      const newSources = updateFile(localState.get("nativeSources"), document);
+      localState.set("nativeSources", newSources);
       updateSourceState(
-        nativeSources,
+        localState.get("nativeSources"),
         state,
         functionTreeProvider,
         messageRouter
@@ -100,9 +123,10 @@ export function activate(extensionContext: vscode.ExtensionContext) {
     vscode.workspace.onDidCloseTextDocument((document) => {
       console.info("onDidCloseTextDocument", document.fileName);
 
-      nativeSources = removeFile(nativeSources, document);
+      const newSources = removeFile(localState.get("nativeSources"), document);
+      localState.set("nativeSources", newSources);
       updateSourceState(
-        nativeSources,
+        localState.get("nativeSources"),
         state,
         functionTreeProvider,
         messageRouter
@@ -115,7 +139,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
       const { textEditor } = e;
       const selectedFunction = updateViewsWithSelection(
         state.get("selectedFunction"),
-        nativeSources,
+        localState.get("nativeSources"),
         textEditor
       );
       state.set("selectedFunction", selectedFunction);
@@ -123,16 +147,20 @@ export function activate(extensionContext: vscode.ExtensionContext) {
     })
   );
   {
-    nativeSources = initializeOpenEditors(nativeSources, functionTreeProvider);
+    const newSources = initializeOpenEditors(
+      localState.get("nativeSources"),
+      functionTreeProvider
+    );
+    localState.set("nativeSources", newSources);
     updateSourceState(
-      nativeSources,
+      localState.get("nativeSources"),
       state,
       functionTreeProvider,
       messageRouter
     );
     const selectedFunction = initializeSelection(
       state.get("selectedFunction"),
-      nativeSources
+      localState.get("nativeSources")
     );
     state.set("selectedFunction", selectedFunction);
     messageRouter.updateState({ selectedFunction });
