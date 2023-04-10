@@ -1,12 +1,12 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
-import { makeSerializable } from "../src-shared/serialize-source";
 import { MaybeSelectedFunction } from "../src-shared/source-info";
 import { ImaginaryFunctionProvider } from "./function-tree-provider";
 import { ImaginaryMessageRouter } from "./imaginary-message-router";
 import { focusNode, getEditorSelectedFunction } from "./util/editor";
 import { registerWebView } from "./util/react-webview-provider";
+import { makeSerializable } from "./util/serialize-source";
 import { removeFile, updateFile } from "./util/source";
 import { State } from "./util/state";
 import { SourceFileMap } from "./util/ts-source";
@@ -100,7 +100,7 @@ export function activate(extensionContext: vscode.ExtensionContext) {
     vscode.workspace.onDidCloseTextDocument((document) => {
       console.info("onDidCloseTextDocument", document.fileName);
 
-      nativeSources = removeFile(document, nativeSources);
+      nativeSources = removeFile(nativeSources, document);
       updateSourceState(
         nativeSources,
         state,
