@@ -1,4 +1,3 @@
-import { provideVSCodeDesignSystem } from "@vscode/webview-ui-toolkit";
 import {
   VSCodeButton,
   VSCodeDropdown,
@@ -11,11 +10,7 @@ import {
   FunctionTestCase,
   SerializableFunctionDeclaration,
 } from "../../src-shared/source-info";
-import {
-  addFunctionTestCase,
-  findTestCases,
-  updateSourcefileTestCase,
-} from "../../src-shared/testcases";
+import { addFunctionTestCase, findTestCases } from "../../src-shared/testcases";
 import {
   selectedFunctionState,
   selectedTestCaseIndexState,
