@@ -9,8 +9,8 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import {
   FunctionTestCase,
   FunctionTestCases,
+  findMatchingFunction,
 } from "../../src-shared/source-info";
-import { findMatchingFunction } from "../../src/util/serialized-source";
 import {
   debugState,
   selectedFunctionState,
