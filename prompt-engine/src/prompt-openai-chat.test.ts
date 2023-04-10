@@ -1,4 +1,7 @@
-import { ServiceParameters } from "@imaginary-dev/util";
+import {
+  getSafeOpenAIServiceParameters,
+  ServiceParameters,
+} from "@imaginary-dev/util";
 import { Configuration, CreateChatCompletionRequest, OpenAIApi } from "openai";
 import { Prompt } from "./prompt";
 import {
@@ -65,7 +68,7 @@ describe("runPrompt", () => {
       ],
       temperature: serviceParameters.openai?.temperature ?? DEFAULT_TEMPERATURE,
       max_tokens: serviceParameters.openai?.max_tokens ?? DEFAULT_MAX_TOKENS,
-      ...serviceParameters.openai,
+      ...getSafeOpenAIServiceParameters(serviceParameters),
     };
 
     const response = {

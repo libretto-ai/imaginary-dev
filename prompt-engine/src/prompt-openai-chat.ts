@@ -1,5 +1,6 @@
 import { ServiceParameters } from "@imaginary-dev/util";
 import { Configuration, CreateChatCompletionRequest, OpenAIApi } from "openai";
+import { getSafeOpenAIServiceParameters } from "util/dist/util/src";
 import { Prompt, replaceVariablesInPrompt } from "./prompt";
 import {
   getHttpErrorMessage,
@@ -70,7 +71,7 @@ export const runPrompt: (
     temperature: serviceParameters?.openai?.temperature ?? DEFAULT_TEMPERATURE,
     max_tokens:
       serviceParameters?.openai?.max_tokens ?? getMaxTokensForModel(model),
-    ...serviceParameters.openai,
+    ...getSafeOpenAIServiceParameters(serviceParameters),
   };
   if (process.env.PROMPTJS_LOGGING_ENABLED) {
     console.log("requesting messages: ", completionRequest.messages);

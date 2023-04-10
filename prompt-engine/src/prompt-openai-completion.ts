@@ -1,4 +1,7 @@
-import { ServiceParameters } from "@imaginary-dev/util";
+import {
+  getSafeOpenAIServiceParameters,
+  ServiceParameters,
+} from "@imaginary-dev/util";
 import { Configuration, CreateCompletionRequest, OpenAIApi } from "openai";
 import { Prompt, replaceVariablesInPrompt } from "./prompt";
 import {
@@ -53,7 +56,7 @@ const runPrompt: (
     suffix: promptParts.suffix,
     max_tokens: serviceParameters?.openai?.max_tokens ?? DEFAULT_MAX_TOKENS,
     temperature: serviceParameters?.openai?.temperature ?? DEFAULT_TEMPERATURE,
-    ...serviceParameters.openai,
+    ...getSafeOpenAIServiceParameters(serviceParameters),
   };
   if (process.env.PROMPTJS_LOGGING_ENABLED) {
     console.log("requesting prompt: ", completionRequest.prompt);

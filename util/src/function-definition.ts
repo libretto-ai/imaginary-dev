@@ -1,6 +1,11 @@
 import { JSONSchema7 } from "json-schema";
 import objectHash from "object-hash";
-import { CreateCompletionRequest, CreateChatCompletionRequest } from "openai";
+import {
+  ConfigurationParameters,
+  CreateChatCompletionRequest,
+  CreateCompletionRequest,
+} from "openai";
+import { ValueOf } from "ts-essentials";
 export interface ImaginaryFunctionDefinition {
   funcName: string;
   funcComment: string;
@@ -11,10 +16,34 @@ export interface ImaginaryFunctionDefinition {
   serviceParameters: ServiceParameters;
 }
 
+type OpenAIParameters = Partial<
+  Omit<CreateCompletionRequest & CreateChatCompletionRequest, "prompt">
+> & {
+  apiConfig?: ConfigurationParameters;
+};
+
 export interface ServiceParameters {
-  openai?: Partial<
-    Omit<CreateCompletionRequest & CreateChatCompletionRequest, "prompt">
-  >;
+  openai?: OpenAIParameters;
+}
+
+type SafeKeyOf<T> = T extends undefined ? never : keyof T;
+type OpenaiServiceParameterKey = SafeKeyOf<OpenAIParameters>;
+
+const safeServiceParameterKeys = [
+  "temperature",
+  "max_tokens",
+] satisfies OpenaiServiceParameterKey[];
+type SafeKeys = ValueOf<typeof safeServiceParameterKeys>;
+
+/** Extract only the exact keys that we should be passing to OpenAI's api calls */
+export function getSafeOpenAIServiceParameters(
+  serviceParameters: ServiceParameters
+): Pick<OpenAIParameters, SafeKeys> {
+  const { max_tokens, temperature } = serviceParameters.openai ?? {};
+  return {
+    ...(max_tokens !== undefined ? { max_tokens } : {}),
+    ...(temperature !== undefined ? { temperature } : {}),
+  };
 }
 
 export const AI_SERVICES: (keyof ServiceParameters)[] = ["openai"];
