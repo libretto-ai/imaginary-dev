@@ -79,7 +79,10 @@ describe("updateFile", () => {
     const document = {
       fileName: "file2.ts",
       languageId: "typescript",
-      getText: () => "function fn() { }",
+      getText: () => `
+      /** @imaginary */
+      function fn() { }`,
+      uri: { scheme: "file" },
     } as vscode.TextDocument;
 
     const newSources = updateFile(sources, document);
