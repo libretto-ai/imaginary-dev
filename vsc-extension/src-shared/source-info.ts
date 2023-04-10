@@ -1,5 +1,4 @@
 import { ServiceParameters } from "@imaginary-dev/util";
-import * as ts from "typescript";
 
 export interface FunctionTestCase {
   /** Map of parameter name => value */
@@ -32,12 +31,6 @@ export interface SourceFileTestCases {
 
 /** Map of filename => test for that filename */
 export type SourceFileTestCaseMap = Record<string, SourceFileTestCases>;
-
-export interface SourceFileInfo {
-  sourceFile: ts.SourceFile;
-  functions: ts.FunctionDeclaration[];
-}
-export type SourceFileMap = Record<string, SourceFileInfo>;
 
 /** TODO: replace with JSONSchema */
 export interface ParameterDescriptor {
@@ -85,3 +78,22 @@ export type SelectedFunctionTestCases = Record<string, MaybeSelectedTestCase>;
 
 /** Map of filename -> functionName -> selected test index */
 export type SelectedFileTestCases = Record<string, SelectedFunctionTestCases>;
+
+export function findMatchingFunction(
+  sources: SerializableSourceFileMap,
+  selectedFunction: MaybeSelectedFunction
+) {
+  if (!selectedFunction) {
+    return undefined;
+  }
+  const matchingSource = Object.values(sources).find(
+    (source) => source.sourceFile.fileName === selectedFunction.fileName
+  );
+  if (!matchingSource) {
+    return undefined;
+  }
+  const matchingFunction = matchingSource.functions.find(
+    (fn) => fn.name === selectedFunction.functionName
+  );
+  return matchingFunction;
+}

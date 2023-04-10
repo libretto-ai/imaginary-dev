@@ -1,6 +1,6 @@
 import ts from "typescript";
 import { makeSerializable } from "./serialize-source";
-import { SourceFileMap } from "./source-info";
+import { SourceFileMap } from "./ts-source";
 
 describe("makeSerializable", () => {
   it("should make a source file map serializable", () => {

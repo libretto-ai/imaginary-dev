@@ -1,6 +1,6 @@
 import * as ts from "typescript";
 import * as vscode from "vscode";
-import { SourceFileInfo, SourceFileMap } from "../src-shared/source-info";
+import { SourceFileInfo, SourceFileMap } from "./util/ts-source";
 
 export class ImaginaryFunctionProvider
   implements vscode.TreeDataProvider<ImaginaryTreeItem>
