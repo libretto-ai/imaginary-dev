@@ -1,5 +1,5 @@
-import { MaybeSelectedFunction } from "../../src-shared/source-info";
 import { findMatchingFunction } from "./serialized-source";
+import { MaybeSelectedFunction } from "./source-info";
 
 describe("findMatchingFunction", () => {
   it("should return undefined if no selected function is provided", () => {

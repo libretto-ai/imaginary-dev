@@ -1,7 +1,7 @@
 import {
   MaybeSelectedFunction,
   SerializableSourceFileMap,
-} from "../../src-shared/source-info";
+} from "./source-info";
 
 export function findMatchingFunction(
   sources: SerializableSourceFileMap,

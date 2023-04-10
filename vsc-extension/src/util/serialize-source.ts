@@ -5,7 +5,7 @@ import {
   SerializableSourceFileMap,
   SourceFileInfo,
   SourceFileMap,
-} from "./source-info";
+} from "../../src-shared/source-info";
 
 export function makeSerializable(
   sources: SourceFileMap
