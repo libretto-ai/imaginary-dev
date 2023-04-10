@@ -1,10 +1,8 @@
 import { join, relative } from "path";
 import ts from "typescript";
-import * as vscode from "vscode";
-import {
-  MaybeSelectedFunction,
-  SourceFileMap,
-} from "../../src-shared/source-info";
+import vscode from "vscode";
+import { MaybeSelectedFunction } from "../../src-shared/source-info";
+import { SourceFileMap } from "./ts-source";
 
 export function getRelativePathToProject(absPath: string) {
   const projectPath = vscode.workspace.workspaceFolders?.[0].uri.fsPath;

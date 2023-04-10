@@ -7,6 +7,7 @@ import {
 import React, { useCallback, useState } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import {
+  findMatchingFunction,
   FunctionTestCase,
   SerializableFunctionDeclaration,
 } from "../../src-shared/source-info";
@@ -15,7 +16,6 @@ import {
   findTestCases,
   updateSourcefileTestCase,
 } from "../../src-shared/testcases";
-import { findMatchingFunction } from "../../src/util/serialized-source";
 import {
   selectedFunctionState,
   selectedTestCaseIndexState,

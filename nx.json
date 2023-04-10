@@ -15,8 +15,13 @@
       }
     }
   },
+  "namedInputs": {
+    "default": ["{projectRoot}/**/*", "sharedGlobals"],
+    "sharedGlobals": ["{workspaceRoot}/tsconfig.base.json"]
+  },
   "targetDefaults": {
     "build": {
+      "inputs": ["default", "^default"],
       "dependsOn": ["^build"]
     },
     "build:example": {

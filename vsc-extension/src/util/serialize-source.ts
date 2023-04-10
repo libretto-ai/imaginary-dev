@@ -1,12 +1,13 @@
-import * as ts from "typescript";
+import ts from "typescript";
 import {
   SerializableFunctionDeclaration,
   SerializableSourceFileInfo,
   SerializableSourceFileMap,
-  SourceFileInfo,
-  SourceFileMap,
-} from "./source-info";
+} from "../../src-shared/source-info";
+import { SourceFileInfo, SourceFileMap } from "./ts-source";
 
+/** Converts from native TS types to something that can be sent through a
+ * message, i.e. serialized as JSON */
 export function makeSerializable(
   sources: SourceFileMap
 ): SerializableSourceFileMap {
