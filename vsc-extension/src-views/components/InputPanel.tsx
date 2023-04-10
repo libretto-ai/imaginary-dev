@@ -5,8 +5,8 @@ import {
 } from "@vscode/webview-ui-toolkit/react";
 import React, { useCallback } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
-import { findMatchingFunction } from "../../src-shared/serialized-source";
 import {
+  findMatchingFunction,
   FunctionTestCase,
   SerializableFunctionDeclaration,
 } from "../../src-shared/source-info";
