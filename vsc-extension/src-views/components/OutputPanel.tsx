@@ -45,7 +45,7 @@ function TestCasesList({
         <div
           key={index}
           style={{
-            marginBottom: 10,
+            margin: 10,
             fontWeight: "bold",
             fontSize: "15px",
             cursor: "pointer",
@@ -105,12 +105,6 @@ export function OutputPanel() {
 
   return (
     <>
-      {!!fn && (
-        <>
-          <p>Function:</p>
-          <code style={{ whiteSpace: "nowrap" }}>{fn.declaration}</code>
-        </>
-      )}
       <div style={{ display: "flex", flexDirection: "row" }}>
         <TestCasesList
           testCases={testCasesForSelectedFunction}
@@ -121,7 +115,7 @@ export function OutputPanel() {
           style={{
             display: "grid",
             alignContent: "start",
-            gridTemplateColumns: "1fr 1fr 1fr 1fr",
+            gridTemplateColumns: "auto 1fr 1fr 1fr",
             margin: "12px",
             minWidth: "500px",
             width: "100%",
