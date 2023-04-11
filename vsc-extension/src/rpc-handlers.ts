@@ -65,17 +65,17 @@ export function makeRpcHandlers(
         throw new Error(message);
       }
       const { fn, sourceFile } = functionInfo;
-      console.log("getting comments from ", fn, sourceFile);
+      console.info("getting comments from ", fn, sourceFile);
       const funcComment = getImaginaryTsDocComments(fn, sourceFile)[0];
 
-      console.log("getting api key");
+      console.info("getting api key");
       const apiKey = await secretsProxy.getSecret("openaiApiKey");
 
-      console.log("getting params from ", fn);
+      console.info("getting params from ", fn);
       const parameterTypes = hackyGetParamTypes(fn, sourceFile);
 
       const returnSchema: JSONSchema7 = getHackyType(fn.type, sourceFile);
-      console.log("translating return type to ", returnSchema);
+      console.info("translating return type to ", returnSchema);
       const paramValues = Object.fromEntries(
         parameterTypes.map(({ name }) => [name, testCase.inputs[name]])
       );
@@ -127,14 +127,6 @@ function getHackyType(
   if (returnTypeName === "number" || returnTypeName === "number") {
     return { type: returnTypeName };
   }
-  console.log(
-    "parsing complex type ",
-    promiseResult,
-    " => ",
-    typeName,
-    " => ",
-    returnTypeName
-  );
   // DOES NOT WORK: no type
   if (returnTypeName.endsWith("]")) {
     return { type: "array" };
@@ -156,8 +148,6 @@ function hackyGetParamTypes(
   const params = fn.parameters
     .filter((param) => {
       if (!ts.isIdentifier(param.name)) {
-        console.error("failure 3", param);
-
         throw new Error(`Parameter ${param} must be a named parameter`);
       }
       return true;

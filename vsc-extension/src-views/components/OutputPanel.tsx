@@ -117,8 +117,9 @@ export function OutputPanel() {
     )?.testCases ?? [];
 
   return (
-    <>
-      <div style={{ display: "flex", flexDirection: "row" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+      {!!fn && <code style={{ whiteSpace: "nowrap" }}>{fn.declaration}</code>}
+      <div style={{ display: "flex", flexDirection: "row", gap: "1rem" }}>
         <TestCasesList
           testCases={testCasesForSelectedFunction}
           selectedFunction={selectedFunction}
@@ -222,7 +223,7 @@ export function OutputPanel() {
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
 

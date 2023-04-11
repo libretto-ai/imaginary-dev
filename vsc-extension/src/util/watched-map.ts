@@ -15,7 +15,6 @@ export function createWatchedMap<T extends object>(
       if (p === "set") {
         const wrapper: TypedMap<T>["set"] = (k, v) => {
           const realSet = Reflect.get(target, p, receiver).bind(target);
-          console.log("setting ", k, " = ", v);
           realSet(k, v);
           e.fire({ [k]: v } as T);
           // make sure we're returning the wrapper
