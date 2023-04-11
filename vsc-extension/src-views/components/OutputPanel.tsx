@@ -77,7 +77,9 @@ export function OutputPanel() {
   const [debug, setDebug] = useRecoilState(debugState);
 
   const onUpdateTestCase = (paramName: string, value: string) => {
-    if (!selectedFunction) return;
+    if (!selectedFunction) {
+      return;
+    }
 
     const { fileName, functionName } = selectedFunction;
 

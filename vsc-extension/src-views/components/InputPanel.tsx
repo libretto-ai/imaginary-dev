@@ -108,6 +108,7 @@ export const InputPanelForFunction = () => {
     );
   }, [
     selectedFunction,
+    sources,
     testCases,
     newTestCase,
     setTestCases,
