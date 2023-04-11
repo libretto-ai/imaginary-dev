@@ -28,7 +28,20 @@ const blankTestCase = {
   },
 };
 
+// wrapper designed to reset the InputPanel state when the selected function changes. see
+// https://react.dev/learn/you-might-not-need-an-effect#resetting-all-state-when-a-prop-changes
+// to understand why this is necessary.
 export const InputPanel = () => {
+  const selectedFunction = useRecoilValue(selectedFunctionState);
+
+  const key = selectedFunction
+    ? selectedFunction.fileName + "/" + selectedFunction.functionName
+    : "";
+
+  return <InputPanelForFunction key={key} />;
+};
+
+export const InputPanelForFunction = () => {
   const selectedFunction = useRecoilValue(selectedFunctionState);
   const sources = useRecoilValue(sourcesState);
   const [testCases, setTestCases] = useRecoilState(testCasesState);
@@ -63,18 +76,23 @@ export const InputPanel = () => {
       selectedFunction
     );
 
-    selectedFunctionInfo?.parameters.forEach((param) => {
-      if (!newTestCase.inputs.hasOwnProperty(param.name)) {
-        newTestCase.inputs[param.name] = null;
-      }
-    });
+    const inputsWithFilledInUndefinedValues = Object.assign(
+      {},
+      Object.fromEntries(
+        selectedFunctionInfo?.parameters.map(({ name }) => [name, null]) || []
+      ),
+      newTestCase.inputs
+    );
 
+    const newTestCaseWithFilledInUndefineds = Object.assign({}, newTestCase, {
+      inputs: inputsWithFilledInUndefinedValues,
+    });
     // add the form's test case into the object model.
     const newTestCases = addFunctionTestCase(
       testCases,
       fileName,
       functionName,
-      newTestCase
+      newTestCaseWithFilledInUndefineds
     );
     setTestCases(newTestCases);
 
