@@ -59,7 +59,7 @@
     "coverage": "jest --coverage",
     "watch": "tsc -watch -p ./",
     "test": "jest",
-    "lint": "eslint src --ext ts"
+    "lint": "eslint src src-* --ext ts"
   },
   "dependencies": {
     "@imaginary-dev/runtime": "*",
