@@ -106,7 +106,13 @@ export const InputPanelForFunction = () => {
     setSelectedTestCaseIndex(
       typeof currentLength === "undefined" ? 0 : currentLength - 1
     );
-  }, [selectedFunction, setTestCases, testCases, newTestCase]);
+  }, [
+    selectedFunction,
+    testCases,
+    newTestCase,
+    setTestCases,
+    setSelectedTestCaseIndex,
+  ]);
 
   if (!selectedFunction) {
     return <p>No function selected</p>;

@@ -1,23 +1,18 @@
 import {
   VSCodeButton,
-  VSCodeDataGrid,
   VSCodeDataGridCell,
-  VSCodeDataGridRow,
   VSCodeTextArea,
 } from "@vscode/webview-ui-toolkit/react";
 import React, {
   FC,
   FocusEventHandler,
   PropsWithChildren,
-  useEffect,
-  useRef,
   useState,
 } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import {
-  FunctionTestCase,
-  FunctionTestCases,
   findMatchingFunction,
+  FunctionTestCase,
 } from "../../src-shared/source-info";
 import { updateSourcefileTestCase } from "../../src-shared/testcases";
 import {
