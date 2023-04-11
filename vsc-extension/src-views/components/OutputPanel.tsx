@@ -212,7 +212,7 @@ export function OutputPanel() {
           appearance="icon"
           onClick={() => setDebug((prevDebug) => !prevDebug)}
         >
-          <span>🐛</span>
+          <span className="codicon codicon-debug" />
         </VSCodeButton>
         {debug && (
           <div>
