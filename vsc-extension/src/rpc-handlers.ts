@@ -74,8 +74,8 @@ export function makeRpcHandlers(
       console.log("getting params from ", fn);
       const parameterTypes = hackyGetParamTypes(fn, sourceFile);
 
-      // super hack while developing
-      const returnSchema: JSONSchema7 = { type: "string" };
+      const returnSchema: JSONSchema7 = getHackyType(fn.type, sourceFile);
+      console.log("translating return type to ", returnSchema);
       const paramValues = Object.fromEntries(
         parameterTypes.map(({ name }) => [name, testCase.inputs[name]])
       );
@@ -107,21 +107,64 @@ export function makeRpcHandlers(
     },
   };
 }
+
+/** This is a terrible hack until we have a proper TS compiler instance ready */
+function getHackyType(
+  type: ts.TypeNode | undefined,
+  sourceFile: ts.SourceFile
+): JSONSchema7 {
+  const printer = ts.createPrinter({});
+  if (!type) {
+    return { type: "object" };
+  }
+  const promiseResult = printer.printNode(
+    ts.EmitHint.Unspecified,
+    type,
+    sourceFile
+  );
+  const typeName = /Promise<(string|number|.*)>/ms.exec(promiseResult);
+  const returnTypeName = typeName ? typeName[1] : "object";
+  if (returnTypeName === "number" || returnTypeName === "number") {
+    return { type: returnTypeName };
+  }
+  console.log(
+    "parsing complex type ",
+    promiseResult,
+    " => ",
+    typeName,
+    " => ",
+    returnTypeName
+  );
+  // DOES NOT WORK: no type
+  if (returnTypeName.endsWith("]")) {
+    return { type: "array" };
+  }
+  if (returnTypeName.endsWith("}")) {
+    return { type: "object" };
+  }
+  const returnSchema: JSONSchema7 = {
+    type: returnTypeName as any,
+  };
+  return returnSchema;
+}
+
 /** This just gets all the types as `any`, since we do not have a ts.TypeChecker available */
 function hackyGetParamTypes(
   fn: ts.FunctionDeclaration,
   sourceFile: ts.SourceFile
 ) {
   const params = fn.parameters
-    .map((param) => param.name)
-    .filter((param): param is ts.Identifier => {
-      if (!ts.isIdentifier(param)) {
+    .filter((param) => {
+      if (!ts.isIdentifier(param.name)) {
         console.error("failure 3", param);
 
         throw new Error(`Parameter ${param} must be a named parameter`);
       }
       return true;
     })
-    .map((paramName) => ({ name: paramName.getText(sourceFile) }));
+    .map((param) => ({
+      name: param.name.getText(sourceFile),
+      type: getHackyType(param.type, sourceFile),
+    }));
   return params;
 }

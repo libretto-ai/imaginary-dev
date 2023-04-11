@@ -4,6 +4,7 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import {
   findMatchingFunction,
   FunctionTestCase,
+  MaybeSelectedFunction,
 } from "../../src-shared/source-info";
 import {
   findTestCases,
@@ -17,27 +18,43 @@ import {
   sourcesState,
   testCasesState,
 } from "../shared/state";
+import { RunButton } from "./RunButton";
 
 // TestCasesList component
 function TestCasesList({
   testCases,
   selectedIndex,
+  selectedFunction,
   onSelect,
 }: {
   testCases: FunctionTestCase[];
+  selectedFunction: MaybeSelectedFunction;
   selectedIndex: number | null;
   onSelect: (selectedIndex: number) => void;
 }) {
+  if (!selectedFunction) {
+    return <div />;
+  }
   return (
-    <div className="input-scenarios-list" style={{ minWidth: "120px" }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        minWidth: "120px",
+        gap: 10,
+      }}
+    >
       {testCases.map((testCase, index) => (
         <div
           key={index}
           style={{
-            margin: 10,
             fontWeight: "bold",
             fontSize: "15px",
             cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "1rem",
             backgroundColor:
               index === selectedIndex
                 ? "var(--list-active-selection-background)"
@@ -49,9 +66,12 @@ function TestCasesList({
             padding: "5px",
             borderRadius: "5px",
           }}
-          onClick={() => onSelect(index)}
         >
-          {testCase.name}
+          <span onClick={() => onSelect(index)}>{testCase.name}</span>
+          <RunButton
+            selectedFunction={selectedFunction}
+            testCaseIndex={index}
+          />
         </div>
       ))}
     </div>
@@ -101,6 +121,7 @@ export function OutputPanel() {
       <div style={{ display: "flex", flexDirection: "row" }}>
         <TestCasesList
           testCases={testCasesForSelectedFunction}
+          selectedFunction={selectedFunction}
           selectedIndex={testIndex}
           onSelect={setTestIndex}
         />
