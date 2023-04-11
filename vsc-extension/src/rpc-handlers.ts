@@ -44,12 +44,11 @@ export function makeRpcHandlers(
         functionName
       );
       if (!testCases || testCaseIndex >= testCases.testCases.length) {
-        console.error("failure 1", testCases, " from ", fileName, functionName);
-        throw new Error(
-          `Trying to run test case #${testCaseIndex} with ${
-            testCases?.testCases.length ?? 0
-          } test cases`
-        );
+        const message = `Trying to run test case #${testCaseIndex} with ${
+          testCases?.testCases.length ?? 0
+        } test cases`;
+        console.error(message);
+        throw new Error(message);
       }
       const testCase = testCases.testCases[testCaseIndex];
       const functionInfo = findNativeFunction(
@@ -58,13 +57,9 @@ export function makeRpcHandlers(
         functionName
       );
       if (!functionInfo) {
-        console.error(
-          "failure 2",
-          `Unable to find function declaration for ${functionName} in ${fileName}`
-        );
-        throw new Error(
-          `Unable to find function declaration for ${functionName} in ${fileName}`
-        );
+        const message = `Unable to find function declaration for ${functionName} in ${fileName}`;
+        console.error(message);
+        throw new Error(message);
       }
       const { fn, sourceFile } = functionInfo;
       console.log("getting comments from ", fn, sourceFile);
@@ -81,7 +76,6 @@ export function makeRpcHandlers(
       const paramValues = Object.fromEntries(
         parameterTypes.map(({ name }) => [name, testCase.inputs[name]])
       );
-      console.log("about to run...");
       try {
         const result = await callImaginaryFunction(
           funcComment,
@@ -94,7 +88,7 @@ export function makeRpcHandlers(
         console.log("got result: ", typeof result, ": ", result);
         return result;
       } catch (ex) {
-        console.error("Got error: ", ex);
+        console.error(ex);
         throw ex;
       }
     },
