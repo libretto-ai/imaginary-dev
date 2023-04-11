@@ -178,8 +178,9 @@ export function OutputPanel() {
                           gridColumn: "4 / 5",
                         }}
                       >
-                        {/* {testCasesForSelectedFunction[testIndex].output.current} */}
-                        OUTPUT (to be done)
+                        {JSON.stringify(
+                          testCasesForSelectedFunction[testIndex].output.current
+                        )}
                       </div>
                     </>
                   )}
