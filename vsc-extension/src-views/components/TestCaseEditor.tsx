@@ -5,7 +5,6 @@ import {
   SerializableFunctionDeclaration,
 } from "../../src-shared/source-info";
 import { ParameterValueEditor } from "./ParameterValueEditor";
-import { RunButton } from "./RunButton";
 
 interface Props {
   selectedFunctionInfo: SerializableFunctionDeclaration | undefined;
@@ -35,10 +34,6 @@ export const TestCaseEditor: FC<Props> = ({
         />
       ))}
       <TemperatureEditor />
-      <RunButton
-        selectedFunction={selectedFunction}
-        testCaseIndex={selectedTestCaseIndex}
-      />
     </div>
   );
 };
