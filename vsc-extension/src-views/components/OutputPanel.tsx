@@ -1,14 +1,5 @@
-import {
-  VSCodeButton,
-  VSCodeDataGridCell,
-  VSCodeTextArea,
-} from "@vscode/webview-ui-toolkit/react";
-import React, {
-  FC,
-  FocusEventHandler,
-  PropsWithChildren,
-  useState,
-} from "react";
+import { VSCodeButton, VSCodeTextArea } from "@vscode/webview-ui-toolkit/react";
+import React, { FC } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import {
   findMatchingFunction,
@@ -137,6 +128,7 @@ export function OutputPanel() {
             Previous Outputs
           </div>
           <div style={{ fontSize: 16, fontWeight: "bolder" }}>Output</div>
+
           {!!testCasesForSelectedFunction[testIndex] &&
             Object.entries(testCasesForSelectedFunction[testIndex].inputs).map(
               ([paramName, paramValue], index) => (
@@ -236,41 +228,5 @@ const ParamEditor: FC<{ value: string; onChange: (arg0: string) => void }> = ({
       value={value}
       onChange={(e: any) => onChange(e.target.value)}
     />
-  );
-};
-
-const VSCodeDataGridEditorCell: FC<PropsWithChildren<{}>> = ({ children }) => {
-  const [isFocused, setIsFocused] = useState<boolean>(false);
-  const [value, setValue] = useState<string>(children as string);
-
-  const onFocus: FocusEventHandler<HTMLDivElement> = (
-    e: React.FocusEvent<HTMLDivElement, Element>
-  ) => {
-    console.log("onFocus");
-    setIsFocused(true);
-  };
-
-  const onBlur: FocusEventHandler<HTMLDivElement> = (
-    e: React.FocusEvent<HTMLDivElement, Element>
-  ) => {
-    console.log("onBlur");
-    setIsFocused(false);
-  };
-
-  return (
-    <VSCodeDataGridCell gridColumn="2" onFocus={onFocus} onBlur={onBlur}>
-      {isFocused ? (
-        <VSCodeTextArea
-          style={{ flex: 1, width: "100%" }}
-          value={children as string}
-          onChange={(e: any) => {
-            console.log(e);
-            setValue(e.target.value);
-          }}
-        />
-      ) : (
-        children
-      )}
-    </VSCodeDataGridCell>
   );
 };
