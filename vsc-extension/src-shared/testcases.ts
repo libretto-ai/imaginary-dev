@@ -58,11 +58,15 @@ function addTestCaseToFunction(
   }
   return prevFunctionTestCase;
 }
+
 export function findTestCases(
   testCases: SourceFileTestCaseMap,
-  fileName: string,
-  functionNameTarget: string
-) {
+  fileName?: string,
+  functionNameTarget?: string
+): FunctionTestCases | undefined {
+  if (!fileName || !functionNameTarget) {
+    return;
+  }
   return testCases[fileName]?.functionTestCases.find(
     ({ functionName }) => functionName === functionNameTarget
   );
