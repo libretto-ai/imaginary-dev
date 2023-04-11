@@ -16,7 +16,7 @@ import {
 } from "../../src-shared/source-info";
 import {
   findTestCases,
-  updateSourcefileTestCase,
+  updateSourcefileTestCaseInput,
 } from "../../src-shared/testcases";
 import {
   debugState,
@@ -87,7 +87,7 @@ export function OutputPanel() {
     const { fileName, functionName } = selectedFunction;
 
     setTestCases((prevFileTestCases) => {
-      return updateSourcefileTestCase(
+      return updateSourcefileTestCaseInput(
         prevFileTestCases,
         fileName,
         functionName,
