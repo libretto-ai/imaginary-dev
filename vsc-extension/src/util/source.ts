@@ -54,3 +54,21 @@ export function updateFile(
     },
   };
 }
+
+export function findNativeFunction(
+  sources: Readonly<SourceFileMap>,
+  fileName: string,
+  functionName: string
+) {
+  const functionSource = sources[fileName];
+  if (!functionSource) {
+    return;
+  }
+  const fn = functionSource.functions.find(
+    (fnDecl) => fnDecl.name?.getText(functionSource.sourceFile) === functionName
+  );
+  if (!fn) {
+    return;
+  }
+  return { fn, sourceFile: functionSource.sourceFile };
+}

@@ -1,4 +1,7 @@
-import { ServiceParameters } from "@imaginary-dev/util";
+import {
+  getSafeOpenAIServiceParameters,
+  ServiceParameters,
+} from "@imaginary-dev/util";
 import { Configuration, CreateCompletionRequest, OpenAIApi } from "openai";
 import { Prompt, replaceVariablesInPrompt } from "./prompt";
 import {
@@ -25,17 +28,19 @@ const runPrompt: (
   parameters,
   serviceParameters
 ) => {
-  if (!process.env.OPENAI_API_KEY) {
+  const apiKey =
+    serviceParameters.openai?.apiConfig?.apiKey ?? process.env.OPENAI_API_KEY;
+  if (!apiKey) {
     throw new Error(
       "Missing OPENAI_API_KEY environment variable. See https://www.imaginary.dev/docs/installing-with-babel#adding-your-open-ai-api-key for details."
     );
   }
   const configuration = new Configuration({
-    apiKey: process.env.OPENAI_API_KEY,
+    apiKey,
   });
-  if (process.env.OPENAI_API_KEY) {
+  if (apiKey) {
     configuration["headers"] = {
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      Authorization: `Bearer ${apiKey}`,
     };
   }
 
@@ -53,7 +58,7 @@ const runPrompt: (
     suffix: promptParts.suffix,
     max_tokens: serviceParameters?.openai?.max_tokens ?? DEFAULT_MAX_TOKENS,
     temperature: serviceParameters?.openai?.temperature ?? DEFAULT_TEMPERATURE,
-    ...serviceParameters.openai,
+    ...getSafeOpenAIServiceParameters(serviceParameters),
   };
   if (process.env.PROMPTJS_LOGGING_ENABLED) {
     console.log("requesting prompt: ", completionRequest.prompt);
