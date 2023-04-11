@@ -57,6 +57,18 @@ export const InputPanel = () => {
     }
     const { fileName, functionName } = selectedFunction;
 
+    // add attributes with null values for ones that weren't added
+    const selectedFunctionInfo = findMatchingFunction(
+      sources,
+      selectedFunction
+    );
+
+    selectedFunctionInfo?.parameters.forEach((param) => {
+      if (!newTestCase.inputs.hasOwnProperty(param.name)) {
+        newTestCase.inputs[param.name] = null;
+      }
+    });
+
     // add the form's test case into the object model.
     const newTestCases = addFunctionTestCase(
       testCases,
