@@ -30,6 +30,7 @@ const extensionConfig = {
     extensions: [".ts", ".tsx", ".js"],
   },
   stats: "minimal",
+
   optimization: {
     splitChunks: {
       cacheGroups: {
@@ -50,6 +51,13 @@ const extensionConfig = {
               configFile: "tsconfig.react.json",
             },
           },
+        ],
+      },
+      {
+        test: /\.css$/i,
+        use: [
+          "style-loader",
+          { loader: "css-loader", options: { sourceMap: true } },
         ],
       },
     ],
