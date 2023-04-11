@@ -46,15 +46,18 @@ export class ReactWebViewProvider<
   rpcHandlers: R;
 
   localStateRef: TypedMap<S>;
+  stylesheetPaths: string[];
   constructor(
     extensionContext: vscode.ExtensionContext,
     webviewId: string,
     state: TypedMap<S>,
-    rpcHandlers: R
+    rpcHandlers: R,
+    stylesheetPaths?: string[]
   ) {
     this.viewId = webviewId;
     this.extensionUri = extensionContext.extensionUri;
     this.localStateRef = state;
+    this.stylesheetPaths = stylesheetPaths ?? [];
     this.rpcProvider = new RpcProvider((message, transfer) => {
       this.webviewView?.webview.postMessage({
         id: "rpc",
@@ -130,6 +133,14 @@ export class ReactWebViewProvider<
               .with({ scheme: "vscode-resource" })
               .toString()}/"
           />
+          ${this.stylesheetPaths
+            .map((stylePath) => {
+              const uri = webviewView.webview.asWebviewUri(
+                vscode.Uri.joinPath(extensionRoot, stylePath)
+              );
+              return uri;
+            })
+            .join("\n")}
         </head>
         <body>
           <main id="root"></main>
