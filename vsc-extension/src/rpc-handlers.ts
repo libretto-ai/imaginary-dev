@@ -3,7 +3,10 @@ import { getImaginaryTsDocComments } from "@imaginary-dev/typescript-transformer
 import { JSONSchema7 } from "json-schema";
 import ts from "typescript";
 import * as vscode from "vscode";
-import { findTestCases } from "../src-shared/testcases";
+import {
+  findTestCases,
+  updateSourceFileTestCaseOutput,
+} from "../src-shared/testcases";
 import { ExtensionHostState } from "./util/extension-state";
 import { SecretInfo, SecretsProxy } from "./util/secrets";
 import { findNativeFunction } from "./util/source";
@@ -86,6 +89,16 @@ export function makeRpcHandlers(
           { openai: { apiConfig: { apiKey } } }
         );
         console.log("got result: ", typeof result, ": ", result);
+        state.set(
+          "testCases",
+          updateSourceFileTestCaseOutput(
+            state.get("testCases"),
+            fileName,
+            functionName,
+            testCaseIndex,
+            result
+          )
+        );
         return result;
       } catch (ex) {
         console.error(ex);
