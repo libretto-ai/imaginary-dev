@@ -1,14 +1,14 @@
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import React, { FC, useCallback } from "react";
-import { SelectedFunction } from "../../src-shared/source-info";
+import { MaybeSelectedFunction } from "../../src-shared/source-info";
 import { useExtensionState } from "./ExtensionState";
 
 export const RunButton: FC<{
-  selectedFunction: SelectedFunction;
+  selectedFunction: MaybeSelectedFunction;
   testCaseIndex: number;
 }> = ({ selectedFunction, testCaseIndex }) => {
   const { rpcProvider } = useExtensionState();
-  const { fileName, functionName } = selectedFunction;
+  const { fileName, functionName } = selectedFunction ?? {};
 
   const onRun = useCallback(async () => {
     try {
@@ -25,5 +25,13 @@ export const RunButton: FC<{
   if (!rpcProvider) {
     return null;
   }
-  return <VSCodeButton onClick={onRun}>Run</VSCodeButton>;
+  return (
+    <VSCodeButton
+      onClick={onRun}
+      disabled={!selectedFunction}
+      appearance="icon"
+    >
+      <span className="codicon codicon-play" />
+    </VSCodeButton>
+  );
 };
