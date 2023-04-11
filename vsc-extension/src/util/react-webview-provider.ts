@@ -43,7 +43,6 @@ export class ReactWebViewProvider<
   extensionUri: vscode.Uri;
   webviewView?: vscode.WebviewView;
   rpcProvider: RpcProvider;
-  rpcHandlers: R;
 
   localStateRef: TypedMap<S>;
   constructor(
@@ -61,7 +60,6 @@ export class ReactWebViewProvider<
         params: [message, transfer],
       });
     });
-    this.rpcHandlers = rpcHandlers;
     this.rpcProvider.registerRpcHandler(
       "read-state",
       async (itemKey: keyof S) => {
@@ -84,7 +82,7 @@ export class ReactWebViewProvider<
         }
       }
     );
-    Object.entries(this.rpcHandlers).forEach(([messageId, handler]) => {
+    Object.entries(rpcHandlers).forEach(([messageId, handler]) => {
       this.rpcProvider.registerRpcHandler(messageId, handler);
     });
   }
