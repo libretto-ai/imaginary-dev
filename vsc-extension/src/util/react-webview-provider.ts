@@ -117,13 +117,14 @@ export class ReactWebViewProvider<
     const jsSrc = webviewView.webview.asWebviewUri(
       vscode.Uri.joinPath(extensionRoot, `./views/${this.viewId}.js`)
     );
+    const webview = this.webviewView.webview;
     const webViewHtml = html`
       <html lang="en">
         <head>
           <title>React Webview Provider: ${this.viewId}</title>
           <meta
             http-equiv="Content-Security-Policy"
-            content="default-src 'none'; img-src vscode-resource: https:; script-src 'nonce-${nonce}';style-src vscode-resource: 'unsafe-inline' http: https: data:;"
+            content="default-src 'none'; img-src vscode-resource: https:; script-src 'nonce-${nonce}';style-src vscode-resource: 'unsafe-inline' http: https: data:;font-src ${webview.cspSource};"
           />
           <base
             href="${extensionRoot
