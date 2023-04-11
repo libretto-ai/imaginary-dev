@@ -14,7 +14,10 @@ import {
   findMatchingFunction,
   FunctionTestCase,
 } from "../../src-shared/source-info";
-import { updateSourcefileTestCase } from "../../src-shared/testcases";
+import {
+  findTestCases,
+  updateSourcefileTestCase,
+} from "../../src-shared/testcases";
 import {
   debugState,
   selectedFunctionState,
@@ -95,10 +98,12 @@ export function OutputPanel() {
     });
   };
 
-  const testCasesForSelectedFunction = Object.values(testCases)
-    .flatMap((cases) => cases.functionTestCases)
-    .filter((cases) => cases.functionName === selectedFunction?.functionName)
-    .flatMap((cases) => cases.testCases);
+  const testCasesForSelectedFunction =
+    findTestCases(
+      testCases,
+      selectedFunction?.fileName,
+      selectedFunction?.functionName
+    )?.testCases ?? [];
 
   return (
     <>
@@ -107,7 +112,7 @@ export function OutputPanel() {
           testCases={testCasesForSelectedFunction}
           selectedIndex={testIndex}
           onSelect={setTestIndex}
-        />{" "}
+        />
         <div
           style={{
             display: "grid",
