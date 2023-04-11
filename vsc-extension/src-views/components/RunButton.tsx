@@ -1,5 +1,5 @@
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
-import React, { FC, useCallback } from "react";
+import React, { FC, useCallback, useState } from "react";
 import { MaybeSelectedFunction } from "../../src-shared/source-info";
 import { useExtensionState } from "./ExtensionState";
 
@@ -9,9 +9,11 @@ export const RunButton: FC<{
 }> = ({ selectedFunction, testCaseIndex }) => {
   const { rpcProvider } = useExtensionState();
   const { fileName, functionName } = selectedFunction ?? {};
+  const [loading, setLoading] = useState(false);
 
   const onRun = useCallback(async () => {
     try {
+      setLoading(true);
       await rpcProvider?.rpc("runTestCase", {
         fileName,
         functionName,
@@ -19,19 +21,26 @@ export const RunButton: FC<{
       });
     } catch (ex) {
       console.error(`Failure to run: ${ex}`, ex);
+    } finally {
+      setLoading(false);
     }
   }, [fileName, functionName, rpcProvider, testCaseIndex]);
 
   if (!rpcProvider) {
     return null;
   }
+
+  const iconClass = loading
+    ? "codicon-loading codicon-modifier-spin"
+    : "codicon-play";
+
   return (
     <VSCodeButton
       onClick={onRun}
       disabled={!selectedFunction}
       appearance="icon"
     >
-      <span className="codicon codicon-play" />
+      <span className={`codicon ${iconClass}`} />
     </VSCodeButton>
   );
 };
