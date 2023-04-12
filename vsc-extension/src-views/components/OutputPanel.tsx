@@ -178,8 +178,9 @@ export function OutputPanel() {
                           gridColumn: "3 / 4",
                         }}
                       >
-                        {/* {testCasesForSelectedFunction[testIndex].output.current} */}
-                        PREVIOUS OUTPUT (to be done)
+                        {formatOutput(
+                          testCasesForSelectedFunction[testIndex].output.current
+                        )}
                       </div>
                       <div
                         style={{
@@ -192,9 +193,12 @@ export function OutputPanel() {
                           gridColumn: "4 / 5",
                         }}
                       >
-                        {JSON.stringify(
-                          testCasesForSelectedFunction[testIndex].output.current
-                        )}
+                        <code style={{ whiteSpace: "pre" }}>
+                          {formatOutput(
+                            testCasesForSelectedFunction[testIndex].output
+                              .current
+                          )}
+                        </code>
                       </div>
                     </>
                   )}
@@ -252,3 +256,15 @@ const ParamEditor: FC<{ value: string; onChange: (arg0: string) => void }> = ({
     />
   );
 };
+function formatOutput(value: any) {
+  if (typeof value === "string") {
+    return value;
+  }
+  if (typeof value === "number") {
+    return value.toLocaleString();
+  }
+  if (value === null || value === undefined) {
+    return "-";
+  }
+  return JSON.stringify(value, null, 2);
+}

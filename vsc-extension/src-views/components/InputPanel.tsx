@@ -23,8 +23,8 @@ const blankTestCase = {
   name: "New test",
   inputs: {},
   output: {
-    prev: {},
-    current: {},
+    prev: null,
+    current: null,
   },
 };
 
