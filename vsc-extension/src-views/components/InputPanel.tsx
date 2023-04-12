@@ -19,7 +19,7 @@ import {
 } from "../shared/state";
 import { TestCaseEditor } from "./TestCaseEditor";
 
-const blankTestCase = {
+const blankTestCase: FunctionTestCase = {
   name: "New test",
   inputs: {},
   output: {
@@ -55,11 +55,11 @@ export const InputPanelForFunction = () => {
   const onUpdateTestCase = (paramName: string, value: string) => {
     setNewTestCase((prevTestCase) => {
       return {
-        name: prevTestCase.name,
-        inputs: Object.assign({}, prevTestCase.inputs, {
+        ...prevTestCase,
+        inputs: {
+          ...prevTestCase.inputs,
           [paramName]: value,
-        }),
-        output: prevTestCase.output,
+        },
       };
     });
   };

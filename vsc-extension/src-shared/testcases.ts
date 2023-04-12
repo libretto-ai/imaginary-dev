@@ -1,3 +1,4 @@
+import { produce } from "immer";
 import {
   FunctionTestCase,
   FunctionTestCases,
@@ -72,7 +73,22 @@ export function findTestCases(
   );
 }
 
-import { produce } from "immer";
+export function findTestCase(
+  testCases: SourceFileTestCaseMap,
+  fileName: string,
+  functionName: string,
+  testCaseIndex: number
+) {
+  const functionTestCases = findTestCases(testCases, fileName, functionName);
+  if (
+    !functionTestCases ||
+    testCaseIndex >= functionTestCases.testCases.length
+  ) {
+    return null;
+  }
+  const testCase = functionTestCases.testCases[testCaseIndex];
+  return testCase;
+}
 
 const emptyTestCase: FunctionTestCase = {
   inputs: {},
