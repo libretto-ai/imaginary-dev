@@ -1,10 +1,23 @@
 import { JSONSchema7 } from "json-schema";
 import ts from "typescript";
+
+/**
+ * Convert a pure Typescript AST representing a type node into JSONSchema for
+ * that type. This is somewhat of a cheap substitute for `tsTypeToJsonSchema`:
+ * it doesn't fully resolve types but it also doesn't require a typechecker.
+ *
+ * @param node A TypeNode or raw Node
+ * @param sourceFile The source file for the AST (to get names of identifiers)
+ * @param promisePassThrough If the node is a Promise, should this return the
+ *     type that the Promise resolves to? Note that this is not passed through
+ *     recursively, so it only works on the node that is passed in.
+ * @returns a JSON Schema object
+ */
 export function tsNodeToJsonSchema(
   node: ts.Node,
-  sourceFile: ts.SourceFile
+  sourceFile: ts.SourceFile,
+  promisePassThrough = false
 ): JSONSchema7 {
-  console.log("converting ", node, node?.kind);
   switch (node.kind) {
     case ts.SyntaxKind.StringKeyword:
       return { type: "string" };
@@ -16,13 +29,6 @@ export function tsNodeToJsonSchema(
       return { type: "null" };
     case ts.SyntaxKind.UnionType:
     default:
-      // hack, passthrought function declaration
-      if (ts.isFunctionDeclaration(node)) {
-        if (!node.type) {
-          throw new Error("No return type");
-        }
-        return tsNodeToJsonSchema(node.type, sourceFile);
-      }
       if (ts.isTypeLiteralNode(node)) {
         return {
           type: "object",
@@ -63,6 +69,9 @@ export function tsNodeToJsonSchema(
         if (ts.isIdentifier(node.typeName)) {
           // Hack, turn Promise into passthrough for the type
           if (node.typeName.text === "Promise") {
+            if (!promisePassThrough) {
+              throw new Error("Cannot convert Promise-based types");
+            }
             const returnType = node.typeArguments?.[0];
             if (!returnType) {
               throw new Error("Promise missing return type");
