@@ -3,6 +3,7 @@
 "use strict";
 
 const path = require("path");
+const webpack = require("webpack");
 
 //@ts-check
 /** @typedef {import('webpack').Configuration} WebpackConfig **/
@@ -28,6 +29,10 @@ const extensionConfig = {
   resolve: {
     // support reading TypeScript and JavaScript files, 📖 -> https://github.com/TypeStrong/ts-loader
     extensions: [".ts", ".tsx", ".js"],
+    fallback: {
+      http: require.resolve("stream-http"),
+      url: require.resolve("url/"),
+    },
   },
   stats: "minimal",
   optimization: {
@@ -38,6 +43,16 @@ const extensionConfig = {
     },
     runtimeChunk: false,
   },
+  plugins: [
+    new webpack.EnvironmentPlugin({
+      PROMPTJS_MODEL: null,
+      PROMPTJS_MAXTOKENS: null,
+      PROMPTJS_TEMPERATURE: null,
+      PROMPT_PROJECT_KEY: null,
+      PROMPTJS_LOGGING_ENABLED: true,
+      OPENAI_API_KEY: null,
+    }),
+  ],
   module: {
     rules: [
       {
@@ -48,6 +63,7 @@ const extensionConfig = {
             loader: "ts-loader",
             options: {
               configFile: "tsconfig.react.json",
+              compiler: "ttypescript",
             },
           },
         ],

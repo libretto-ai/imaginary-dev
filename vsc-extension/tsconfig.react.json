@@ -13,7 +13,8 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react",
-    "rootDir": "."
+    "rootDir": ".",
+    "plugins": [{ "transform": "@imaginary-dev/typescript-transformer" }]
   },
   "include": ["src-views", "src-shared"]
 }

@@ -13,6 +13,7 @@ import { removeFile, updateFile } from "./util/source";
 import { State } from "./util/state";
 import { SourceFileMap } from "./util/ts-source";
 import { TypedMap } from "./util/types";
+import { SECRET_OPENAI_API_KEY, SecretsProxy } from "./util/secrets";
 
 const initialState: State = {
   "app.debugMode": false,
@@ -39,6 +40,15 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     'Congratulations, your extension "imaginary-programming" is now active!'
   );
 
+  // if we have an OpenAI API key, put it into process.env.OPENAI_API_KEY
+  const secretsProxy = new SecretsProxy(extensionContext);
+  const openAiApiKey = await secretsProxy.getSecretWithoutUserPrompt(
+    SECRET_OPENAI_API_KEY
+  );
+  if (openAiApiKey) {
+    if (process?.env)
+      (process.env as Record<string, any>).OPENAI_API_KEY = openAiApiKey;
+  }
   const state: TypedMap<State> = new Map();
   Object.entries(initialState).forEach(([key, value]) => {
     state.set(key as keyof State, value);
