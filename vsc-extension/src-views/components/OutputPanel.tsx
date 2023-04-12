@@ -148,3 +148,16 @@ export function OutputPanel() {
     </div>
   );
 }
+
+function formatOutput(value: any) {
+  if (typeof value === "string") {
+    return value;
+  }
+  if (typeof value === "number") {
+    return value.toLocaleString();
+  }
+  if (value === null || value === undefined) {
+    return "-";
+  }
+  return JSON.stringify(value, null, 2);
+}

@@ -22,6 +22,7 @@ const globalSecretInfo: SecretInfo[] = [
   },
 ];
 
+const OPENAI_API_SECRET_KEY = "openaiApiKey";
 export function makeRpcHandlers(
   extensionContext: vscode.ExtensionContext,
   state: TypedMap<State>,
@@ -71,7 +72,7 @@ export function makeRpcHandlers(
       const funcComment = getImaginaryTsDocComments(fn, sourceFile)[0];
 
       console.info("getting api key");
-      const apiKey = await secretsProxy.getSecret("openaiApiKey");
+      const apiKey = await secretsProxy.getSecret(OPENAI_API_SECRET_KEY);
       try {
         console.info("getting params from ", fn);
         const parameterTypes = getParamTypes(fn, sourceFile);
@@ -110,6 +111,10 @@ export function makeRpcHandlers(
         console.error(ex);
         throw ex;
       }
+    },
+
+    async clearApiKey() {
+      await secretsProxy.clearSecret(OPENAI_API_SECRET_KEY);
     },
   };
 }
