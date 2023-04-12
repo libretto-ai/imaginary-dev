@@ -81,7 +81,7 @@ export function makeRpcHandlers(
           throw new Error(message);
         }
 
-        const returnSchema = tsNodeToJsonSchema(fn.type, sourceFile);
+        const returnSchema = tsNodeToJsonSchema(fn.type, sourceFile, true);
         console.info("translating return type to ", returnSchema);
         const paramValues = Object.fromEntries(
           parameterTypes.map(({ name }) => [name, testCase.inputs[name]])
