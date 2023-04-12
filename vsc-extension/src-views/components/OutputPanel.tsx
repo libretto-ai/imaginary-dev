@@ -178,8 +178,9 @@ export function OutputPanel() {
                           gridColumn: "3 / 4",
                         }}
                       >
-                        {/* {testCasesForSelectedFunction[testIndex].output.current} */}
-                        PREVIOUS OUTPUT (to be done)
+                        {formatOutput(
+                          testCasesForSelectedFunction[testIndex].output.current
+                        )}
                       </div>
                       <div
                         style={{
@@ -261,6 +262,9 @@ function formatOutput(value: any) {
   }
   if (typeof value === "number") {
     return value.toLocaleString();
+  }
+  if (value === null || value === undefined) {
+    return "-";
   }
   return JSON.stringify(value, null, 2);
 }
