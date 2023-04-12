@@ -8,7 +8,9 @@ export function babelTypeToJsonSchema<T = any>(tsType: t.TSType): JSONSchema7 {
   }
   switch (tsType.type) {
     case "TSAnyKeyword": {
-      return { type: "object" };
+      return {
+        type: ["object", "string", "number", "boolean", "null", "array"],
+      };
     }
     case "TSArrayType": {
       return {
@@ -122,6 +124,7 @@ export function babelTypeToJsonSchema<T = any>(tsType: t.TSType): JSONSchema7 {
           if (keyType.type !== "TSStringKeyword") {
             throw new Error(`${typeName} key type must be 'string'`);
           }
+
           return {
             type: "object",
             // __prompt_js_type: tsType.typeName.name,

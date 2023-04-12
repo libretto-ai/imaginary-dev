@@ -161,7 +161,11 @@ Return value as JSON: ${prefix}`;
   await reportEventErrors(beginEventPromise, finishEventPromise);
 
   if (!valid) {
-    console.error(`Error validating the return value.`, validate.errors);
+    console.error(
+      `Error validating the return value. Schema and errors follow:`,
+      returnSchema,
+      validate.errors
+    );
     return null;
   }
 
