@@ -3,7 +3,6 @@ import {
   getImaginaryTsDocComments,
   tsNodeToJsonSchema,
 } from "@imaginary-dev/typescript-transformer";
-import { JSONSchema7 } from "json-schema";
 import ts from "typescript";
 import * as vscode from "vscode";
 import {
@@ -75,14 +74,14 @@ export function makeRpcHandlers(
       const apiKey = await secretsProxy.getSecret("openaiApiKey");
       try {
         console.info("getting params from ", fn);
-        const parameterTypes = hackyGetParamTypes(fn, sourceFile);
+        const parameterTypes = getParamTypes(fn, sourceFile);
         if (!fn.type) {
           const message = `Missing type in ${fn.name?.getText(sourceFile)}`;
           console.error(message);
           throw new Error(message);
         }
 
-        const returnSchema: JSONSchema7 = tsNodeToJsonSchema(fn, sourceFile);
+        const returnSchema = tsNodeToJsonSchema(fn.type, sourceFile);
         console.info("translating return type to ", returnSchema);
         const paramValues = Object.fromEntries(
           parameterTypes.map(({ name }) => [name, testCase.inputs[name]])
@@ -115,43 +114,8 @@ export function makeRpcHandlers(
   };
 }
 
-/** This is a terrible hack until we have a proper TS compiler instance ready */
-function getHackyType(
-  type: ts.TypeNode | undefined,
-  sourceFile: ts.SourceFile
-): JSONSchema7 {
-  const printer = ts.createPrinter({});
-  if (!type) {
-    return { type: "object" };
-  }
-  const promiseResult = printer.printNode(
-    ts.EmitHint.Unspecified,
-    type,
-    sourceFile
-  );
-  const typeName = /Promise<(string|number|.*)>/ms.exec(promiseResult);
-  const returnTypeName = typeName ? typeName[1] : "object";
-  if (returnTypeName === "number" || returnTypeName === "number") {
-    return { type: returnTypeName };
-  }
-  // DOES NOT WORK: no type
-  if (returnTypeName.endsWith("]")) {
-    return { type: "array" };
-  }
-  if (returnTypeName.endsWith("}")) {
-    return { type: "object" };
-  }
-  const returnSchema: JSONSchema7 = {
-    type: returnTypeName as any,
-  };
-  return returnSchema;
-}
-
 /** This just gets all the types as `any`, since we do not have a ts.TypeChecker available */
-function hackyGetParamTypes(
-  fn: ts.FunctionDeclaration,
-  sourceFile: ts.SourceFile
-) {
+function getParamTypes(fn: ts.FunctionDeclaration, sourceFile: ts.SourceFile) {
   const params = fn.parameters
     .filter((param) => {
       if (!ts.isIdentifier(param.name)) {
@@ -159,9 +123,13 @@ function hackyGetParamTypes(
       }
       return true;
     })
-    .map((param) => ({
-      name: param.name.getText(sourceFile),
-      type: getHackyType(param.type, sourceFile),
-    }));
+    .map((param) => {
+      return {
+        name: param.name.getText(sourceFile),
+        type: param.type
+          ? tsNodeToJsonSchema(param.type, sourceFile)
+          : undefined,
+      };
+    });
   return params;
 }
