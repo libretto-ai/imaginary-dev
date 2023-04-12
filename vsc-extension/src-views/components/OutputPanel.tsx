@@ -178,9 +178,11 @@ export function OutputPanel() {
                           gridColumn: "3 / 4",
                         }}
                       >
-                        {formatOutput(
-                          testCasesForSelectedFunction[testIndex].output.current
-                        )}
+                        <code style={{ whiteSpace: "pre" }}>
+                          {formatOutput(
+                            testCasesForSelectedFunction[testIndex].output.prev
+                          )}
+                        </code>
                       </div>
                       <div
                         style={{
