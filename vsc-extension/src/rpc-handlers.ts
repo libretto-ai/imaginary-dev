@@ -1,5 +1,8 @@
 import { callImaginaryFunction } from "@imaginary-dev/runtime";
-import { getImaginaryTsDocComments } from "@imaginary-dev/typescript-transformer";
+import {
+  getImaginaryTsDocComments,
+  tsNodeToJsonSchema,
+} from "@imaginary-dev/typescript-transformer";
 import { JSONSchema7 } from "json-schema";
 import ts from "typescript";
 import * as vscode from "vscode";
@@ -70,16 +73,20 @@ export function makeRpcHandlers(
 
       console.info("getting api key");
       const apiKey = await secretsProxy.getSecret("openaiApiKey");
-
-      console.info("getting params from ", fn);
-      const parameterTypes = hackyGetParamTypes(fn, sourceFile);
-
-      const returnSchema: JSONSchema7 = getHackyType(fn.type, sourceFile);
-      console.info("translating return type to ", returnSchema);
-      const paramValues = Object.fromEntries(
-        parameterTypes.map(({ name }) => [name, testCase.inputs[name]])
-      );
       try {
+        console.info("getting params from ", fn);
+        const parameterTypes = hackyGetParamTypes(fn, sourceFile);
+        if (!fn.type) {
+          const message = `Missing type in ${fn.name?.getText(sourceFile)}`;
+          console.error(message);
+          throw new Error(message);
+        }
+
+        const returnSchema: JSONSchema7 = tsNodeToJsonSchema(fn, sourceFile);
+        console.info("translating return type to ", returnSchema);
+        const paramValues = Object.fromEntries(
+          parameterTypes.map(({ name }) => [name, testCase.inputs[name]])
+        );
         const result = await callImaginaryFunction(
           funcComment,
           functionName,
