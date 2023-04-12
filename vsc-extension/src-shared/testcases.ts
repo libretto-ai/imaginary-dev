@@ -125,6 +125,7 @@ function updateFunctionTestCasesInput<T>(
     });
   });
 }
+
 export function updateSourcefileTestCaseInput<T>(
   sourceFileTestCases: SourceFileTestCaseMap,
   sourceFileName: string,
@@ -221,5 +222,53 @@ function updateFunctionTestCasesOutput<T>(
         value
       );
     });
+  });
+}
+
+function updateFunctionTestCase(
+  functionTestCases: FunctionTestCases,
+  index: number,
+  updater: (testCase: FunctionTestCase) => FunctionTestCase
+): FunctionTestCases {
+  return produce(functionTestCases, (draft) => {
+    draft.testCases = produce(draft.testCases, (draftTestCases) => {
+      draftTestCases[index] = updater(draftTestCases[index]);
+    });
+  });
+}
+
+export function updateSourceFileTestCase(
+  sourceFileTestCases: SourceFileTestCaseMap,
+  sourceFileName: string,
+  functionName: string,
+  index: number,
+  updater: (prevTestCase: FunctionTestCase) => FunctionTestCase
+) {
+  return produce(sourceFileTestCases, (draft) => {
+    draft[sourceFileName] = produce(
+      draft[sourceFileName] ?? { sourceFileName, functionTestCases: [] },
+      (draftTestCases) => {
+        const functionTestCaseIndex =
+          draftTestCases.functionTestCases.findIndex(
+            (testCase) => testCase.functionName === functionName
+          ) ?? { functionName, testCases: [] };
+        if (functionTestCaseIndex !== -1) {
+          draftTestCases.functionTestCases[functionTestCaseIndex] =
+            updateFunctionTestCase(
+              draftTestCases.functionTestCases[functionTestCaseIndex],
+              index,
+              updater
+            );
+        } else {
+          draftTestCases.functionTestCases.push(
+            updateFunctionTestCase(
+              { functionName, testCases: [] },
+              index,
+              updater
+            )
+          );
+        }
+      }
+    );
   });
 }

@@ -7,6 +7,7 @@ import ts from "typescript";
 import * as vscode from "vscode";
 import {
   findTestCase,
+  updateSourceFileTestCase,
   updateSourceFileTestCaseOutput,
 } from "../src-shared/testcases";
 import { ExtensionHostState } from "./util/extension-state";
@@ -247,6 +248,24 @@ export function makeRpcHandlers(
         testCase.inputs
       );
       console.log("got test name = ", testName);
+      if (!testCase.hasCustomName) {
+        state.set(
+          "testCases",
+          updateSourceFileTestCase(
+            state.get("testCases"),
+            fileName,
+            functionName,
+            testCaseIndex,
+            (prevTestCase) => {
+              return {
+                ...prevTestCase,
+                hasCustomName: true,
+                name: testName,
+              };
+            }
+          )
+        );
+      }
       return testName;
     },
   };
