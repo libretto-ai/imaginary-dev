@@ -1,3 +1,4 @@
+import "@vscode/codicons/dist/codicon.css";
 import React from "react";
 import * as ReactDOMClient from "react-dom/client";
 import App from "./App";

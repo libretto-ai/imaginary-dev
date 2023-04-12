@@ -35,6 +35,7 @@ const extensionConfig = {
     },
   },
   stats: "minimal",
+
   optimization: {
     splitChunks: {
       cacheGroups: {
@@ -66,6 +67,13 @@ const extensionConfig = {
               compiler: "ttypescript",
             },
           },
+        ],
+      },
+      {
+        test: /\.css$/i,
+        use: [
+          "style-loader",
+          { loader: "css-loader", options: { sourceMap: true } },
         ],
       },
     ],

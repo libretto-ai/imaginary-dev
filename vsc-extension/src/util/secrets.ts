@@ -34,6 +34,9 @@ export class SecretsProxy {
     }
     return secret;
   }
+  async clearSecret(secretKey: string): Promise<void> {
+    await this.context.secrets.delete(secretKey);
+  }
 
   /** Prompt user for a secret and store the result */
   async requestSecret(secretKey: string) {

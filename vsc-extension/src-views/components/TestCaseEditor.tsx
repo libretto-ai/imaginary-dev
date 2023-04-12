@@ -5,8 +5,8 @@ import {
   SelectedFunction,
   SerializableFunctionDeclaration,
 } from "../../src-shared/source-info";
-import { useExtensionState } from "./ExtensionState";
 import { ParameterValueEditor } from "./ParameterValueEditor";
+import { useExtensionState } from "./ExtensionState";
 
 interface Props {
   selectedFunctionInfo: SerializableFunctionDeclaration | undefined;
@@ -36,10 +36,6 @@ export const TestCaseEditor: FC<Props> = ({
         />
       ))}
       <TemperatureEditor />
-      <RunButton
-        selectedFunction={selectedFunction}
-        testCaseIndex={selectedTestCaseIndex}
-      />
       <RunImaginaryFunctionButton selectedFunction={selectedFunction} />
     </div>
   );
@@ -82,29 +78,4 @@ const RunImaginaryFunctionButton: FC<{
       <VSCodeButton onClick={onRun}>Run Imaginary Function</VSCodeButton>
     </>
   );
-};
-
-const RunButton: FC<{
-  selectedFunction: SelectedFunction;
-  testCaseIndex: number;
-}> = ({ selectedFunction, testCaseIndex }) => {
-  const { rpcProvider } = useExtensionState();
-  const { fileName, functionName } = selectedFunction;
-
-  const onRun = useCallback(async () => {
-    try {
-      await rpcProvider?.rpc("runTestCase", {
-        fileName,
-        functionName,
-        testCaseIndex,
-      });
-    } catch (ex) {
-      console.error(`Failure to run: ${ex}`, ex);
-    }
-  }, [fileName, functionName, rpcProvider, testCaseIndex]);
-
-  if (!rpcProvider) {
-    return null;
-  }
-  return <VSCodeButton onClick={onRun}>Run</VSCodeButton>;
 };

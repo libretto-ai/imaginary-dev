@@ -1,9 +1,14 @@
 import { callImaginaryFunction } from "@imaginary-dev/runtime";
-import { getImaginaryTsDocComments } from "@imaginary-dev/typescript-transformer";
-import { JSONSchema7 } from "json-schema";
+import {
+  getImaginaryTsDocComments,
+  tsNodeToJsonSchema,
+} from "@imaginary-dev/typescript-transformer";
 import ts from "typescript";
 import * as vscode from "vscode";
-import { findTestCases } from "../src-shared/testcases";
+import {
+  findTestCases,
+  updateSourceFileTestCaseOutput,
+} from "../src-shared/testcases";
 import { ExtensionHostState } from "./util/extension-state";
 import { SecretsProxy, SECRET_OPENAI_API_KEY } from "./util/secrets";
 import { findNativeFunction } from "./util/source";
@@ -48,6 +53,7 @@ declare function generateTestParametersForTypeScriptFunction(
   functionDeclaration: string
 ): Promise<Record<string, any>[]>;
 
+const OPENAI_API_SECRET_KEY = "openaiApiKey";
 export function makeRpcHandlers(
   extensionContext: vscode.ExtensionContext,
   state: TypedMap<State>,
@@ -116,12 +122,11 @@ export function makeRpcHandlers(
         functionName
       );
       if (!testCases || testCaseIndex >= testCases.testCases.length) {
-        console.error("failure 1", testCases, " from ", fileName, functionName);
-        throw new Error(
-          `Trying to run test case #${testCaseIndex} with ${
-            testCases?.testCases.length ?? 0
-          } test cases`
-        );
+        const message = `Trying to run test case #${testCaseIndex} with ${
+          testCases?.testCases.length ?? 0
+        } test cases`;
+        console.error(message);
+        throw new Error(message);
       }
       const testCase = testCases.testCases[testCaseIndex];
       const functionInfo = findNativeFunction(
@@ -130,31 +135,30 @@ export function makeRpcHandlers(
         functionName
       );
       if (!functionInfo) {
-        console.error(
-          "failure 2",
-          `Unable to find function declaration for ${functionName} in ${fileName}`
-        );
-        throw new Error(
-          `Unable to find function declaration for ${functionName} in ${fileName}`
-        );
+        const message = `Unable to find function declaration for ${functionName} in ${fileName}`;
+        console.error(message);
+        throw new Error(message);
       }
       const { fn, sourceFile } = functionInfo;
-      console.log("getting comments from ", fn, sourceFile);
+      console.info("getting comments from ", fn, sourceFile);
       const funcComment = getImaginaryTsDocComments(fn, sourceFile)[0];
 
-      console.log("getting api key");
-      const apiKey = await secretsProxy.getSecret(SECRET_OPENAI_API_KEY);
-
-      console.log("getting params from ", fn);
-      const parameterTypes = hackyGetParamTypes(fn, sourceFile);
-
-      // super hack while developing
-      const returnSchema: JSONSchema7 = { type: "string" };
-      const paramValues = Object.fromEntries(
-        parameterTypes.map(({ name }) => [name, testCase.inputs[name]])
-      );
-      console.log("about to run...");
+      console.info("getting api key");
+      const apiKey = await secretsProxy.getSecret(OPENAI_API_SECRET_KEY);
       try {
+        console.info("getting params from ", fn);
+        const parameterTypes = getParamTypes(fn, sourceFile);
+        if (!fn.type) {
+          const message = `Missing type in ${fn.name?.getText(sourceFile)}`;
+          console.error(message);
+          throw new Error(message);
+        }
+
+        const returnSchema = tsNodeToJsonSchema(fn.type, sourceFile, true);
+        console.info("translating return type to ", returnSchema);
+        const paramValues = Object.fromEntries(
+          parameterTypes.map(({ name }) => [name, testCase.inputs[name]])
+        );
         const result = await callImaginaryFunction(
           funcComment,
           functionName,
@@ -164,29 +168,45 @@ export function makeRpcHandlers(
           { openai: { apiConfig: { apiKey } } }
         );
         console.log("got result: ", typeof result, ": ", result);
+        state.set(
+          "testCases",
+          updateSourceFileTestCaseOutput(
+            state.get("testCases"),
+            fileName,
+            functionName,
+            testCaseIndex,
+            result
+          )
+        );
         return result;
       } catch (ex) {
-        console.error("Got error: ", ex);
+        console.error(ex);
         throw ex;
       }
     },
+
+    async clearApiKey() {
+      await secretsProxy.clearSecret(OPENAI_API_SECRET_KEY);
+    },
   };
 }
-/** This just gets all the types as `any`, since we do not have a ts.TypeChecker available */
-function hackyGetParamTypes(
-  fn: ts.FunctionDeclaration,
-  sourceFile: ts.SourceFile
-) {
-  const params = fn.parameters
-    .map((param) => param.name)
-    .filter((param): param is ts.Identifier => {
-      if (!ts.isIdentifier(param)) {
-        console.error("failure 3", param);
 
+/** This just gets all the types as `any`, since we do not have a ts.TypeChecker available */
+function getParamTypes(fn: ts.FunctionDeclaration, sourceFile: ts.SourceFile) {
+  const params = fn.parameters
+    .filter((param) => {
+      if (!ts.isIdentifier(param.name)) {
         throw new Error(`Parameter ${param} must be a named parameter`);
       }
       return true;
     })
-    .map((paramName) => ({ name: paramName.getText(sourceFile) }));
+    .map((param) => {
+      return {
+        name: param.name.getText(sourceFile),
+        type: param.type
+          ? tsNodeToJsonSchema(param.type, sourceFile)
+          : undefined,
+      };
+    });
   return params;
 }

@@ -43,7 +43,6 @@ export class ReactWebViewProvider<
   extensionUri: vscode.Uri;
   webviewView?: vscode.WebviewView;
   rpcProvider: RpcProvider;
-  rpcHandlers: R;
 
   localStateRef: TypedMap<S>;
   constructor(
@@ -61,7 +60,6 @@ export class ReactWebViewProvider<
         params: [message, transfer],
       });
     });
-    this.rpcHandlers = rpcHandlers;
     this.rpcProvider.registerRpcHandler(
       "read-state",
       async (itemKey: keyof S) => {
@@ -84,7 +82,7 @@ export class ReactWebViewProvider<
         }
       }
     );
-    Object.entries(this.rpcHandlers).forEach(([messageId, handler]) => {
+    Object.entries(rpcHandlers).forEach(([messageId, handler]) => {
       this.rpcProvider.registerRpcHandler(messageId, handler);
     });
   }
@@ -117,13 +115,14 @@ export class ReactWebViewProvider<
     const jsSrc = webviewView.webview.asWebviewUri(
       vscode.Uri.joinPath(extensionRoot, `./views/${this.viewId}.js`)
     );
+    const webview = this.webviewView.webview;
     const webViewHtml = html`
       <html lang="en">
         <head>
           <title>React Webview Provider: ${this.viewId}</title>
           <meta
             http-equiv="Content-Security-Policy"
-            content="default-src 'none'; img-src vscode-resource: https:; script-src 'nonce-${nonce}';style-src vscode-resource: 'unsafe-inline' http: https: data:;"
+            content="default-src 'none'; img-src vscode-resource: https:; script-src 'nonce-${nonce}';style-src vscode-resource: 'unsafe-inline' http: https: data:;font-src ${webview.cspSource};"
           />
           <base
             href="${extensionRoot
