@@ -56,14 +56,17 @@ declare function generateTestParametersForTypeScriptFunction(
 /**
  * This function takes in a TypeScript function declaration as a string, and an
  * example set of parameters that would be passed to that function. This
- * combination of function and parameters is called a test case. This function returns
- * a name for that test case.
+ * combination of function and parameters is called a test case. This function
+ * returns a name for that test case.
  *
- * The test case name should be human-readable, descriptive, but terse. There will be many test
- * cases for this function, so the name should be more descriptive of the
- * paramters than the function itself.
+ * The test case name should be human-readable, descriptive, but terse. There
+ * will be many test cases for this function, so the name should be more
+ * descriptive of the paramters than the function itself.
  *
- * For instance for a function like this:
+ * For test cases with a single, primitive parameter, the name should just be
+ * the value of that parameter as a english, human-readable string of no more than 4 words.
+ *
+ * For a more complex example, with a function like:
  * ```
  * function runQuery(tableName: string, queryString: string);
  * ```
