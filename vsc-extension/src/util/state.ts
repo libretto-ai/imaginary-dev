@@ -1,6 +1,6 @@
 import {
   MaybeSelectedFunction,
-  SelectedFunctionTestCases,
+  SelectedFileTestCases,
   SerializableSourceFileMap,
   SourceFileTestCaseMap,
 } from "../../src-shared/source-info";
@@ -32,5 +32,5 @@ export interface State {
    *
    * This allows each fileName/functionName combination to have its own selected state.
    */
-  selectedTestCases: SelectedFunctionTestCases;
+  selectedTestCases: SelectedFileTestCases;
 }

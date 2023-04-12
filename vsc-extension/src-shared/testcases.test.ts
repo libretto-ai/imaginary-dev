@@ -2,7 +2,7 @@ import { FunctionTestCase, SourceFileTestCaseMap } from "./source-info";
 import {
   addFunctionTestCase,
   findTestCases,
-  updateSourcefileTestCase,
+  updateSourcefileTestCaseInput,
 } from "./testcases";
 
 describe("addFunctionTestCase", () => {
@@ -189,7 +189,7 @@ describe("updateSourcefileTestCase", () => {
     const index = 0;
     const paramName = "a";
     const value = 3;
-    const result = updateSourcefileTestCase(
+    const result = updateSourcefileTestCaseInput(
       sourceFileTestCases,
       sourceFileName,
       functionName,
@@ -229,7 +229,7 @@ describe("updateSourcefileTestCase", () => {
     const index = 0;
     const paramName = "a";
     const value = 1;
-    const result = updateSourcefileTestCase(
+    const result = updateSourcefileTestCaseInput(
       sourceFileTestCases,
       sourceFileName,
       functionName,
@@ -280,7 +280,7 @@ describe("updateSourcefileTestCase", () => {
     const index = 1;
     const paramName = "a";
     const value = 3;
-    const result = updateSourcefileTestCase(
+    const result = updateSourcefileTestCaseInput(
       sourceFileTestCases,
       sourceFileName,
       functionName,

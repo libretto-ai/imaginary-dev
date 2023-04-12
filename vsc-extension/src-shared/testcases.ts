@@ -58,11 +58,15 @@ function addTestCaseToFunction(
   }
   return prevFunctionTestCase;
 }
+
 export function findTestCases(
   testCases: SourceFileTestCaseMap,
-  fileName: string,
-  functionNameTarget: string
-) {
+  fileName?: string,
+  functionNameTarget?: string
+): FunctionTestCases | undefined {
+  if (!fileName || !functionNameTarget) {
+    return;
+  }
   return testCases[fileName]?.functionTestCases.find(
     ({ functionName }) => functionName === functionNameTarget
   );
@@ -79,7 +83,7 @@ const emptyTestCase: FunctionTestCase = {
   },
 };
 
-function updateFunctionTestCase<T>(
+function updateFunctionTestCaseInput<T>(
   functionTestCase: FunctionTestCase,
   paramName: string,
   value: T
@@ -89,7 +93,7 @@ function updateFunctionTestCase<T>(
   });
 }
 
-function updateFunctionTestCases<T>(
+function updateFunctionTestCasesInput<T>(
   functionTestCases: FunctionTestCases,
   index: number,
   paramName: string,
@@ -97,7 +101,7 @@ function updateFunctionTestCases<T>(
 ): FunctionTestCases {
   return produce(functionTestCases, (draft) => {
     draft.testCases = produce(draft.testCases, (draftTestCases) => {
-      draftTestCases[index] = updateFunctionTestCase(
+      draftTestCases[index] = updateFunctionTestCaseInput(
         draftTestCases[index] ?? emptyTestCase,
         paramName,
         value
@@ -105,7 +109,7 @@ function updateFunctionTestCases<T>(
     });
   });
 }
-export function updateSourcefileTestCase<T>(
+export function updateSourcefileTestCaseInput<T>(
   sourceFileTestCases: SourceFileTestCaseMap,
   sourceFileName: string,
   functionName: string,
@@ -123,7 +127,7 @@ export function updateSourcefileTestCase<T>(
           ) ?? { functionName, testCases: [] };
         if (functionTestCaseIndex !== -1) {
           draftTestCases.functionTestCases[functionTestCaseIndex] =
-            updateFunctionTestCases(
+            updateFunctionTestCasesInput(
               draftTestCases.functionTestCases[functionTestCaseIndex],
               index,
               paramName,
@@ -131,7 +135,7 @@ export function updateSourcefileTestCase<T>(
             );
         } else {
           draftTestCases.functionTestCases.push(
-            updateFunctionTestCases(
+            updateFunctionTestCasesInput(
               { functionName, testCases: [] },
               index,
               paramName,
@@ -141,5 +145,65 @@ export function updateSourcefileTestCase<T>(
         }
       }
     );
+  });
+}
+
+export function updateSourceFileTestCaseOutput(
+  testCases: SourceFileTestCaseMap,
+  sourceFileName: string,
+  functionName: string,
+  index: number,
+  result: any
+): SourceFileTestCaseMap {
+  return produce(testCases, (draft) => {
+    draft[sourceFileName] = produce(
+      draft[sourceFileName] ?? { sourceFileName, functionTestCases: [] },
+      (draftTestCases) => {
+        const functionTestCaseIndex =
+          draftTestCases.functionTestCases.findIndex(
+            (testCase) => testCase.functionName === functionName
+          ) ?? { functionName, testCases: [] };
+        if (functionTestCaseIndex !== -1) {
+          draftTestCases.functionTestCases[functionTestCaseIndex] =
+            updateFunctionTestCasesOutput(
+              draftTestCases.functionTestCases[functionTestCaseIndex],
+              index,
+              result
+            );
+        } else {
+          draftTestCases.functionTestCases.push(
+            updateFunctionTestCasesOutput(
+              { functionName, testCases: [] },
+              index,
+              result
+            )
+          );
+        }
+      }
+    );
+  });
+}
+
+function updateFunctionTestCaseOutput<T>(
+  functionTestCase: FunctionTestCase,
+  value: T
+): FunctionTestCase {
+  return produce(functionTestCase, (draft) => {
+    draft.output.current = value;
+  });
+}
+
+function updateFunctionTestCasesOutput<T>(
+  functionTestCases: FunctionTestCases,
+  index: number,
+  value: T
+): FunctionTestCases {
+  return produce(functionTestCases, (draft) => {
+    draft.testCases = produce(draft.testCases, (draftTestCases) => {
+      draftTestCases[index] = updateFunctionTestCaseOutput(
+        draftTestCases[index] ?? emptyTestCase,
+        value
+      );
+    });
   });
 }

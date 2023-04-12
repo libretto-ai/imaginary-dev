@@ -3,7 +3,10 @@ import { getImaginaryTsDocComments } from "@imaginary-dev/typescript-transformer
 import { JSONSchema7 } from "json-schema";
 import ts from "typescript";
 import * as vscode from "vscode";
-import { findTestCases } from "../src-shared/testcases";
+import {
+  findTestCases,
+  updateSourceFileTestCaseOutput,
+} from "../src-shared/testcases";
 import { ExtensionHostState } from "./util/extension-state";
 import { SecretInfo, SecretsProxy } from "./util/secrets";
 import { findNativeFunction } from "./util/source";
@@ -44,12 +47,11 @@ export function makeRpcHandlers(
         functionName
       );
       if (!testCases || testCaseIndex >= testCases.testCases.length) {
-        console.error("failure 1", testCases, " from ", fileName, functionName);
-        throw new Error(
-          `Trying to run test case #${testCaseIndex} with ${
-            testCases?.testCases.length ?? 0
-          } test cases`
-        );
+        const message = `Trying to run test case #${testCaseIndex} with ${
+          testCases?.testCases.length ?? 0
+        } test cases`;
+        console.error(message);
+        throw new Error(message);
       }
       const testCase = testCases.testCases[testCaseIndex];
       const functionInfo = findNativeFunction(
@@ -58,30 +60,25 @@ export function makeRpcHandlers(
         functionName
       );
       if (!functionInfo) {
-        console.error(
-          "failure 2",
-          `Unable to find function declaration for ${functionName} in ${fileName}`
-        );
-        throw new Error(
-          `Unable to find function declaration for ${functionName} in ${fileName}`
-        );
+        const message = `Unable to find function declaration for ${functionName} in ${fileName}`;
+        console.error(message);
+        throw new Error(message);
       }
       const { fn, sourceFile } = functionInfo;
-      console.log("getting comments from ", fn, sourceFile);
+      console.info("getting comments from ", fn, sourceFile);
       const funcComment = getImaginaryTsDocComments(fn, sourceFile)[0];
 
-      console.log("getting api key");
+      console.info("getting api key");
       const apiKey = await secretsProxy.getSecret("openaiApiKey");
 
-      console.log("getting params from ", fn);
+      console.info("getting params from ", fn);
       const parameterTypes = hackyGetParamTypes(fn, sourceFile);
 
-      // super hack while developing
-      const returnSchema: JSONSchema7 = { type: "string" };
+      const returnSchema: JSONSchema7 = getHackyType(fn.type, sourceFile);
+      console.info("translating return type to ", returnSchema);
       const paramValues = Object.fromEntries(
         parameterTypes.map(({ name }) => [name, testCase.inputs[name]])
       );
-      console.log("about to run...");
       try {
         const result = await callImaginaryFunction(
           funcComment,
@@ -92,29 +89,72 @@ export function makeRpcHandlers(
           { openai: { apiConfig: { apiKey } } }
         );
         console.log("got result: ", typeof result, ": ", result);
+        state.set(
+          "testCases",
+          updateSourceFileTestCaseOutput(
+            state.get("testCases"),
+            fileName,
+            functionName,
+            testCaseIndex,
+            result
+          )
+        );
         return result;
       } catch (ex) {
-        console.error("Got error: ", ex);
+        console.error(ex);
         throw ex;
       }
     },
   };
 }
+
+/** This is a terrible hack until we have a proper TS compiler instance ready */
+function getHackyType(
+  type: ts.TypeNode | undefined,
+  sourceFile: ts.SourceFile
+): JSONSchema7 {
+  const printer = ts.createPrinter({});
+  if (!type) {
+    return { type: "object" };
+  }
+  const promiseResult = printer.printNode(
+    ts.EmitHint.Unspecified,
+    type,
+    sourceFile
+  );
+  const typeName = /Promise<(string|number|.*)>/ms.exec(promiseResult);
+  const returnTypeName = typeName ? typeName[1] : "object";
+  if (returnTypeName === "number" || returnTypeName === "number") {
+    return { type: returnTypeName };
+  }
+  // DOES NOT WORK: no type
+  if (returnTypeName.endsWith("]")) {
+    return { type: "array" };
+  }
+  if (returnTypeName.endsWith("}")) {
+    return { type: "object" };
+  }
+  const returnSchema: JSONSchema7 = {
+    type: returnTypeName as any,
+  };
+  return returnSchema;
+}
+
 /** This just gets all the types as `any`, since we do not have a ts.TypeChecker available */
 function hackyGetParamTypes(
   fn: ts.FunctionDeclaration,
   sourceFile: ts.SourceFile
 ) {
   const params = fn.parameters
-    .map((param) => param.name)
-    .filter((param): param is ts.Identifier => {
-      if (!ts.isIdentifier(param)) {
-        console.error("failure 3", param);
-
+    .filter((param) => {
+      if (!ts.isIdentifier(param.name)) {
         throw new Error(`Parameter ${param} must be a named parameter`);
       }
       return true;
     })
-    .map((paramName) => ({ name: paramName.getText(sourceFile) }));
+    .map((param) => ({
+      name: param.name.getText(sourceFile),
+      type: getHackyType(param.type, sourceFile),
+    }));
   return params;
 }

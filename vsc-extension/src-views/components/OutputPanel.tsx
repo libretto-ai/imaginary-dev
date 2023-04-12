@@ -1,25 +1,15 @@
-import {
-  VSCodeButton,
-  VSCodeDataGrid,
-  VSCodeDataGridCell,
-  VSCodeDataGridRow,
-  VSCodeTextArea,
-} from "@vscode/webview-ui-toolkit/react";
-import React, {
-  FC,
-  FocusEventHandler,
-  PropsWithChildren,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { VSCodeButton, VSCodeTextArea } from "@vscode/webview-ui-toolkit/react";
+import React, { FC } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import {
-  FunctionTestCase,
-  FunctionTestCases,
   findMatchingFunction,
+  FunctionTestCase,
+  MaybeSelectedFunction,
 } from "../../src-shared/source-info";
-import { updateSourcefileTestCase } from "../../src-shared/testcases";
+import {
+  findTestCases,
+  updateSourcefileTestCaseInput,
+} from "../../src-shared/testcases";
 import {
   debugState,
   selectedFunctionState,
@@ -28,27 +18,43 @@ import {
   sourcesState,
   testCasesState,
 } from "../shared/state";
+import { RunButton } from "./RunButton";
 
 // TestCasesList component
 function TestCasesList({
   testCases,
   selectedIndex,
+  selectedFunction,
   onSelect,
 }: {
   testCases: FunctionTestCase[];
+  selectedFunction: MaybeSelectedFunction;
   selectedIndex: number | null;
   onSelect: (selectedIndex: number) => void;
 }) {
+  if (!selectedFunction) {
+    return <div />;
+  }
   return (
-    <div className="input-scenarios-list" style={{ minWidth: "120px" }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        minWidth: "120px",
+        gap: 10,
+      }}
+    >
       {testCases.map((testCase, index) => (
         <div
           key={index}
           style={{
-            margin: 10,
             fontWeight: "bold",
             fontSize: "15px",
             cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "1rem",
             backgroundColor:
               index === selectedIndex
                 ? "var(--list-active-selection-background)"
@@ -60,9 +66,12 @@ function TestCasesList({
             padding: "5px",
             borderRadius: "5px",
           }}
-          onClick={() => onSelect(index)}
         >
-          {testCase.name}
+          <span onClick={() => onSelect(index)}>{testCase.name}</span>
+          <RunButton
+            selectedFunction={selectedFunction}
+            testCaseIndex={index}
+          />
         </div>
       ))}
     </div>
@@ -82,12 +91,14 @@ export function OutputPanel() {
   const [debug, setDebug] = useRecoilState(debugState);
 
   const onUpdateTestCase = (paramName: string, value: string) => {
-    if (!selectedFunction) return;
+    if (!selectedFunction) {
+      return;
+    }
 
     const { fileName, functionName } = selectedFunction;
 
     setTestCases((prevFileTestCases) => {
-      return updateSourcefileTestCase(
+      return updateSourcefileTestCaseInput(
         prevFileTestCases,
         fileName,
         functionName,
@@ -98,19 +109,23 @@ export function OutputPanel() {
     });
   };
 
-  const testCasesForSelectedFunction = Object.values(testCases)
-    .flatMap((cases) => cases.functionTestCases)
-    .filter((cases) => cases.functionName === selectedFunction?.functionName)
-    .flatMap((cases) => cases.testCases);
+  const testCasesForSelectedFunction =
+    findTestCases(
+      testCases,
+      selectedFunction?.fileName,
+      selectedFunction?.functionName
+    )?.testCases ?? [];
 
   return (
-    <>
-      <div style={{ display: "flex", flexDirection: "row" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+      {!!fn && <code style={{ whiteSpace: "nowrap" }}>{fn.declaration}</code>}
+      <div style={{ display: "flex", flexDirection: "row", gap: "1rem" }}>
         <TestCasesList
           testCases={testCasesForSelectedFunction}
+          selectedFunction={selectedFunction}
           selectedIndex={testIndex}
           onSelect={setTestIndex}
-        />{" "}
+        />
         <div
           style={{
             display: "grid",
@@ -135,6 +150,7 @@ export function OutputPanel() {
             Previous Outputs
           </div>
           <div style={{ fontSize: 16, fontWeight: "bolder" }}>Output</div>
+
           {!!testCasesForSelectedFunction[testIndex] &&
             Object.entries(testCasesForSelectedFunction[testIndex].inputs).map(
               ([paramName, paramValue], index) => (
@@ -176,8 +192,9 @@ export function OutputPanel() {
                           gridColumn: "4 / 5",
                         }}
                       >
-                        {/* {testCasesForSelectedFunction[testIndex].output.current} */}
-                        OUTPUT (to be done)
+                        {JSON.stringify(
+                          testCasesForSelectedFunction[testIndex].output.current
+                        )}
                       </div>
                     </>
                   )}
@@ -206,7 +223,7 @@ export function OutputPanel() {
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
 
@@ -233,41 +250,5 @@ const ParamEditor: FC<{ value: string; onChange: (arg0: string) => void }> = ({
       value={value}
       onChange={(e: any) => onChange(e.target.value)}
     />
-  );
-};
-
-const VSCodeDataGridEditorCell: FC<PropsWithChildren<{}>> = ({ children }) => {
-  const [isFocused, setIsFocused] = useState<boolean>(false);
-  const [value, setValue] = useState<string>(children as string);
-
-  const onFocus: FocusEventHandler<HTMLDivElement> = (
-    e: React.FocusEvent<HTMLDivElement, Element>
-  ) => {
-    console.log("onFocus");
-    setIsFocused(true);
-  };
-
-  const onBlur: FocusEventHandler<HTMLDivElement> = (
-    e: React.FocusEvent<HTMLDivElement, Element>
-  ) => {
-    console.log("onBlur");
-    setIsFocused(false);
-  };
-
-  return (
-    <VSCodeDataGridCell gridColumn="2" onFocus={onFocus} onBlur={onBlur}>
-      {isFocused ? (
-        <VSCodeTextArea
-          style={{ flex: 1, width: "100%" }}
-          value={children as string}
-          onChange={(e: any) => {
-            console.log(e);
-            setValue(e.target.value);
-          }}
-        />
-      ) : (
-        children
-      )}
-    </VSCodeDataGridCell>
   );
 };

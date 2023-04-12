@@ -13,6 +13,7 @@ import { removeFile, updateFile } from "./util/source";
 import { State } from "./util/state";
 import { SourceFileMap } from "./util/ts-source";
 import { TypedMap } from "./util/types";
+import { createWatchedMap } from "./util/watched-map";
 
 const initialState: State = {
   "app.debugMode": false,
@@ -39,7 +40,8 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     'Congratulations, your extension "imaginary-programming" is now active!'
   );
 
-  const state: TypedMap<State> = new Map();
+  const rawState: TypedMap<State> = new Map();
+  const state = createWatchedMap(rawState);
   Object.entries(initialState).forEach(([key, value]) => {
     state.set(key as keyof State, value);
   });
@@ -88,11 +90,13 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
       updateSourceState(
         localState.get("nativeSources"),
         state,
-        functionTreeProvider,
-        messageRouter
+        functionTreeProvider
       );
     })
   );
+  state.onStateChange((updatedState) => {
+    messageRouter.updateState(updatedState);
+  });
 
   extensionContext.subscriptions.push(
     vscode.workspace.onDidOpenTextDocument((document) => {
@@ -103,8 +107,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
       updateSourceState(
         localState.get("nativeSources"),
         state,
-        functionTreeProvider,
-        messageRouter
+        functionTreeProvider
       );
     })
   );
@@ -117,8 +120,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
       updateSourceState(
         localState.get("nativeSources"),
         state,
-        functionTreeProvider,
-        messageRouter
+        functionTreeProvider
       );
     })
   );
@@ -132,7 +134,6 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
         textEditor
       );
       state.set("selectedFunction", selectedFunction);
-      messageRouter.updateState({ selectedFunction });
     })
   );
   {
@@ -144,30 +145,26 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     updateSourceState(
       localState.get("nativeSources"),
       state,
-      functionTreeProvider,
-      messageRouter
+      functionTreeProvider
     );
     const selectedFunction = initializeSelection(
       state.get("selectedFunction"),
       localState.get("nativeSources")
     );
     state.set("selectedFunction", selectedFunction);
-    messageRouter.updateState({ selectedFunction });
   }
 }
 
 /** Broadcast all changes to sources */
-function updateSourceState<R extends {}>(
+function updateSourceState(
   nativeSources: Readonly<SourceFileMap>,
   state: TypedMap<State>,
-  functionTreeProvider: ImaginaryFunctionProvider,
-  messageRouter: ImaginaryMessageRouter<R>
+  functionTreeProvider: ImaginaryFunctionProvider
 ) {
   const sources = makeSerializable(nativeSources);
 
   functionTreeProvider.update(nativeSources);
   state.set("sources", sources);
-  messageRouter.updateState({ sources });
 }
 
 function initializeSelection(
