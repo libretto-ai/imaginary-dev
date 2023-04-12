@@ -6,15 +6,15 @@ import {
 import ts from "typescript";
 import * as vscode from "vscode";
 import {
-  findTestCases,
+  findTestCase,
   updateSourceFileTestCaseOutput,
 } from "../src-shared/testcases";
 import { ExtensionHostState } from "./util/extension-state";
-import { SecretsProxy, SECRET_OPENAI_API_KEY } from "./util/secrets";
+import { SecretsProxy } from "./util/secrets";
 import { findNativeFunction } from "./util/source";
 import { State } from "./util/state";
+import { SourceFileMap } from "./util/ts-source";
 import { TypedMap } from "./util/types";
-import { findMatchingFunction } from "../src-shared/source-info";
 
 // THIS IS AN EXAMPLE FUNCTION TO SHOW HOW IMAGINARY FUNCTIONS WORK
 /**
@@ -26,7 +26,7 @@ import { findMatchingFunction } from "../src-shared/source-info";
 declare function getRandomZooAnimal(): Promise<string>;
 
 /**
- * This function takes in TypeScript function declarations and gives lists of good test data for those
+ * This function takes in a TypeScript function declaration and gives lists of good test data for those
  * functions. For each function passed in, it returns 5 full sets of test parameters. Each set of test data
  * has a value for each of the function's parameters (although the values can sometimes be null or undefined,
  * if the function specification allows it). Each of the arguments it gives is a JSON-compliant object or
@@ -53,6 +53,34 @@ declare function generateTestParametersForTypeScriptFunction(
   functionDeclaration: string
 ): Promise<Record<string, any>[]>;
 
+/**
+ * This function takes in a TypeScript function declaration as a string, and an
+ * example set of parameters that would be passed to that function. This
+ * combination of function and parameters is called a test case. This function returns
+ * a name for that test case.
+ *
+ * The test case name should be human-readable, descriptive, but terse. There will be many test
+ * cases for this function, so the name should be more descriptive of the
+ * paramters than the function itself.
+ *
+ * For instance for a function like this:
+ * ```
+ * function runQuery(tableName: string, queryString: string);
+ * ```
+ * and parameters like this:
+ * ```
+ *  { tableName: "people", queryString: "fred" }
+ * ```
+ *
+ * A good name for this case would be `people / fred`
+ *
+ * @imaginary
+ */
+declare function generateTestCaseName(
+  functionDeclaration: string,
+  parameters: Record<string, any>
+): Promise<string>;
+
 const OPENAI_API_SECRET_KEY = "openaiApiKey";
 export function makeRpcHandlers(
   extensionContext: vscode.ExtensionContext,
@@ -71,33 +99,12 @@ export function makeRpcHandlers(
       fileName: string;
       functionName: string;
     }) {
-      const functionInfo = findNativeFunction(
-        extensionLocalState.get("nativeSources"),
+      const nativeSources = extensionLocalState.get("nativeSources");
+      const imaginaryFunctionDefinition = generateFunctionDefinition(
+        nativeSources,
         fileName,
         functionName
       );
-      if (!functionInfo) {
-        console.error(
-          "failure 2",
-          `Unable to find function declaration for ${functionName} in ${fileName}`
-        );
-        throw new Error(
-          `Unable to find function declaration for ${functionName} in ${fileName}`
-        );
-      }
-      const { fn: fnDeclaration, sourceFile } = functionInfo;
-      console.log("getting comments from ", fnDeclaration, sourceFile);
-      const funcComment = getImaginaryTsDocComments(
-        fnDeclaration,
-        sourceFile
-      )[0];
-
-      const fn = findMatchingFunction(
-        state.get("sources"),
-        state.get("selectedFunction")
-      );
-
-      const imaginaryFunctionDefinition = funcComment + "\n" + fn?.declaration;
       return generateTestParametersForTypeScriptFunction(
         imaginaryFunctionDefinition
       );
@@ -116,19 +123,18 @@ export function makeRpcHandlers(
         "[Extension Host] ",
         `runTestCase: ${fileName}, ${functionName}, ${testCaseIndex}`
       );
-      const testCases = findTestCases(
-        state.get("testCases"),
+      const testCases = state.get("testCases");
+      const testCase = findTestCase(
+        testCases,
         fileName,
-        functionName
+        functionName,
+        testCaseIndex
       );
-      if (!testCases || testCaseIndex >= testCases.testCases.length) {
-        const message = `Trying to run test case #${testCaseIndex} with ${
-          testCases?.testCases.length ?? 0
-        } test cases`;
+      if (!testCase) {
+        const message = `Could not find test case #${testCaseIndex} for ${fileName} ${functionName}`;
         console.error(message);
         throw new Error(message);
       }
-      const testCase = testCases.testCases[testCaseIndex];
       const functionInfo = findNativeFunction(
         extensionLocalState.get("nativeSources"),
         fileName,
@@ -188,7 +194,92 @@ export function makeRpcHandlers(
     async clearApiKey() {
       await secretsProxy.clearSecret(OPENAI_API_SECRET_KEY);
     },
+
+    async guessTestName({
+      fileName,
+      functionName,
+      testCaseIndex,
+    }: {
+      fileName: string;
+      functionName: string;
+      testCaseIndex: number;
+    }) {
+      const functionInfo = findNativeFunction(
+        extensionLocalState.get("nativeSources"),
+        fileName,
+        functionName
+      );
+      const testCases = state.get("testCases");
+      const testCase = findTestCase(
+        testCases,
+        fileName,
+        functionName,
+        testCaseIndex
+      );
+      if (!testCase) {
+        const message = `Could not find test case #${testCaseIndex} for ${fileName} ${functionName}`;
+        console.error(message);
+        throw new Error(message);
+      }
+
+      if (!functionInfo) {
+        console.error(
+          "failure 2",
+          `Unable to find function declaration for ${functionName} in ${fileName}`
+        );
+        throw new Error(
+          `Unable to find function declaration for ${functionName} in ${fileName}`
+        );
+      }
+
+      const { fn: fnDeclaration, sourceFile } = functionInfo;
+      console.log("getting comments from ", fnDeclaration, sourceFile);
+      const imaginaryFunctionDefinition = generateFunctionDefinition(
+        extensionLocalState.get("nativeSources"),
+        fileName,
+        functionName
+      );
+      const testName = await generateTestCaseName(
+        imaginaryFunctionDefinition,
+        testCase.inputs
+      );
+      console.log("got test name = ", testName);
+      return testName;
+    },
   };
+}
+
+function generateFunctionDefinition(
+  nativeSources: SourceFileMap,
+  fileName: string,
+  functionName: string
+) {
+  const functionInfo = findNativeFunction(
+    nativeSources,
+    fileName,
+    functionName
+  );
+  if (!functionInfo) {
+    console.error(
+      "failure 2",
+      `Unable to find function declaration for ${functionName} in ${fileName}`
+    );
+    throw new Error(
+      `Unable to find function declaration for ${functionName} in ${fileName}`
+    );
+  }
+  const { fn: fnDeclaration, sourceFile } = functionInfo;
+  console.log("getting comments from ", fnDeclaration, sourceFile);
+
+  const printer = ts.createPrinter();
+  const printed = printer.printNode(
+    ts.EmitHint.Unspecified,
+    fnDeclaration,
+    sourceFile
+  );
+  console.log("comparing printed = ", printed);
+
+  return printed;
 }
 
 /** This just gets all the types as `any`, since we do not have a ts.TypeChecker available */
