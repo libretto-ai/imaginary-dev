@@ -1,7 +1,8 @@
 {
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist"
+    "outDir": "dist",
+    "plugins": [{ "transform": "@imaginary-dev/typescript-transformer" }]
   },
   "include": ["src", "src-shared"]
 }

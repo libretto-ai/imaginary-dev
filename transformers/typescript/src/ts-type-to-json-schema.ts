@@ -103,10 +103,9 @@ export const tsTypeToJsonSchema = (
     return { type: "null" };
   }
   if (type.getFlags() & ts.TypeFlags.Any) {
-    throw new NodeError(
-      `Imaginary function error: we do not yet support any types; just use string if you want something unstructured. (at path '${readablePath}')`,
-      node
-    );
+    return {
+      type: ["object", "string", "number", "boolean", "null", "array"],
+    };
   }
 
   if (type.getFlags() & ts.TypeFlags.Boolean) {

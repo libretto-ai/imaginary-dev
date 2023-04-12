@@ -31,7 +31,7 @@ describe("babelTypeToJsonSchema", () => {
     {
       type: t.tsAnyKeyword(),
       schema: {
-        type: "object",
+        type: ["object", "string", "number", "boolean", "null", "array"],
       },
     },
     {
