@@ -36,7 +36,6 @@ export const TestCaseEditor: FC<Props> = ({
         />
       ))}
       <TemperatureEditor />
-      <RunImaginaryFunctionButton selectedFunction={selectedFunction} />
     </div>
   );
 };
@@ -47,35 +46,5 @@ const TemperatureEditor: FC = () => {
       <p>Temperature</p>
       <p>(temperature editor here)</p>
     </div>
-  );
-};
-
-const RunImaginaryFunctionButton: FC<{
-  selectedFunction: SelectedFunction;
-}> = ({ selectedFunction }) => {
-  const [result, setResult] = useState("");
-  const { rpcProvider } = useExtensionState();
-  const { fileName, functionName } = selectedFunction;
-
-  const onRun = async () => {
-    try {
-      const zooAnimal = (await rpcProvider?.rpc(
-        "generateTestParametersForTypeScriptFunction",
-        {
-          fileName,
-          functionName,
-        }
-      )) as string;
-      setResult(JSON.stringify(zooAnimal));
-    } catch (ex) {
-      console.error(`Failure to run: ${ex}`, ex);
-    }
-  };
-
-  return (
-    <>
-      <div>{result}</div>
-      <VSCodeButton onClick={onRun}>Run Imaginary Function</VSCodeButton>
-    </>
   );
 };

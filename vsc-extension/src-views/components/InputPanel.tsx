@@ -3,11 +3,12 @@ import {
   VSCodeDropdown,
   VSCodeOption,
 } from "@vscode/webview-ui-toolkit/react";
-import React, { useCallback, useState } from "react";
+import React, { FC, useCallback, useState } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import {
   findMatchingFunction,
   FunctionTestCase,
+  SelectedFunction,
   SerializableFunctionDeclaration,
 } from "../../src-shared/source-info";
 import { addFunctionTestCase, findTestCases } from "../../src-shared/testcases";
@@ -18,6 +19,7 @@ import {
   testCasesState,
 } from "../shared/state";
 import { TestCaseEditor } from "./TestCaseEditor";
+import { useExtensionState } from "./ExtensionState";
 
 const blankTestCase = {
   name: "New test",
@@ -159,6 +161,7 @@ export const InputPanelForFunction = () => {
         selectedTestCaseIndex={selectedTestCaseIndex}
       />
       <VSCodeButton onClick={onAddTestCase}>Add test case</VSCodeButton>
+      <GenerateTestCasesButton selectedFunction={selectedFunction} />
     </div>
   );
 };
@@ -185,3 +188,33 @@ function formatTestCase(
   }
   return name;
 }
+
+const GenerateTestCasesButton: FC<{
+  selectedFunction: SelectedFunction;
+}> = ({ selectedFunction }) => {
+  const [result, setResult] = useState("");
+  const { rpcProvider } = useExtensionState();
+  const { fileName, functionName } = selectedFunction;
+
+  const onRun = async () => {
+    try {
+      const zooAnimal = (await rpcProvider?.rpc(
+        "generateTestParametersForTypeScriptFunction",
+        {
+          fileName,
+          functionName,
+        }
+      )) as string;
+      setResult(JSON.stringify(zooAnimal));
+    } catch (ex) {
+      console.error(`Failure to run: ${ex}`, ex);
+    }
+  };
+
+  return (
+    <>
+      <div>{result}</div>
+      <VSCodeButton onClick={onRun}>Run Imaginary Function</VSCodeButton>
+    </>
+  );
+};
