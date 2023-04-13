@@ -79,7 +79,7 @@ export function OutputPanel() {
           style={{
             display: "grid",
             alignContent: "start",
-            gridTemplateColumns: "auto 1fr 1fr 1fr",
+            gridTemplateColumns: "auto 1fr 1fr",
             margin: "12px",
             minWidth: "500px",
             width: "100%",
@@ -95,9 +95,9 @@ export function OutputPanel() {
           >
             Inputs
           </div>
-          <div style={{ fontSize: 16, fontWeight: "bolder" }}>
+          {/* <div style={{ fontSize: 16, fontWeight: "bolder" }}>
             Previous Outputs
-          </div>
+          </div> */}
           <div style={{ fontSize: 16, fontWeight: "bolder" }}>Output</div>
 
           {!!testCasesForSelectedFunction[testIndex] &&
@@ -116,7 +116,7 @@ export function OutputPanel() {
                   </div>
                   {index === 0 && (
                     <>
-                      <div
+                      {/* <div
                         style={{
                           margin: "6px",
                           gridRow: `2 / ${
@@ -132,7 +132,7 @@ export function OutputPanel() {
                             testCasesForSelectedFunction[testIndex].output.prev
                           )}
                         </code>
-                      </div>
+                      </div> */}
                       <div
                         style={{
                           margin: "6px",
@@ -141,7 +141,7 @@ export function OutputPanel() {
                               testCasesForSelectedFunction[testIndex].inputs
                             ).length + 2
                           }`,
-                          gridColumn: "4 / 5",
+                          gridColumn: "3 / 4",
                         }}
                       >
                         <code style={{ whiteSpace: "pre" }}>
