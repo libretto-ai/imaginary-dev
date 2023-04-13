@@ -91,6 +91,13 @@ export function tsNodeToJsonSchema(
               additionalProperties: tsNodeToJsonSchema(valueType, sourceFile),
             };
           }
+          if (node.typeName.text === "Array") {
+            const [itemType] = node.typeArguments ?? [];
+            return {
+              type: "array",
+              items: tsNodeToJsonSchema(itemType, sourceFile),
+            };
+          }
           return { type: node.typeName.text as JSONSchema7["type"] };
         }
         throw new Error(`Cannot handle qualified names`);
