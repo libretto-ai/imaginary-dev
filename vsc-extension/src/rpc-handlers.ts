@@ -243,7 +243,6 @@ export function makeRpcHandlers(
         );
       }
 
-      const { fn: fnDeclaration, sourceFile } = functionInfo;
       const imaginaryFunctionDefinition = generateFunctionDefinition(
         extensionLocalState.get("nativeSources"),
         fileName,
