@@ -76,6 +76,17 @@ const extensionConfig = {
           { loader: "css-loader", options: { sourceMap: true } },
         ],
       },
+      {
+        test: /\.(png|jpg|gif)$/i,
+        use: [
+          {
+            loader: "url-loader",
+            options: {
+              limit: 8192,
+            },
+          },
+        ],
+      },
     ],
   },
   // devtool: "nosources-source-map",
