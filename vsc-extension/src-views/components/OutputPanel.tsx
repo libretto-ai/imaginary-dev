@@ -3,8 +3,8 @@ import { useRecoilValue } from "recoil";
 import { findMatchingFunction } from "../../src-shared/source-info";
 import { selectedFunctionState, sourcesState } from "../shared/state";
 import { DebugPanel } from "./DebugPanel";
+import logo from "./favicon-32x32.png";
 import { TestCaseDashboard } from "./TestCaseDashboard";
-import ;
 export function OutputPanel() {
   const sources = useRecoilValue(sourcesState);
   const selectedFunction = useRecoilValue(selectedFunctionState);
@@ -25,9 +25,22 @@ export function OutputPanel() {
       {haveFn && (
         <TestCaseDashboard fn={fn} selectedFunction={selectedFunction} />
       )}
+      {!haveFn && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            flexDirection: "column",
+            justifyContent: "center",
+            flex: 1,
+            minHeight: "100vh",
+          }}
+        >
+          <img src={logo} />
+          <p>Please move your cursor into an imaginary function.</p>
+        </div>
+      )}
       <DebugPanel />
     </div>
   );
 }
-
-
