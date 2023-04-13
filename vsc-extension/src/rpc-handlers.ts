@@ -40,8 +40,9 @@ declare function getRandomZooAnimal(): Promise<string>;
  * If there is a useful, human-readable name for a test case, it is added as an element of the object with
  * the name __testName.
  *
- * The function is creative with the test inputs. It will come up with some easy inputs but others that
- *  will be tricky or difficult for the function to understand.
+ * The function is creative with the test inputs that it creates. It will come up with some easy inputs
+ * but others that will be tricky or difficult for the function to understand. The test inputs will have
+ * a bit of randomness introduced and will be meaningfully different from each other.
  *
  * The function also takes in an array of test inputs that already exist for the function. The return
  * value test inputs should not be similar to the ones that already exist.
@@ -54,7 +55,7 @@ declare function getRandomZooAnimal(): Promise<string>;
  * properties are the parameter names.
  *
  * @imaginary
- * @openai `{"model": "gpt-4"}`
+ * @openai `{"model": "gpt-4", "temperature": 0.5}`
  */
 declare function generateTestParametersForTypeScriptFunction(
   functionDeclaration: string,
