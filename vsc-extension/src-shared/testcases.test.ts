@@ -1,8 +1,9 @@
 import { FunctionTestCase, SourceFileTestCaseMap } from "./source-info";
 import {
   addFunctionTestCase,
+  blankTestCase,
   findTestCases,
-  updateSourcefileTestCaseInput,
+  updateSourceFileTestCase,
 } from "./testcases";
 
 describe("addFunctionTestCase", () => {
@@ -189,13 +190,19 @@ describe("updateSourcefileTestCase", () => {
     const index = 0;
     const paramName = "a";
     const value = 3;
-    const result = updateSourcefileTestCaseInput(
+    const result = updateSourceFileTestCase(
       sourceFileTestCases,
       sourceFileName,
       functionName,
       index,
-      paramName,
-      value
+      (prevTestCase) => ({
+        ...blankTestCase,
+        ...prevTestCase,
+        inputs: {
+          ...prevTestCase?.inputs,
+          [paramName]: value,
+        },
+      })
     );
 
     expect(result).toEqual({
@@ -229,13 +236,21 @@ describe("updateSourcefileTestCase", () => {
     const index = 0;
     const paramName = "a";
     const value = 1;
-    const result = updateSourcefileTestCaseInput(
+    const result = updateSourceFileTestCase(
       sourceFileTestCases,
       sourceFileName,
       functionName,
       index,
-      paramName,
-      value
+      (prevTestCase) => {
+        return {
+          ...blankTestCase,
+          ...prevTestCase,
+          inputs: {
+            ...prevTestCase?.inputs,
+            [paramName]: value,
+          },
+        };
+      }
     );
 
     expect(result).toEqual({
@@ -246,7 +261,7 @@ describe("updateSourcefileTestCase", () => {
             functionName: "newFunction",
             testCases: [
               {
-                name: "New test case",
+                name: "New test",
                 inputs: { a: 1 },
                 output: { prev: null, current: null },
               },
@@ -280,13 +295,18 @@ describe("updateSourcefileTestCase", () => {
     const index = 1;
     const paramName = "a";
     const value = 3;
-    const result = updateSourcefileTestCaseInput(
+    const result = updateSourceFileTestCase(
       sourceFileTestCases,
       sourceFileName,
       functionName,
       index,
-      paramName,
-      value
+      (prevTestCase) => ({
+        ...blankTestCase,
+        ...prevTestCase,
+        inputs: {
+          [paramName]: value,
+        },
+      })
     );
 
     expect(result).toEqual({
@@ -302,7 +322,7 @@ describe("updateSourcefileTestCase", () => {
                 output: { prev: null, current: null },
               },
               {
-                name: "New test case",
+                name: "New test",
                 inputs: { a: 3 },
                 output: { prev: null, current: null },
               },

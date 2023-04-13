@@ -9,9 +9,8 @@ import {
   findMatchingFunction,
   FunctionTestCase,
   SelectedFunction,
-  SerializableFunctionDeclaration,
 } from "../../src-shared/source-info";
-import { addFunctionTestCase, findTestCases } from "../../src-shared/testcases";
+import { addFunctionTestCase, blankTestCase } from "../../src-shared/testcases";
 import {
   selectedFunctionState,
   selectedTestCaseIndexState,
@@ -21,15 +20,6 @@ import {
 import { TestCaseEditor } from "./TestCaseEditor";
 import { useExtensionState } from "./ExtensionState";
 import { GenerateTestCasesButton } from "./GenerateTestCasesButton";
-
-const blankTestCase = {
-  name: "New test",
-  inputs: {},
-  output: {
-    prev: null,
-    current: null,
-  },
-};
 
 // wrapper designed to reset the InputPanel state when the selected function changes. see
 // https://react.dev/learn/you-might-not-need-an-effect#resetting-all-state-when-a-prop-changes
@@ -58,11 +48,11 @@ export const InputPanelForFunction = () => {
   const onUpdateTestCase = (paramName: string, value: string) => {
     setNewTestCase((prevTestCase) => {
       return {
-        name: prevTestCase.name,
-        inputs: Object.assign({}, prevTestCase.inputs, {
+        ...prevTestCase,
+        inputs: {
+          ...prevTestCase.inputs,
           [paramName]: value,
-        }),
-        output: prevTestCase.output,
+        },
       };
     });
   };
@@ -121,9 +111,7 @@ export const InputPanelForFunction = () => {
   if (!selectedFunction) {
     return <p>No function selected</p>;
   }
-  const { fileName, functionName } = selectedFunction;
 
-  const functionTestCases = findTestCases(testCases, fileName, functionName);
   const selectedFunctionInfo = findMatchingFunction(sources, selectedFunction);
   if (!selectedFunctionInfo) {
     console.log("could not find ", selectedFunction, " in ", sources);
@@ -133,27 +121,7 @@ export const InputPanelForFunction = () => {
       <div>
         Test cases for <code>{selectedFunction.functionName}</code>
       </div>
-      {!functionTestCases && (
-        <div>
-          <i>No test cases yet</i>
-        </div>
-      )}
-      {!!functionTestCases && (
-        <VSCodeDropdown
-          onChange={(e) => {
-            const indexStr = (e.target as HTMLOptionElement).value;
-            const index = parseInt(indexStr);
-            setSelectedTestCaseIndex(index);
-          }}
-          value={`${selectedTestCaseIndex}`}
-        >
-          {functionTestCases.testCases.map((testCase, index) => (
-            <VSCodeOption key={index} value={`${index}`}>
-              {formatTestCase(selectedFunctionInfo, testCase)}
-            </VSCodeOption>
-          ))}
-        </VSCodeDropdown>
-      )}
+
       <TestCaseEditor
         selectedFunctionInfo={selectedFunctionInfo}
         selectedTestCase={newTestCase}
@@ -165,26 +133,3 @@ export const InputPanelForFunction = () => {
     </div>
   );
 };
-
-function formatTestCase(
-  fnDecl: SerializableFunctionDeclaration | undefined,
-  testCase: FunctionTestCase
-) {
-  if (!fnDecl) {
-    return "<no declaration>";
-  }
-  if (fnDecl.parameters.length === 1) {
-    return testCase.inputs[fnDecl.parameters[0].name];
-  }
-  if (fnDecl.parameters.length === 0) {
-    return "<no parameters>";
-  }
-  const name = fnDecl.parameters
-    .filter((param) => param.name in testCase.inputs)
-    .map((param) => `${param.name}:${testCase.inputs[param.name]}`)
-    .join(",");
-  if (!name) {
-    return "<new>";
-  }
-  return name;
-}
