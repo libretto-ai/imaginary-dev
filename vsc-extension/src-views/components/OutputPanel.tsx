@@ -2,8 +2,9 @@ import React from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { findMatchingFunction } from "../../src-shared/source-info";
 import {
+  blankTestCase,
   findTestCases,
-  updateSourcefileTestCaseInput,
+  updateSourceFileTestCase,
 } from "../../src-shared/testcases";
 import {
   selectedFunctionState,
@@ -33,13 +34,19 @@ export function OutputPanel() {
     const { fileName, functionName } = selectedFunction;
 
     setTestCases((prevFileTestCases) => {
-      return updateSourcefileTestCaseInput(
+      return updateSourceFileTestCase(
         prevFileTestCases,
         fileName,
         functionName,
         testIndex,
-        paramName,
-        value
+        (prevTestCase) => ({
+          ...blankTestCase,
+          ...prevTestCase,
+          inputs: {
+            ...prevTestCase?.inputs,
+            [paramName]: value,
+          },
+        })
       );
     });
   };
@@ -52,7 +59,14 @@ export function OutputPanel() {
     )?.testCases ?? [];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "1rem",
+        marginTop: "1rem",
+      }}
+    >
       {!!fn && <code style={{ whiteSpace: "nowrap" }}>{fn.declaration}</code>}
       <div style={{ display: "flex", flexDirection: "row", gap: "1rem" }}>
         <TestCasesList

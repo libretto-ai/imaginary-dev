@@ -141,8 +141,19 @@ export class ReactWebViewProvider<
     let messageDispose: vscode.Disposable | null =
       this.webviewView.webview.onDidReceiveMessage((e: ImaginaryMessage) => {
         if (e.id === "rpc") {
-          const [message] = e.params;
-          this.rpcProvider.dispatch(message);
+          const [rpcMessage] = e.params;
+          if (rpcMessage.id === "resolve_transaction") {
+            console.log(
+              ` <= Return from call #${rpcMessage.transactionId}: `,
+              rpcMessage.payload
+            );
+          } else {
+            console.log(
+              ` => Calling ${rpcMessage.id} #${rpcMessage.transactionId} with parameters`,
+              rpcMessage.payload
+            );
+          }
+          this.rpcProvider.dispatch(rpcMessage);
         }
       });
     token.onCancellationRequested((e) => {

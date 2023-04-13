@@ -3,6 +3,8 @@ import { ServiceParameters } from "@imaginary-dev/util";
 export interface FunctionTestCase {
   /** Map of parameter name => value */
   name: string;
+  /** Set if the user manually sets the name */
+  hasCustomName?: boolean;
   inputs: Record<string, any>;
   /**
    * The outputs from running the function with these inputs
