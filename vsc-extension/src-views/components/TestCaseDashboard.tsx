@@ -1,4 +1,4 @@
-import React, { FC } from "react";
+import React, { FC, ReactNode } from "react";
 import { useRecoilState } from "recoil";
 import {
   SelectedFunction,
@@ -50,9 +50,30 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
       );
     });
   };
+  const formattedDeclaration = fn.declaration
+    .split(new RegExp(`\\b${fn.name}\\b`))
+    .flatMap<ReactNode>((segment, index) => {
+      if (index === 0) {
+        return [
+          <span data-index={index} key={index}>
+            {segment}
+          </span>,
+        ];
+      }
+      return [
+        <b data-index={index} key={`${index}-fn`}>
+          {fn.name}
+        </b>,
+        <span data-index={index} key={index}>
+          {segment}
+        </span>,
+      ];
+    });
   return (
     <>
-      {!!fn && <code style={{ whiteSpace: "nowrap" }}>{fn.declaration}</code>}
+      {!!fn && (
+        <code style={{ whiteSpace: "nowrap" }}>{formattedDeclaration}</code>
+      )}
       <div style={{ display: "flex", flexDirection: "row", gap: "1rem" }}>
         <TestCasesList
           testCases={testCasesForSelectedFunction}
