@@ -41,8 +41,6 @@ export const TestCasesList: FC<Props> = ({
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
-            gap: "1rem",
             backgroundColor:
               index === selectedIndex
                 ? "var(--list-active-selection-background)"
@@ -55,7 +53,13 @@ export const TestCasesList: FC<Props> = ({
             borderRadius: "5px",
           }}
         >
-          <span onClick={() => onSelect(index)}>{testCase.name}</span>
+          {/* special flex + padding to ensure whitespace is clickable */}
+          <span
+            style={{ flex: 1, paddingRight: "1rem" }}
+            onClick={() => onSelect(index)}
+          >
+            {testCase.name}
+          </span>
           <RunButton
             selectedFunction={selectedFunction}
             testCaseIndex={index}
