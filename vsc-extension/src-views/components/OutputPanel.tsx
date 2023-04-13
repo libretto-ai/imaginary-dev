@@ -91,6 +91,9 @@ export function OutputPanel() {
               gridColumnEnd: 3,
               fontSize: 16,
               fontWeight: "bolder",
+              position: "sticky",
+              top: 0,
+              backgroundColor: "var(--background)",
             }}
           >
             Inputs
@@ -98,13 +101,32 @@ export function OutputPanel() {
           {/* <div style={{ fontSize: 16, fontWeight: "bolder" }}>
             Previous Outputs
           </div> */}
-          <div style={{ fontSize: 16, fontWeight: "bolder" }}>Output</div>
+          <div
+            style={{
+              fontSize: 16,
+              fontWeight: "bolder",
+              position: "sticky",
+              top: 0,
+              backgroundColor: "var(--background)",
+            }}
+          >
+            Output
+          </div>
 
           {!!testCasesForSelectedFunction[testIndex] &&
             Object.entries(testCasesForSelectedFunction[testIndex].inputs).map(
               ([paramName, paramValue], index) => (
                 <>
-                  <div style={{ margin: "6px" }}>{paramName}</div>
+                  <div
+                    style={{
+                      margin: "6px",
+                      position: "sticky",
+                      top: "1.5rem",
+                      background: "var(--background)",
+                    }}
+                  >
+                    {paramName}
+                  </div>
                   <div style={{ margin: "6px" }}>
                     <ParamEditor
                       value={paramValue}
