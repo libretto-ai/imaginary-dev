@@ -47,6 +47,7 @@ export const GenerateTestCasesButton: FC<{
           functionName,
           {
             name: newTestCase.__testName,
+            hasCustomName: true,
             inputs: Object.assign({}, newTestCase, { __testName: undefined }),
             output: {
               prev: null,
