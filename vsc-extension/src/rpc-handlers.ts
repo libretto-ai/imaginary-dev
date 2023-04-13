@@ -43,7 +43,13 @@ declare function getRandomZooAnimal(): Promise<string>;
  * The function is creative with the test inputs. It will come up with some easy inputs but others that
  *  will be tricky or difficult for the function to understand.
  *
+ * The function also takes in an array of test inputs that already exist for the function. The return
+ * value test inputs should not be similar to the ones that already exist.
+ *
  * @param functionDeclaration - a TypeScript function declaration for which to make test parameters
+ * @param existingTestParameters - an array of test parameters that already exist for the function being
+ * passed in. none of the result should be similar to these.
+ *
  * @returns an array of 5 sets of test parameters. each set of test parameters is an object where the object
  * properties are the parameter names.
  *
@@ -51,7 +57,8 @@ declare function getRandomZooAnimal(): Promise<string>;
  * @openai `{"model": "gpt-4"}`
  */
 declare function generateTestParametersForTypeScriptFunction(
-  functionDeclaration: string
+  functionDeclaration: string,
+  existingTestParameters: Array<Record<string, any>>
 ): Promise<Record<string, any>[]>;
 
 /**
@@ -99,9 +106,11 @@ export function makeRpcHandlers(
     async generateTestParametersForTypeScriptFunction({
       fileName,
       functionName,
+      existingTestInputs,
     }: {
       fileName: string;
       functionName: string;
+      existingTestInputs: Array<Record<string, any>>;
     }) {
       const nativeSources = extensionLocalState.get("nativeSources");
       const imaginaryFunctionDefinition = generateFunctionDefinition(
@@ -110,7 +119,8 @@ export function makeRpcHandlers(
         functionName
       );
       return generateTestParametersForTypeScriptFunction(
-        imaginaryFunctionDefinition
+        imaginaryFunctionDefinition,
+        existingTestInputs
       );
     },
 

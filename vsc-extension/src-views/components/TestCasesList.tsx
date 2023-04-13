@@ -4,6 +4,7 @@ import {
   MaybeSelectedFunction,
 } from "../../src-shared/source-info";
 import { RunButton } from "./RunButton";
+import { GenerateTestCasesButton } from "./GenerateTestCasesButton";
 
 interface Props {
   testCases: FunctionTestCase[];
@@ -61,6 +62,7 @@ export const TestCasesList: FC<Props> = ({
           />
         </div>
       ))}
+      <GenerateTestCasesButton selectedFunction={selectedFunction} />
     </div>
   );
 };

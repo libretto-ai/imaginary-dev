@@ -2,13 +2,9 @@ import {
   isImaginaryCommentBlock,
   jsonSchemaToTypeScriptText,
   makeTSDocParser,
+  extractServiceParameters,
+  ServiceParameters,
 } from "@imaginary-dev/util";
-import {
-  TSDocConfiguration,
-  TSDocParser,
-  TSDocTagDefinition,
-  TSDocTagSyntaxKind,
-} from "@microsoft/tsdoc";
 import * as ts from "typescript";
 import jsonObjectToTsAst from "./json-object-to-ts-ast";
 import {
@@ -16,15 +12,6 @@ import {
   NodeError,
   tsTypeToJsonSchema,
 } from "./ts-type-to-json-schema";
-
-const tsdocConfig: TSDocConfiguration = new TSDocConfiguration();
-tsdocConfig.addTagDefinition(
-  new TSDocTagDefinition({
-    tagName: "@imaginary",
-    syntaxKind: TSDocTagSyntaxKind.ModifierTag,
-    allowMultiple: false,
-  })
-);
 
 const transformer =
   (program: ts.Program): ts.TransformerFactory<ts.SourceFile> =>
@@ -63,6 +50,11 @@ const transformer =
             if (imaginaryComments.length === 1) {
               const imaginaryComment = imaginaryComments[0];
 
+              const serviceParameters = extractServiceParameters(
+                makeTSDocParser(),
+                imaginaryComment
+              );
+
               const paramNames = node.parameters.map((paramDeclaration) =>
                 paramDeclaration.name.getText()
               );
@@ -90,6 +82,7 @@ const transformer =
                 imaginaryComment,
                 functionName,
                 paramsAsStrings,
+                serviceParameters,
                 promisedType,
                 typeChecker,
                 node
@@ -291,7 +284,7 @@ export function getImaginaryTsDocComments(
   ) ?? []) {
     const comment = sourceFile.getFullText().slice(pos, end);
 
-    const tsdocParser: TSDocParser = makeTSDocParser();
+    const tsdocParser = makeTSDocParser();
     const parsedComment = tsdocParser.parseString(comment);
 
     // Parse the function comment with TSDoc
@@ -316,6 +309,7 @@ function getASTForName(
   imaginaryComment: string,
   functionName: string,
   paramTypes: { name: string; type?: ts.Type }[],
+  serviceParameters: ServiceParameters,
   promisedType: ts.Type,
   typeChecker: ts.TypeChecker,
   node: ts.Node
@@ -374,6 +368,7 @@ function getASTForName(
                   ),
                   false
                 ),
+                jsonObjectToTsAst(serviceParameters),
               ]
             )
           )

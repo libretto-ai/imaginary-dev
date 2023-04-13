@@ -1,9 +1,14 @@
-import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
-import React, { useCallback, useState } from "react";
+import {
+  VSCodeButton,
+  VSCodeDropdown,
+  VSCodeOption,
+} from "@vscode/webview-ui-toolkit/react";
+import React, { FC, useCallback, useState } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import {
   findMatchingFunction,
   FunctionTestCase,
+  SelectedFunction,
 } from "../../src-shared/source-info";
 import { addFunctionTestCase, blankTestCase } from "../../src-shared/testcases";
 import {
@@ -13,6 +18,8 @@ import {
   testCasesState,
 } from "../shared/state";
 import { TestCaseEditor } from "./TestCaseEditor";
+import { useExtensionState } from "./ExtensionState";
+import { GenerateTestCasesButton } from "./GenerateTestCasesButton";
 
 // wrapper designed to reset the InputPanel state when the selected function changes. see
 // https://react.dev/learn/you-might-not-need-an-effect#resetting-all-state-when-a-prop-changes
