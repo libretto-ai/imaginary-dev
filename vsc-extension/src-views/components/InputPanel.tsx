@@ -20,6 +20,7 @@ import {
 } from "../shared/state";
 import { TestCaseEditor } from "./TestCaseEditor";
 import { useExtensionState } from "./ExtensionState";
+import { GenerateTestCasesButton } from "./GenerateTestCasesButton";
 
 const blankTestCase = {
   name: "New test",
@@ -161,7 +162,6 @@ export const InputPanelForFunction = () => {
         selectedTestCaseIndex={selectedTestCaseIndex}
       />
       <VSCodeButton onClick={onAddTestCase}>Add test case</VSCodeButton>
-      <GenerateTestCasesButton selectedFunction={selectedFunction} />
     </div>
   );
 };
@@ -188,33 +188,3 @@ function formatTestCase(
   }
   return name;
 }
-
-const GenerateTestCasesButton: FC<{
-  selectedFunction: SelectedFunction;
-}> = ({ selectedFunction }) => {
-  const [result, setResult] = useState("");
-  const { rpcProvider } = useExtensionState();
-  const { fileName, functionName } = selectedFunction;
-
-  const onRun = async () => {
-    try {
-      const zooAnimal = (await rpcProvider?.rpc(
-        "generateTestParametersForTypeScriptFunction",
-        {
-          fileName,
-          functionName,
-        }
-      )) as string;
-      setResult(JSON.stringify(zooAnimal));
-    } catch (ex) {
-      console.error(`Failure to run: ${ex}`, ex);
-    }
-  };
-
-  return (
-    <>
-      <div>{result}</div>
-      <VSCodeButton onClick={onRun}>Run Imaginary Function</VSCodeButton>
-    </>
-  );
-};
