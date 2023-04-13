@@ -9,7 +9,7 @@ import { makeImaginaryNextFunction } from "@imaginary-dev/nextjs-util";
  *
  * @imaginary
  */
-declare function titleForBlogPost(blogPostText: string): Promise<Array<string>>;
+declare function titleForBlogPost(blogPostText: string): Promise<string[]>;
 
 export default makeImaginaryNextFunction(
   titleForBlogPost,
