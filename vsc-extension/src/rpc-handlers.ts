@@ -150,7 +150,6 @@ export function makeRpcHandlers(
         throw new Error(message);
       }
       const { fn, sourceFile } = functionInfo;
-      console.info("getting comments from ", fn, sourceFile);
       const funcComment = getImaginaryTsDocComments(fn, sourceFile)[0];
 
       console.info("getting api key");
@@ -241,7 +240,6 @@ export function makeRpcHandlers(
       }
 
       const { fn: fnDeclaration, sourceFile } = functionInfo;
-      console.log("getting comments from ", fnDeclaration, sourceFile);
       const imaginaryFunctionDefinition = generateFunctionDefinition(
         extensionLocalState.get("nativeSources"),
         fileName,
@@ -294,7 +292,6 @@ function generateFunctionDefinition(
     );
   }
   const { fn: fnDeclaration, sourceFile } = functionInfo;
-  console.log("getting comments from ", fnDeclaration, sourceFile);
 
   const printer = ts.createPrinter();
   const printed = printer.printNode(
@@ -302,7 +299,6 @@ function generateFunctionDefinition(
     fnDeclaration,
     sourceFile
   );
-  console.log("comparing printed = ", printed);
 
   return printed;
 }
