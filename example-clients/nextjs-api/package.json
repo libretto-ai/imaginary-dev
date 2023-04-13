@@ -16,7 +16,7 @@
     "@imaginary-dev/babel-transformer": "*",
     "@imaginary-dev/runtime": "*",
     "@types/node": "16",
-    "eslint": "^8.36.0"
+    "eslint": "^8.38.0"
   },
   "dependencies": {
     "@imaginary-dev/nextjs-util": "*",
