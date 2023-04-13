@@ -6,6 +6,7 @@ import {
 import ts from "typescript";
 import * as vscode from "vscode";
 import {
+  blankTestCase,
   findTestCase,
   updateSourceFileTestCase,
 } from "../src-shared/testcases";
@@ -185,8 +186,7 @@ export function makeRpcHandlers(
             functionName,
             testCaseIndex,
             (prevTestCase) => ({
-              name: "New test case",
-              inputs: {},
+              ...blankTestCase,
               ...prevTestCase,
               output: result,
             })
@@ -261,8 +261,7 @@ export function makeRpcHandlers(
             functionName,
             testCaseIndex,
             (prevTestCase) => ({
-              inputs: {},
-              output: { current: null, prev: null },
+              ...blankTestCase,
               ...prevTestCase,
               hasCustomName: true,
               name: testName,

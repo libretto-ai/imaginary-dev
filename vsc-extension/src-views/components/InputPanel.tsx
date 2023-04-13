@@ -10,7 +10,11 @@ import {
   FunctionTestCase,
   SerializableFunctionDeclaration,
 } from "../../src-shared/source-info";
-import { addFunctionTestCase, findTestCases } from "../../src-shared/testcases";
+import {
+  addFunctionTestCase,
+  blankTestCase,
+  findTestCases,
+} from "../../src-shared/testcases";
 import {
   selectedFunctionState,
   selectedTestCaseIndexState,
@@ -18,15 +22,6 @@ import {
   testCasesState,
 } from "../shared/state";
 import { TestCaseEditor } from "./TestCaseEditor";
-
-const blankTestCase: FunctionTestCase = {
-  name: "New test",
-  inputs: {},
-  output: {
-    prev: null,
-    current: null,
-  },
-};
 
 // wrapper designed to reset the InputPanel state when the selected function changes. see
 // https://react.dev/learn/you-might-not-need-an-effect#resetting-all-state-when-a-prop-changes

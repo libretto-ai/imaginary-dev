@@ -1,6 +1,7 @@
 import { FunctionTestCase, SourceFileTestCaseMap } from "./source-info";
 import {
   addFunctionTestCase,
+  blankTestCase,
   findTestCases,
   updateSourceFileTestCase,
 } from "./testcases";
@@ -195,8 +196,7 @@ describe("updateSourcefileTestCase", () => {
       functionName,
       index,
       (prevTestCase) => ({
-        name: "New test case",
-        output: { prev: null, current: null },
+        ...blankTestCase,
         ...prevTestCase,
         inputs: {
           ...prevTestCase?.inputs,
@@ -243,8 +243,7 @@ describe("updateSourcefileTestCase", () => {
       index,
       (prevTestCase) => {
         return {
-          name: "New test case",
-          output: { prev: null, current: null },
+          ...blankTestCase,
           ...prevTestCase,
           inputs: {
             ...prevTestCase?.inputs,
@@ -262,7 +261,7 @@ describe("updateSourcefileTestCase", () => {
             functionName: "newFunction",
             testCases: [
               {
-                name: "New test case",
+                name: "New test",
                 inputs: { a: 1 },
                 output: { prev: null, current: null },
               },
@@ -302,8 +301,7 @@ describe("updateSourcefileTestCase", () => {
       functionName,
       index,
       (prevTestCase) => ({
-        name: "New test case",
-        output: { prev: null, current: null },
+        ...blankTestCase,
         ...prevTestCase,
         inputs: {
           [paramName]: value,
@@ -324,7 +322,7 @@ describe("updateSourcefileTestCase", () => {
                 output: { prev: null, current: null },
               },
               {
-                name: "New test case",
+                name: "New test",
                 inputs: { a: 3 },
                 output: { prev: null, current: null },
               },

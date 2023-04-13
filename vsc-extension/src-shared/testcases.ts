@@ -5,6 +5,15 @@ import {
   SourceFileTestCaseMap,
 } from "./source-info";
 
+export const blankTestCase: FunctionTestCase = {
+  name: "New test",
+  inputs: {},
+  output: {
+    prev: null,
+    current: null,
+  },
+};
+
 export function addFunctionTestCase(
   testCases: SourceFileTestCaseMap,
   sourceFileName: string,
