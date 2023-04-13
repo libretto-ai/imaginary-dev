@@ -119,11 +119,11 @@ export function OutputPanel() {
                       <div
                         style={{
                           margin: "6px",
-                          gridRow:
-                            "2 / " +
-                            testCasesForSelectedFunction[testIndex].inputs
-                              .length +
-                            2,
+                          gridRow: `2 / ${
+                            Object.entries(
+                              testCasesForSelectedFunction[testIndex].inputs
+                            ).length + 2
+                          }`,
                           gridColumn: "3 / 4",
                         }}
                       >
@@ -136,11 +136,11 @@ export function OutputPanel() {
                       <div
                         style={{
                           margin: "6px",
-                          gridRow:
-                            "2 / " +
-                            testCasesForSelectedFunction[testIndex].inputs
-                              .length +
-                            2,
+                          gridRow: `2 / ${
+                            Object.entries(
+                              testCasesForSelectedFunction[testIndex].inputs
+                            ).length + 2
+                          }`,
                           gridColumn: "4 / 5",
                         }}
                       >
