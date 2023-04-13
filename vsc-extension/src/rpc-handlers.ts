@@ -124,7 +124,6 @@ export function makeRpcHandlers(
       testCaseIndex: number;
     }) {
       console.log(
-        "[Extension Host] ",
         `runTestCase: ${fileName}, ${functionName}, ${testCaseIndex}`
       );
       const testCases = state.get("testCases");

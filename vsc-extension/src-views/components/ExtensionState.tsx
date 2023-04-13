@@ -36,18 +36,30 @@ function useExtensionStateInternal() {
     window.addEventListener("message", (event) => {
       const message: ImaginaryMessage = event.data;
 
-      console.log(
-        `[${window.origin}] Got ${message.id} from ${event.origin} /`,
-        event
-      );
       if (message.id === "rpc") {
         // Called when we get a response from a call - rpcMessage will be the resolution of the promise
         const [rpcMessage, transfer] = message.params;
+        if (rpcMessage.id === "resolve_transaction") {
+          console.log(
+            `[${window.origin}] <= Return from call #${rpcMessage.transactionId}: `,
+            rpcMessage.payload
+          );
+        } else {
+          console.log(
+            `[${window.origin}] => Calling ${rpcMessage.id} #${rpcMessage.transactionId} with parameters`,
+            rpcMessage.payload
+          );
+        }
         if (transfer?.length) {
           console.error("Unexpected transfer param from 'rpc' message");
         }
         rpcProvider.dispatch(rpcMessage);
         return;
+      } else {
+        console.log(
+          `[${window.origin}] Got "${message.id}" from ${event.origin} /`,
+          event
+        );
       }
       console.error("unknown message recieved");
     });
