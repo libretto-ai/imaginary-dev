@@ -68,7 +68,7 @@ declare function generateTestParametersForTypeScriptFunction(
  * combination of function and parameters is called a test case. This function
  * returns a name for that test case.
  *
- * The test case name should be human-readable, descriptive, but terse. There
+ * The test case name should be human-readable, descriptive, but terse, no more than 4 words. There
  * will be many test cases for this function, so the name should be much more
  * descriptive of the paramters than the function itself.
  *
@@ -91,7 +91,7 @@ declare function generateTestParametersForTypeScriptFunction(
  * ```
  * and parameters like this:
  * ```
- *  { tableName: "people", queryString: "fred" }
+ *  { tableName: "people", queryString: "fred flinstone" }
  * ```
  *
  * A good name for this case would be `people / fred`
