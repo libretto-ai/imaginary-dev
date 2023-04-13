@@ -19,6 +19,11 @@ export const RunButton: FC<{
         functionName,
         testCaseIndex,
       });
+      await rpcProvider?.rpc("guessTestName", {
+        fileName,
+        functionName,
+        testCaseIndex,
+      });
     } catch (ex) {
       console.error(`Failure to run: ${ex}`, ex);
     } finally {
