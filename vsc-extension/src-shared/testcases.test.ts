@@ -2,7 +2,7 @@ import { FunctionTestCase, SourceFileTestCaseMap } from "./source-info";
 import {
   addFunctionTestCase,
   findTestCases,
-  updateSourcefileTestCaseInput,
+  updateSourceFileTestCase,
 } from "./testcases";
 
 describe("addFunctionTestCase", () => {
@@ -189,13 +189,20 @@ describe("updateSourcefileTestCase", () => {
     const index = 0;
     const paramName = "a";
     const value = 3;
-    const result = updateSourcefileTestCaseInput(
+    const result = updateSourceFileTestCase(
       sourceFileTestCases,
       sourceFileName,
       functionName,
       index,
-      paramName,
-      value
+      (prevTestCase) => ({
+        name: "New test case",
+        output: { prev: null, current: null },
+        ...prevTestCase,
+        inputs: {
+          ...prevTestCase?.inputs,
+          [paramName]: value,
+        },
+      })
     );
 
     expect(result).toEqual({
@@ -229,13 +236,22 @@ describe("updateSourcefileTestCase", () => {
     const index = 0;
     const paramName = "a";
     const value = 1;
-    const result = updateSourcefileTestCaseInput(
+    const result = updateSourceFileTestCase(
       sourceFileTestCases,
       sourceFileName,
       functionName,
       index,
-      paramName,
-      value
+      (prevTestCase) => {
+        return {
+          name: "New test case",
+          output: { prev: null, current: null },
+          ...prevTestCase,
+          inputs: {
+            ...prevTestCase?.inputs,
+            [paramName]: value,
+          },
+        };
+      }
     );
 
     expect(result).toEqual({
@@ -280,13 +296,19 @@ describe("updateSourcefileTestCase", () => {
     const index = 1;
     const paramName = "a";
     const value = 3;
-    const result = updateSourcefileTestCaseInput(
+    const result = updateSourceFileTestCase(
       sourceFileTestCases,
       sourceFileName,
       functionName,
       index,
-      paramName,
-      value
+      (prevTestCase) => ({
+        name: "New test case",
+        output: { prev: null, current: null },
+        ...prevTestCase,
+        inputs: {
+          [paramName]: value,
+        },
+      })
     );
 
     expect(result).toEqual({

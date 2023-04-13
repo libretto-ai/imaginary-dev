@@ -8,7 +8,6 @@ import * as vscode from "vscode";
 import {
   findTestCase,
   updateSourceFileTestCase,
-  updateSourceFileTestCaseOutput,
 } from "../src-shared/testcases";
 import { ExtensionHostState } from "./util/extension-state";
 import { SecretsProxy } from "./util/secrets";
@@ -180,12 +179,17 @@ export function makeRpcHandlers(
         console.log("got result: ", typeof result, ": ", result);
         state.set(
           "testCases",
-          updateSourceFileTestCaseOutput(
+          updateSourceFileTestCase(
             state.get("testCases"),
             fileName,
             functionName,
             testCaseIndex,
-            result
+            (prevTestCase) => ({
+              name: "New test case",
+              inputs: {},
+              ...prevTestCase,
+              output: result,
+            })
           )
         );
         return result;
@@ -256,13 +260,13 @@ export function makeRpcHandlers(
             fileName,
             functionName,
             testCaseIndex,
-            (prevTestCase) => {
-              return {
-                ...prevTestCase,
-                hasCustomName: true,
-                name: testName,
-              };
-            }
+            (prevTestCase) => ({
+              inputs: {},
+              output: { current: null, prev: null },
+              ...prevTestCase,
+              hasCustomName: true,
+              name: testName,
+            })
           )
         );
       }
