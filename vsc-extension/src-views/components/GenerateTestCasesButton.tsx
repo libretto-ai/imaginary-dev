@@ -3,7 +3,7 @@ import { SelectedFunction } from "../../src-shared/source-info";
 import { useExtensionState } from "./ExtensionState";
 import { testCasesState } from "../shared/state";
 import React, { FC, useState } from "react";
-import { addFunctionTestCase } from "../../src-shared/testcases";
+import { addFunctionTestCase, findTestCases } from "../../src-shared/testcases";
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 
 export const GenerateTestCasesButton: FC<{
@@ -18,11 +18,21 @@ export const GenerateTestCasesButton: FC<{
     try {
       setLoading(true);
 
+      const testCasesForSelectedFunction =
+        findTestCases(
+          testCases,
+          selectedFunction?.fileName,
+          selectedFunction?.functionName
+        )?.testCases ?? [];
+
       const newTestCases = (await rpcProvider?.rpc(
         "generateTestParametersForTypeScriptFunction",
         {
           fileName,
           functionName,
+          existingTestInputs: testCasesForSelectedFunction.map(
+            ({ inputs }) => inputs
+          ),
         }
       )) as Array<{ __testName: string } & Record<string, any>>;
 
