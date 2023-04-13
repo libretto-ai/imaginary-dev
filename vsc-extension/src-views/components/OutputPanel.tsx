@@ -125,6 +125,7 @@ export function OutputPanel() {
                             ).length + 2
                           }`,
                           gridColumn: "3 / 4",
+                          overflow: "scroll",
                         }}
                       >
                         <code style={{ whiteSpace: "pre" }}>
@@ -142,6 +143,7 @@ export function OutputPanel() {
                             ).length + 2
                           }`,
                           gridColumn: "3 / 4",
+                          overflow: "scroll",
                         }}
                       >
                         <code style={{ whiteSpace: "pre" }}>

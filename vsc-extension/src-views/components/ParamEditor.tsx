@@ -11,6 +11,8 @@ export const ParamEditor: FC<{
   return (
     <VSCodeTextArea
       style={{ flex: 1, width: "100%", height: "auto" }}
+      rows={7}
+      resize="vertical"
       value={valueToDisplay}
       onChange={(e: any) => onChange(e.target.value)}
     />
