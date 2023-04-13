@@ -59,7 +59,14 @@ export function OutputPanel() {
     )?.testCases ?? [];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "1rem",
+        marginTop: "1rem",
+      }}
+    >
       {!!fn && <code style={{ whiteSpace: "nowrap" }}>{fn.declaration}</code>}
       <div style={{ display: "flex", flexDirection: "row", gap: "1rem" }}>
         <TestCasesList
