@@ -3,8 +3,8 @@ import {
   FunctionTestCase,
   MaybeSelectedFunction,
 } from "../../src-shared/source-info";
-import { RunButton } from "./RunButton";
 import { GenerateTestCasesButton } from "./GenerateTestCasesButton";
+import { RunButton } from "./RunButton";
 
 interface Props {
   testCases: FunctionTestCase[];
@@ -53,9 +53,9 @@ export const TestCasesList: FC<Props> = ({
             borderRadius: "5px",
           }}
         >
-          {/* special flex + padding to ensure whitespace is clickable */}
+          {/* special flex + padding to ensure whitespace is clickable, even if test name is blank */}
           <span
-            style={{ flex: 1, paddingRight: "1rem" }}
+            style={{ flex: 1, paddingRight: "1rem", height: "100%" }}
             onClick={() => onSelect(index)}
           >
             {testCase.name}
