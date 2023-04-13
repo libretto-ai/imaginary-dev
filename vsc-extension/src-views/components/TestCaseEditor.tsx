@@ -35,7 +35,7 @@ export const TestCaseEditor: FC<Props> = ({
           selectedTestCaseIndex={selectedTestCaseIndex}
         />
       ))}
-      <TemperatureEditor />
+      {/* <TemperatureEditor /> */}
     </div>
   );
 };
