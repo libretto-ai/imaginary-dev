@@ -69,11 +69,21 @@ declare function generateTestParametersForTypeScriptFunction(
  * returns a name for that test case.
  *
  * The test case name should be human-readable, descriptive, but terse. There
- * will be many test cases for this function, so the name should be more
+ * will be many test cases for this function, so the name should be much more
  * descriptive of the paramters than the function itself.
  *
  * For test cases with a single, primitive parameter, the name should just be
  * the value of that parameter as a english, human-readable string of no more than 4 words.
+ *
+ * For example, with a function with one parameter like:
+ * ```
+ * function guessAName(location: string);
+ * ```
+ * and parameters like this:
+ * ```
+ *  { location: "Spain" }
+ * ```
+ * A good name for this case would be `Spain`.
  *
  * For a more complex example, with a function like:
  * ```
