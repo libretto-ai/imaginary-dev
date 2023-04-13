@@ -187,7 +187,11 @@ export function makeRpcHandlers(
             (prevTestCase) => ({
               ...blankTestCase,
               ...prevTestCase,
-              output: result,
+              output: {
+                ...blankTestCase.output,
+                ...prevTestCase?.output,
+                current: result,
+              },
             })
           )
         );
