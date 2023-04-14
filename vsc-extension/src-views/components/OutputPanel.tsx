@@ -1,9 +1,9 @@
 import React from "react";
 import { useRecoilValue } from "recoil";
+import logo from "../../resources/favicon-32x32.png";
 import { findMatchingFunction } from "../../src-shared/source-info";
 import { selectedFunctionState, sourcesState } from "../shared/state";
 import { DebugPanel } from "./DebugPanel";
-import logo from "./favicon-32x32.png";
 import { TestCaseDashboard } from "./TestCaseDashboard";
 export function OutputPanel() {
   const sources = useRecoilValue(sourcesState);
