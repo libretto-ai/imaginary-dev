@@ -16,5 +16,5 @@
     "rootDir": ".",
     "plugins": [{ "transform": "@imaginary-dev/typescript-transformer" }]
   },
-  "include": ["src-views", "src-shared"]
+  "include": ["types.d.ts", "src-views", "src-shared"]
 }
