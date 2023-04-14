@@ -12,7 +12,7 @@ export default function Home() {
   const [blogText, setBlogText] = useState<string>("");
   const [textWhenTitleWasAsked, setTextWhentTitleWasAsked] =
     useState<string>("");
-  const [suggestedTitles, setSuggestedTitles] = useState<string[]>([]);
+  const [suggestedTitles, setSuggestedTitles] = useState<string[] | null>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
   const [addParagraphLoading, setAddParagraphLoading] = useState(false);
@@ -103,7 +103,7 @@ export default function Home() {
               </div>
               <div className="text-s mb-3">
                 Suggested titles:{" "}
-                {suggestedTitles.length ? (
+                {suggestedTitles?.length ? (
                   <TitleList
                     onSelectTitle={setBlogTitle}
                     titles={suggestedTitles}
