@@ -122,7 +122,7 @@ export class ReactWebViewProvider<
           <title>React Webview Provider: ${this.viewId}</title>
           <meta
             http-equiv="Content-Security-Policy"
-            content="default-src 'none'; img-src vscode-resource: https:; script-src 'nonce-${nonce}';style-src vscode-resource: 'unsafe-inline' http: https: data:;font-src ${webview.cspSource};"
+            content="default-src 'none'; img-src vscode-resource: https: data:; script-src 'nonce-${nonce}';style-src vscode-resource: 'unsafe-inline' http: https: data:;font-src ${webview.cspSource};"
           />
           <base
             href="${extensionRoot
