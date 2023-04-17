@@ -12,7 +12,7 @@ export interface ApiResult<R> {
 // this should be defined by next/server, but I don't see a definition.
 type NextRouteHandler = (
   req: NextRequest
-) => NextResponse | Promise<NextResponse> | undefined | Promise<undefined>;
+) => Response | Promise<Response> | undefined | Promise<undefined>;
 
 /**
  * Wrap an imaginary function into a nextjs endpoint.
@@ -64,15 +64,15 @@ function createJsonResponse(
   body: any,
   init?: ResponseInit
 ) {
-  if (typeof res.status === "number") {
-    // res is NextResponse, we return a json response from NextResponse static method
-    return NextResponse.json(body, init);
-  } else {
+  if (typeof res.status === "function") {
     // we don't have any way of dealing with other init values in NextApiResponse.
     const status = init?.status ?? 200;
     res.status(status).json(body);
     // note we do not return anything here, deliberately. pre-next 13 api routes do not
     // return a value.
+  } else {
+    // @ts-expect-error This is not in lib/dom right now, and we can't augment it.
+    return Response.json(body, init);
   }
 }
 
