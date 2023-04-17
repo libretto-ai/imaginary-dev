@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { makeNextjsHandler } from "./server";
+import { NextRequest } from "next/server";
 /**
  * Sample Imaginary function
  * @imaginary
@@ -19,7 +20,7 @@ describe("makeNextjsHandler", () => {
     } as unknown as NextApiResponse;
     const req = {
       query: { args: JSON.stringify("x") },
-    } as unknown as NextApiRequest;
+    } as unknown as NextApiRequest & NextRequest;
     await wrapper(req, res);
     expect(emojifySpy).toBeCalledWith("x");
   });
@@ -33,7 +34,7 @@ describe("makeNextjsHandler", () => {
     } as unknown as NextApiResponse;
     const req = {
       query: {},
-    } as unknown as NextApiRequest;
+    } as unknown as NextApiRequest & NextRequest;
     await wrapper(req, res);
     expect(res.status).toBeCalledWith(400);
     expect(res.json).toBeCalledWith({
