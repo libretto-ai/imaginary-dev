@@ -71,9 +71,23 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
     });
   return (
     <>
-      {!!fn && (
-        <code style={{ whiteSpace: "nowrap" }}>{formattedDeclaration}</code>
-      )}
+      <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+        <b style={{ fontSize: "20px" }}>Function:</b>
+        <div
+          style={{
+            paddingTop: "0.5rem",
+            paddingBottom: "0.5rem",
+            paddingLeft: "1rem",
+            paddingRight: "1rem",
+            backgroundColor: "var(--vscode-editor-inactiveSelectionBackground)",
+            borderColor: "var(--checkbox-border)",
+            borderWidth: "var(--border-width)",
+            borderStyle: "solid",
+          }}
+        >
+          <code style={{ whiteSpace: "nowrap" }}>{formattedDeclaration}</code>
+        </div>
+      </div>
       <div style={{ display: "flex", flexDirection: "row", gap: "1rem" }}>
         <TestCasesList
           testCases={testCasesForSelectedFunction}
