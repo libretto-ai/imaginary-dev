@@ -55,7 +55,7 @@ export const TestCasesList: FC<Props> = ({
         >
           {/* special flex + padding to ensure whitespace is clickable, even if test name is blank */}
           <span
-            style={{ flex: 1, paddingRight: "1rem", height: "100%" }}
+            style={{ flex: 1, paddingRight: "1rem" }}
             onClick={() => onSelect(index)}
           >
             {testCase.name}

@@ -8,13 +8,13 @@ import { makeRpcHandlers } from "./rpc-handlers";
 import { focusNode, getEditorSelectedFunction } from "./util/editor";
 import { ExtensionHostState } from "./util/extension-state";
 import { registerWebView } from "./util/react-webview-provider";
+import { SecretsProxy, SECRET_OPENAI_API_KEY } from "./util/secrets";
 import { makeSerializable } from "./util/serialize-source";
 import { removeFile, updateFile } from "./util/source";
 import { State } from "./util/state";
 import { SourceFileMap } from "./util/ts-source";
 import { TypedMap } from "./util/types";
-import { SECRET_OPENAI_API_KEY, SecretsProxy } from "./util/secrets";
-import { createWatchedMap } from "./util/watched-map";
+import { createWatchedMap, TypedMapWithEvent } from "./util/watched-map";
 
 const initialState: State = {
   "app.debugMode": false,
@@ -146,23 +146,30 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
       state.set("selectedFunction", selectedFunction);
     })
   );
-  {
-    const newSources = initializeOpenEditors(
-      localState.get("nativeSources"),
-      functionTreeProvider
-    );
-    localState.set("nativeSources", newSources);
-    updateSourceState(
-      localState.get("nativeSources"),
-      state,
-      functionTreeProvider
-    );
-    const selectedFunction = initializeSelection(
-      state.get("selectedFunction"),
-      localState.get("nativeSources")
-    );
-    state.set("selectedFunction", selectedFunction);
-  }
+  initializeExtensionState(localState, state, functionTreeProvider);
+}
+
+async function initializeExtensionState(
+  localState: TypedMap<ExtensionHostState>,
+  state: TypedMapWithEvent<State>,
+  functionTreeProvider: ImaginaryFunctionProvider
+) {
+  const newSources = initializeOpenEditors(
+    localState.get("nativeSources"),
+    functionTreeProvider
+  );
+  localState.set("nativeSources", newSources);
+  updateSourceState(
+    localState.get("nativeSources"),
+    state,
+    functionTreeProvider
+  );
+
+  const selectedFunction = initializeSelection(
+    state.get("selectedFunction"),
+    localState.get("nativeSources")
+  );
+  state.set("selectedFunction", selectedFunction);
 }
 
 /** Broadcast all changes to sources */
