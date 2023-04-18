@@ -12,6 +12,14 @@ export function getRelativePathToProject(absPath: string) {
   return absPath;
 }
 
+export function getAbsolutePathInProject(relPath: string) {
+  const u = vscode.workspace.workspaceFolders?.[0].uri;
+  if (!u) {
+    throw new Error(`Cannot find path without workspace`);
+  }
+  return vscode.Uri.joinPath(u, relPath).fsPath;
+}
+
 /**
  * Open an editor with the cursor at the start of the function
  * @param decl The AST node to put the cursor at

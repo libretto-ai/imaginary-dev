@@ -25,11 +25,7 @@ export function updateFile(
   prevSources: Readonly<SourceFileMap>,
   document: vscode.TextDocument
 ): Readonly<SourceFileMap> {
-  if (
-    (document.languageId !== "typescript" &&
-      document.languageId !== "typescriptreact") ||
-    document.uri.scheme === "git"
-  ) {
+  if (!couldContainImaginaryFunctions(document)) {
     console.log("skipping because ", document.languageId);
     return prevSources;
   }
@@ -53,6 +49,14 @@ export function updateFile(
       sourceFile,
     },
   };
+}
+
+export function couldContainImaginaryFunctions(document: vscode.TextDocument) {
+  return (
+    (document.languageId === "typescript" ||
+      document.languageId === "typescriptreact") &&
+    document.uri.scheme !== "git"
+  );
 }
 
 export function findNativeFunction(

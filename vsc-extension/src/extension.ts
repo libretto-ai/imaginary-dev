@@ -1,16 +1,32 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
+import fs from "node:fs/promises";
+import path from "node:path";
 import * as vscode from "vscode";
-import { MaybeSelectedFunction } from "../src-shared/source-info";
+import {
+  FunctionTestCases,
+  MaybeSelectedFunction,
+  SourceFileTestCaseMap,
+  SourceFileTestCases,
+} from "../src-shared/source-info";
 import { ImaginaryFunctionProvider } from "./function-tree-provider";
 import { ImaginaryMessageRouter } from "./imaginary-message-router";
 import { makeRpcHandlers } from "./rpc-handlers";
-import { focusNode, getEditorSelectedFunction } from "./util/editor";
+import {
+  focusNode,
+  getAbsolutePathInProject,
+  getEditorSelectedFunction,
+  getRelativePathToProject,
+} from "./util/editor";
 import { ExtensionHostState } from "./util/extension-state";
 import { registerWebView } from "./util/react-webview-provider";
 import { SecretsProxy, SECRET_OPENAI_API_KEY } from "./util/secrets";
 import { makeSerializable } from "./util/serialize-source";
-import { removeFile, updateFile } from "./util/source";
+import {
+  couldContainImaginaryFunctions,
+  removeFile,
+  updateFile,
+} from "./util/source";
 import { State } from "./util/state";
 import { SourceFileMap } from "./util/ts-source";
 import { TypedMap } from "./util/types";
@@ -47,8 +63,9 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     SECRET_OPENAI_API_KEY
   );
   if (openAiApiKey) {
-    if (process?.env)
+    if (process?.env) {
       (process.env as Record<string, any>).OPENAI_API_KEY = openAiApiKey;
+    }
   }
   const rawState: TypedMap<State> = new Map();
   const state = createWatchedMap(rawState);
@@ -104,15 +121,25 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
       );
     })
   );
-  state.onStateChange((updatedState) => {
+  state.onStateChange(async (updatedState) => {
     messageRouter.updateState(updatedState);
+
+    // NOTE: onStateChange does not wait for this promise to finish..
+    if (updatedState.testCases) {
+      await writeTestCases(updatedState.testCases);
+    }
   });
 
   extensionContext.subscriptions.push(
-    vscode.workspace.onDidOpenTextDocument((document) => {
+    vscode.workspace.onDidOpenTextDocument(async (document) => {
+      if (!couldContainImaginaryFunctions(document)) {
+        return;
+      }
       console.info("onDidOpenTextDocument", document.fileName);
 
       const newSources = updateFile(localState.get("nativeSources"), document);
+      const fileName = document.fileName;
+      await maybeLoadTestCases(fileName, state);
       localState.set("nativeSources", newSources);
       updateSourceState(
         localState.get("nativeSources"),
@@ -123,6 +150,9 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   );
   extensionContext.subscriptions.push(
     vscode.workspace.onDidCloseTextDocument((document) => {
+      if (!couldContainImaginaryFunctions(document)) {
+        return;
+      }
       console.info("onDidCloseTextDocument", document.fileName);
 
       const newSources = removeFile(localState.get("nativeSources"), document);
@@ -149,16 +179,23 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   initializeExtensionState(localState, state, functionTreeProvider);
 }
 
+async function maybeLoadTestCases(fileName: string, state: TypedMap<State>) {
+  const sourceFileName = getRelativePathToProject(fileName);
+  const testCases = await loadTestCases(sourceFileName);
+  if (testCases.functionTestCases.length) {
+    state.set("testCases", {
+      ...state.get("testCases"),
+      [sourceFileName]: testCases,
+    });
+  }
+}
+
 async function initializeExtensionState(
   localState: TypedMap<ExtensionHostState>,
   state: TypedMapWithEvent<State>,
   functionTreeProvider: ImaginaryFunctionProvider
 ) {
-  const newSources = initializeOpenEditors(
-    localState.get("nativeSources"),
-    functionTreeProvider
-  );
-  localState.set("nativeSources", newSources);
+  await initializeOpenEditors(localState, state, functionTreeProvider);
   updateSourceState(
     localState.get("nativeSources"),
     state,
@@ -219,20 +256,71 @@ function updateViewsWithSelection(
  * onDidOpenTextDocument does not fire for editors that are already open when
  * the extension initializes, so we do it here.
  */
-function initializeOpenEditors(
-  sources: Readonly<SourceFileMap>,
+async function initializeOpenEditors(
+  localState: TypedMap<ExtensionHostState>,
+  state: TypedMap<State>,
   functionTreeProvider: ImaginaryFunctionProvider
 ) {
   let updated = false;
-  vscode.window.visibleTextEditors.forEach(({ document }) => {
+  let sources = localState.get("nativeSources");
+  vscode.window.visibleTextEditors.map(({ document }) => {
     sources = updateFile(sources, document);
+
     updated = true;
   });
+
   if (updated) {
     functionTreeProvider.update(sources);
+    localState.set("nativeSources", sources);
   }
-  return sources;
+  const promises = vscode.window.visibleTextEditors.map(
+    async ({ document }) => {
+      console.log("trying to load test cases for ", document.fileName);
+      await maybeLoadTestCases(document.fileName, state);
+    }
+  );
+  await Promise.all(promises);
 }
 
 // This method is called when your extension is deactivated
 export function deactivate() {}
+
+async function writeTestCases(testCases: SourceFileTestCaseMap) {
+  const promises = Object.values(testCases).map((value) => {
+    if (!value.functionTestCases.length) {
+      return;
+    }
+    return fs.writeFile(
+      getAbsolutePathInProject(getTestCaseFilename(value.sourceFileName)),
+      JSON.stringify(value.functionTestCases)
+    );
+  });
+  await Promise.all(promises);
+}
+
+async function loadTestCases(
+  sourceFileName: string
+): Promise<SourceFileTestCases> {
+  const testCaseFile = getAbsolutePathInProject(
+    getTestCaseFilename(sourceFileName)
+  );
+  try {
+    const testCasesRaw = await fs.readFile(testCaseFile, { encoding: "utf-8" });
+    const functionTestCases: FunctionTestCases[] = JSON.parse(testCasesRaw);
+
+    return {
+      sourceFileName,
+      functionTestCases,
+    };
+  } catch (ex) {
+    console.warn(`Unable to load test cases for ${sourceFileName}:`, ex);
+    return { sourceFileName, functionTestCases: [] };
+  }
+}
+
+function getTestCaseFilename(sourceFileName: string) {
+  const parsedPath = path.parse(sourceFileName);
+  parsedPath.ext = `.ipsnapshot${parsedPath.ext}`;
+  parsedPath.base = `${parsedPath.name}${parsedPath.ext}`;
+  return path.format(parsedPath);
+}
