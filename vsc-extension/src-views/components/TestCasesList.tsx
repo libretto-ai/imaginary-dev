@@ -34,8 +34,12 @@ export const TestCasesList: FC<Props> = ({
   }
 
   const onDelete = async (index: number) => {
-    if (!fileName) return;
-    if (!functionName) return;
+    if (!fileName) {
+      return;
+    }
+    if (!functionName) {
+      return;
+    }
 
     const newAllTestCases = deleteFunctionTestCase(
       allTestCases,
