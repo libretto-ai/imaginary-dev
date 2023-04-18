@@ -6,8 +6,12 @@ jest.mock("vscode", () => {
   return {
     fire: jest.fn(),
     EventEmitter: jest.fn().mockImplementation(function () {
-      this.fire = jest.fn();
-      this.event = jest.fn();
+      const listeners: ((...args: any[]) => void)[] = [];
+      const event = jest.fn((listener) => {
+        listeners.push(listener);
+      });
+      this.fire = jest.fn((args) => listeners.forEach((l) => l(args)));
+      this.event = event;
       return this;
     }),
   };
@@ -27,6 +31,8 @@ describe("watched-map", () => {
   describe("createWatchedMap", () => {
     it("should create a watched map that fires events on state change", () => {
       const watchedMap = createWatchedMap(typedMap);
+      const onStateChange = jest.fn();
+      watchedMap.onStateChange(onStateChange);
 
       // Setting values in the watched map
       watchedMap.set("name", "John");
@@ -43,6 +49,7 @@ describe("watched-map", () => {
       expect(EventEmitter.mock.instances[0].fire).toHaveBeenNthCalledWith(2, {
         age: 30,
       });
+      expect(onStateChange).toHaveBeenCalledTimes(2);
     });
 
     it("should return the correct values when getting values from the watched map", () => {
