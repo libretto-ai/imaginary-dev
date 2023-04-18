@@ -25,7 +25,6 @@ export function deleteFunctionTestCase(
     sourceFileName,
     functionName
   );
-  debugger;
   if (
     !functionTestCases ||
     functionTestCases.testCases.length <= testCaseToDeleteIndex
