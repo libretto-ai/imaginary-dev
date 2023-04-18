@@ -1,24 +1,17 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-import fs from "node:fs/promises";
-import path from "node:path";
 import * as vscode from "vscode";
-import {
-  FunctionTestCases,
-  MaybeSelectedFunction,
-  SourceFileTestCaseMap,
-  SourceFileTestCases,
-} from "../src-shared/source-info";
+import { MaybeSelectedFunction } from "../src-shared/source-info";
 import { ImaginaryFunctionProvider } from "./function-tree-provider";
 import { ImaginaryMessageRouter } from "./imaginary-message-router";
 import { makeRpcHandlers } from "./rpc-handlers";
 import {
   focusNode,
-  getAbsolutePathInProject,
   getEditorSelectedFunction,
   getRelativePathToProject,
 } from "./util/editor";
 import { ExtensionHostState } from "./util/extension-state";
+import { loadTestCases, writeAllTestCases } from "./util/persistence";
 import { registerWebView } from "./util/react-webview-provider";
 import { SecretsProxy, SECRET_OPENAI_API_KEY } from "./util/secrets";
 import { makeSerializable } from "./util/serialize-source";
@@ -126,7 +119,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
 
     // NOTE: onStateChange does not wait for this promise to finish..
     if (updatedState.testCases) {
-      await writeTestCases(updatedState.testCases);
+      await writeAllTestCases(updatedState.testCases);
     }
   });
 
@@ -284,44 +277,3 @@ async function initializeOpenEditors(
 
 // This method is called when your extension is deactivated
 export function deactivate() {}
-
-async function writeTestCases(testCases: SourceFileTestCaseMap) {
-  const promises = Object.values(testCases).map((value) => {
-    if (!value.functionTestCases.length) {
-      return;
-    }
-    return fs.writeFile(
-      getAbsolutePathInProject(getTestCaseFilename(value.sourceFileName)),
-      JSON.stringify(value.functionTestCases)
-    );
-  });
-  await Promise.all(promises);
-}
-
-async function loadTestCases(
-  sourceFileName: string
-): Promise<SourceFileTestCases> {
-  const testCaseFile = getAbsolutePathInProject(
-    getTestCaseFilename(sourceFileName)
-  );
-  try {
-    const testCasesRaw = await fs.readFile(testCaseFile, { encoding: "utf-8" });
-    const functionTestCases: FunctionTestCases[] = JSON.parse(testCasesRaw);
-
-    return {
-      sourceFileName,
-      functionTestCases,
-    };
-  } catch (ex) {
-    console.warn(`Unable to load test cases for ${sourceFileName}:`, ex);
-    return { sourceFileName, functionTestCases: [] };
-  }
-}
-
-function getTestCaseFilename(sourceFileName: string) {
-  const parsedPath = path.parse(sourceFileName);
-  // TODO: should we retain the current extension somewhere?
-  parsedPath.ext = `.ipsnapshot.json`;
-  parsedPath.base = `${parsedPath.name}${parsedPath.ext}`;
-  return path.format(parsedPath);
-}
