@@ -94,11 +94,15 @@ describe("makeSerializable", () => {
             parameters: [
               {
                 name: "a",
-                tempType: "number",
+                schema: {
+                  type: "number",
+                },
               },
               {
                 name: "b",
-                tempType: "string",
+                schema: {
+                  type: "string",
+                },
               },
             ],
           },
