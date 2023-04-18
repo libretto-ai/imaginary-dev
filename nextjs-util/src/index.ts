@@ -1,5 +1,19 @@
-import { makeNextjsHandler } from "./server";
+import { NextRouteHandler, makeNextjsHandler } from "./server";
 import { wrapRemoteImaginaryFunction } from "./browser";
+
+export function makeImaginaryNextAppRouteFunction<
+  F extends (...args: any[]) => R,
+  R extends Promise<AR>,
+  AR
+>(fn: F, url: string): F & { GET: NextRouteHandler } {
+  let result: F & { GET: NextRouteHandler } = wrapRemoteImaginaryFunction(
+    url,
+    fn
+  ) as F & { GET: NextRouteHandler };
+  result.GET = makeNextjsHandler(fn) as NextRouteHandler;
+
+  return result;
+}
 
 export function makeImaginaryNextFunction<
   F extends (...args: any[]) => R,

@@ -10,7 +10,7 @@ export interface ApiResult<R> {
 }
 
 // this should be defined by next/server, but I don't see a definition.
-type NextRouteHandler = (
+export type NextRouteHandler = (
   req: NextRequest
 ) => Response | Promise<Response> | undefined | Promise<undefined>;
 
