@@ -20,7 +20,16 @@ jest.mock("vscode", () => {
   return {
     Uri,
     workspace: {
-      workspaceFolders: [],
+      workspaceFolders: [
+        {
+          uri: {
+            fsPath: "/path/to/workspace",
+            joinPath: jest.fn((base, rel) => ({
+              fsPath: base + rel,
+            })),
+          },
+        },
+      ],
     },
   };
 });
