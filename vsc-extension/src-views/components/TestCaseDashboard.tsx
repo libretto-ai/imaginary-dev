@@ -10,7 +10,6 @@ import {
   findTestCases,
   updateSourceFileTestCase,
 } from "../../src-shared/testcases";
-import { safeJsonSchemaToTypeScriptText } from "../../src/util/schema";
 import { selectedTestCaseIndexState, testCasesState } from "../shared/state";
 import { ParamEditor } from "./ParamEditor";
 import { TestCasesList } from "./TestCasesList";
@@ -135,14 +134,6 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
                     gap: "0.25rem",
                   }}
                 >
-                  <div>
-                    <code>{param.name}</code>{" "}
-                    {param.schema && (
-                      <span>
-                        {safeJsonSchemaToTypeScriptText(param.schema)}
-                      </span>
-                    )}
-                  </div>
                   <ParamEditor
                     parameter={param}
                     value={functionTestCase.inputs[param.name]}
