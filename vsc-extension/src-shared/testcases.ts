@@ -14,6 +14,45 @@ export const blankTestCase: FunctionTestCase = {
   },
 };
 
+export function deleteFunctionTestCase(
+  testCases: SourceFileTestCaseMap,
+  sourceFileName: string,
+  functionName: string,
+  testCaseToDeleteIndex: number
+): SourceFileTestCaseMap {
+  const functionTestCases = findTestCases(
+    testCases,
+    sourceFileName,
+    functionName
+  );
+  debugger;
+  if (
+    !functionTestCases ||
+    functionTestCases.testCases.length <= testCaseToDeleteIndex
+  ) {
+    return testCases;
+  }
+
+  const functionTestCasesAfterDeletion =
+    functionTestCases.testCases.filter(
+      (_, index) => index !== testCaseToDeleteIndex
+    ) ?? [];
+  const fileTestCases = testCases[sourceFileName];
+
+  return {
+    ...testCases,
+    [sourceFileName]: {
+      sourceFileName,
+      functionTestCases: fileTestCases.functionTestCases
+        .filter(
+          ({ functionName: thisFunctionName }) =>
+            functionName !== thisFunctionName
+        )
+        .concat({ functionName, testCases: functionTestCasesAfterDeletion }),
+    },
+  };
+}
+
 export function addFunctionTestCase(
   testCases: SourceFileTestCaseMap,
   sourceFileName: string,
