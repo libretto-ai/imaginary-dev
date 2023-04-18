@@ -1,4 +1,3 @@
-import { jsonSchemaToTypeScriptText } from "@imaginary-dev/util";
 import React, { FC, ReactNode } from "react";
 import { useRecoilState } from "recoil";
 import {
@@ -11,6 +10,7 @@ import {
   findTestCases,
   updateSourceFileTestCase,
 } from "../../src-shared/testcases";
+import { safeJsonSchemaToTypeScriptText } from "../../src/util/schema";
 import { selectedTestCaseIndexState, testCasesState } from "../shared/state";
 import { ParamEditor } from "./ParamEditor";
 import { TestCasesList } from "./TestCasesList";
@@ -52,25 +52,7 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
       );
     });
   };
-  const formattedDeclaration = fn.declaration
-    .split(new RegExp(`\\b${fn.name}\\b`))
-    .flatMap<ReactNode>((segment, index) => {
-      if (index === 0) {
-        return [
-          <span data-index={index} key={index}>
-            {segment}
-          </span>,
-        ];
-      }
-      return [
-        <b data-index={index} key={`${index}-fn`}>
-          {fn.name}
-        </b>,
-        <span data-index={index} key={index}>
-          {segment}
-        </span>,
-      ];
-    });
+  const formattedDeclaration = formatDeclaration(fn);
   const functionTestCase: FunctionTestCase | undefined =
     testCasesForSelectedFunction[testIndex];
   // if (!functionTestCase) {
@@ -156,7 +138,9 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
                   <div>
                     <code>{param.name}</code>{" "}
                     {param.schema && (
-                      <span>{jsonSchemaToTypeScriptText(param.schema)}</span>
+                      <span>
+                        {safeJsonSchemaToTypeScriptText(param.schema)}
+                      </span>
                     )}
                   </div>
                   <ParamEditor
@@ -187,6 +171,28 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
     </>
   );
 };
+
+function formatDeclaration(fn: SerializableFunctionDeclaration) {
+  return fn.declaration
+    .split(new RegExp(`\\b${fn.name}\\b`))
+    .flatMap<ReactNode>((segment, index) => {
+      if (index === 0) {
+        return [
+          <span data-index={index} key={index}>
+            {segment}
+          </span>,
+        ];
+      }
+      return [
+        <b data-index={index} key={`${index}-fn`}>
+          {fn.name}
+        </b>,
+        <span data-index={index} key={index}>
+          {segment}
+        </span>,
+      ];
+    });
+}
 
 export function formatOutput(value: any) {
   if (typeof value === "string") {

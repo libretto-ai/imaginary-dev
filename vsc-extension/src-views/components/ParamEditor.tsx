@@ -1,7 +1,11 @@
-import { VSCodeTextArea } from "@vscode/webview-ui-toolkit/react";
+import {
+  VSCodeTextArea,
+  VSCodeTextField,
+} from "@vscode/webview-ui-toolkit/react";
 import { JSONSchema7 } from "json-schema";
 import React, { FC } from "react";
 import { ParameterDescriptor } from "../../src-shared/source-info";
+import { safeJsonSchemaToTypeScriptText } from "../../src/util/schema";
 
 export const ParamEditor: FC<{
   value: string;
@@ -9,7 +13,19 @@ export const ParamEditor: FC<{
   parameter: ParameterDescriptor;
 }> = ({ parameter, value, onChange }) => {
   const valueToDisplay = getEditableValue(parameter.schema, value);
-
+  const isNumber =
+    safeJsonSchemaToTypeScriptText(parameter.schema) === "number";
+  if (isNumber) {
+    return (
+      <VSCodeTextField
+        style={{ flex: 1, width: "100%", height: "auto" }}
+        value={valueToDisplay}
+        onChange={(e: any) =>
+          onChange(getEditedValue(parameter.schema, e.target.value))
+        }
+      />
+    );
+  }
   return (
     <VSCodeTextArea
       style={{ flex: 1, width: "100%", height: "auto" }}
@@ -32,10 +48,12 @@ function getEditableValue(schema: JSONSchema7 | undefined, value: any): string {
     case "boolean":
       // hack: should use checkbox or something
       return typeof value === "boolean" ? `${value}` : "false";
-
+    case "null":
+      return "null";
     default:
       break;
   }
+  // All the rest are objects and arrays
   return JSON.stringify(value);
 }
 
@@ -53,6 +71,8 @@ function getEditedValue(schema: JSONSchema7 | undefined, value: string): any {
         return true;
       }
       return false;
+    case "null":
+      return null;
 
     default:
       break;
