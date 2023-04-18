@@ -320,7 +320,8 @@ async function loadTestCases(
 
 function getTestCaseFilename(sourceFileName: string) {
   const parsedPath = path.parse(sourceFileName);
-  parsedPath.ext = `.ipsnapshot${parsedPath.ext}`;
+  // TODO: should we retain the current extension somewhere?
+  parsedPath.ext = `.ipsnapshot.json`;
   parsedPath.base = `${parsedPath.name}${parsedPath.ext}`;
   return path.format(parsedPath);
 }
