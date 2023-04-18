@@ -10,8 +10,9 @@ const jestConfig: JestConfigWithTsJest = {
   }),
   modulePathIgnorePatterns: ["<rootDir>/dist/"],
   collectCoverageFrom: [
-    "<rootDir>/src/**/*.{ts,tsx}",
-    "<rootDir>/src-*/**/*.{ts,tsx}",
+    // TODO: include tsx for (eventual) react tests
+    "<rootDir>/src/**/*.ts",
+    "<rootDir>/src-*/**/*.ts",
   ],
 };
 
