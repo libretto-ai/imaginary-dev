@@ -7,15 +7,6 @@ export interface FunctionTestCase {
   /** Set if the user manually sets the name */
   hasCustomName?: boolean;
   inputs: Record<string, any>;
-  /**
-   * The outputs from running the function with these inputs
-   * TODO: move these elsewhere?
-   **/
-  output: {
-    // corresponds to the current output on HEAD
-    prev: any;
-    current: any;
-  };
 
   serviceParameters?: ServiceParameters;
 }
@@ -98,4 +89,25 @@ export function findMatchingFunction(
     (fn) => fn.name === selectedFunction.functionName
   );
   return matchingFunction;
+}
+
+export type SourceFileTestOutputMap = Record<string, SourceFileTestOutput>;
+
+/** Test outputs for all functions in a file */
+export interface SourceFileTestOutput {
+  sourceFileName: string;
+  functionOutputs: FunctionTestOutput[];
+}
+
+/** Test outputs for a function */
+export interface FunctionTestOutput {
+  functionName: string;
+  outputs: TestOutput[];
+}
+
+/** Test output results and metadata */
+export interface TestOutput {
+  output: any;
+  /** ISO8601 date? */
+  lastRun: string;
 }

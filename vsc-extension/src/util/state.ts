@@ -3,6 +3,7 @@ import {
   SelectedFileTestCases,
   SerializableSourceFileMap,
   SourceFileTestCaseMap,
+  SourceFileTestOutputMap,
 } from "../../src-shared/source-info";
 
 export interface State {
@@ -33,4 +34,9 @@ export interface State {
    * This allows each fileName/functionName combination to have its own selected state.
    */
   selectedTestCases: SelectedFileTestCases;
+
+  /** Tests accepted by the current user */
+  acceptedTestOutput: SourceFileTestOutputMap;
+
+  latestTestOutput: SourceFileTestOutputMap;
 }

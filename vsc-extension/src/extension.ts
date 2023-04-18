@@ -31,6 +31,8 @@ const initialState: State = {
   sources: {},
   testCases: {},
   selectedTestCases: {},
+  acceptedTestOutput: {},
+  latestTestOutput: {},
 };
 
 // This method is called when your extension is activated

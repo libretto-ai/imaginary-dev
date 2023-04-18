@@ -14,7 +14,6 @@ describe("addFunctionTestCase", () => {
     const newTestCase: FunctionTestCase = {
       name: "Test case 1",
       inputs: { a: 1, b: 2 },
-      output: { prev: null, current: null },
     };
 
     const result = addFunctionTestCase(
@@ -48,7 +47,6 @@ describe("addFunctionTestCase", () => {
               {
                 name: "Test case 1",
                 inputs: { a: 1, b: 2 },
-                output: { prev: null, current: null },
               },
             ],
           },
@@ -60,7 +58,6 @@ describe("addFunctionTestCase", () => {
     const newTestCase: FunctionTestCase = {
       name: "Test case 2",
       inputs: { a: 3, b: 4 },
-      output: { prev: null, current: null },
     };
 
     const result = addFunctionTestCase(
@@ -107,7 +104,6 @@ describe("findTestCases", () => {
               {
                 name: "Test case 1",
                 inputs: { a: 1, b: 2 },
-                output: { prev: null, current: null },
               },
             ],
           },
@@ -137,7 +133,6 @@ describe("findTestCases", () => {
               {
                 name: "Test case 1",
                 inputs: { a: 1, b: 2 },
-                output: { prev: null, current: null },
               },
             ],
           },
@@ -178,7 +173,6 @@ describe("updateSourcefileTestCase", () => {
               {
                 name: "Test case 1",
                 inputs: { a: 1, b: 2 },
-                output: { prev: null, current: null },
               },
             ],
           },
@@ -283,7 +277,6 @@ describe("updateSourcefileTestCase", () => {
               {
                 name: "Test case 1",
                 inputs: { a: 1, b: 2 },
-                output: { prev: null, current: null },
               },
             ],
           },
