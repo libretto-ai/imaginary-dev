@@ -5,6 +5,12 @@ import {
 } from "../../src-shared/source-info";
 import { GenerateTestCasesButton } from "./GenerateTestCasesButton";
 import { RunButton } from "./RunButton";
+import { useRecoilState } from "recoil";
+import { testCasesState } from "../shared/state";
+import {
+  deleteFunctionTestCase,
+  findTestCases,
+} from "../../src-shared/testcases";
 
 interface Props {
   testCases: FunctionTestCase[];
@@ -20,9 +26,36 @@ export const TestCasesList: FC<Props> = ({
   selectedFunction,
   onSelect,
 }) => {
+  const { fileName, functionName } = selectedFunction ?? {};
+  const [allTestCases, setAllTestCases] = useRecoilState(testCasesState);
+
   if (!selectedFunction) {
     return <div />;
   }
+
+  const onDelete = async (index: number) => {
+    debugger;
+    if (!fileName) return;
+    if (!functionName) return;
+
+    const newAllTestCases = deleteFunctionTestCase(
+      allTestCases,
+      fileName,
+      functionName,
+      index
+    );
+    const remainingTestCasesCount =
+      findTestCases(newAllTestCases, fileName, functionName)?.testCases
+        .length ?? 0;
+    if (
+      remainingTestCasesCount > 0 &&
+      remainingTestCasesCount >= (selectedIndex ?? -1)
+    ) {
+      onSelect(remainingTestCasesCount - 1);
+    }
+    setAllTestCases(newAllTestCases);
+  };
+
   return (
     <div
       style={{
@@ -63,6 +96,7 @@ export const TestCasesList: FC<Props> = ({
           <RunButton
             selectedFunction={selectedFunction}
             testCaseIndex={index}
+            onDelete={() => onDelete(index)}
           />
         </div>
       ))}
