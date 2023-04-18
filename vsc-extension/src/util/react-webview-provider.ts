@@ -5,7 +5,9 @@ import { ImaginaryMessage } from "../../src-shared/messages";
 import { State } from "./state";
 import { TypedMap } from "./types";
 
-export function registerWebView<R extends {}>(
+export function registerWebView<
+  R extends { [handlerName: string]: (...args: unknown[]) => Promise<unknown> }
+>(
   extensionContext: vscode.ExtensionContext,
   viewName: string,
   panelName: string,
