@@ -42,7 +42,7 @@ export const ParameterValueEditor: FC<Props> = ({
           >
             {param.name}
           </code>
-          <span>({param.tempType})</span>
+          <span>({param.schema?.type ?? "??"})</span>
         </div>
       </VSCodeTextArea>
     </div>

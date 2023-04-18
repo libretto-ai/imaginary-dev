@@ -1,6 +1,8 @@
+import { jsonSchemaToTypeScriptText } from "@imaginary-dev/util";
 import React, { FC, ReactNode } from "react";
 import { useRecoilState } from "recoil";
 import {
+  FunctionTestCase,
   SelectedFunction,
   SerializableFunctionDeclaration,
 } from "../../src-shared/source-info";
@@ -69,6 +71,11 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
         </span>,
       ];
     });
+  const functionTestCase: FunctionTestCase | undefined =
+    testCasesForSelectedFunction[testIndex];
+  // if (!functionTestCase) {
+  //   console.log("missing functionTestCase for ", testIndex);
+  // }
   return (
     <>
       <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
@@ -98,8 +105,9 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
         <div
           style={{
             display: "grid",
+            gap: "1rem",
             alignContent: "start",
-            gridTemplateColumns: "auto 1fr 1fr",
+            gridTemplateColumns: "1fr 1fr",
             margin: "12px",
             minWidth: "500px",
             width: "100%",
@@ -107,8 +115,6 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
         >
           <div
             style={{
-              gridColumnStart: 1,
-              gridColumnEnd: 3,
               fontSize: 16,
               fontWeight: "bolder",
               position: "sticky",
@@ -118,9 +124,6 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
           >
             Inputs
           </div>
-          {/* <div style={{ fontSize: 16, fontWeight: "bolder" }}>
-          Previous Outputs
-        </div> */}
           <div
             style={{
               fontSize: 16,
@@ -133,73 +136,52 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
             Output
           </div>
 
-          {!!testCasesForSelectedFunction[testIndex] &&
-            Object.entries(testCasesForSelectedFunction[testIndex].inputs).map(
-              ([paramName, paramValue], index) => (
-                <>
-                  <div
-                    style={{
-                      margin: "6px",
-                      position: "sticky",
-                      top: "1.5rem",
-                      background: "var(--background)",
-                    }}
-                  >
-                    {paramName}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "0.5rem",
+            }}
+          >
+            {functionTestCase &&
+              fn.parameters.map((param) => (
+                <div
+                  key={param.name}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.25rem",
+                  }}
+                >
+                  <div>
+                    <code>{param.name}</code>{" "}
+                    {param.schema && (
+                      <span>{jsonSchemaToTypeScriptText(param.schema)}</span>
+                    )}
                   </div>
-                  <div style={{ margin: "6px" }}>
-                    <ParamEditor
-                      value={paramValue}
-                      onChange={(newValue) =>
-                        onUpdateTestCase(paramName, newValue)
-                      }
-                    />
-                    {/* {JSON.stringify(paramValue)} */}
-                  </div>
-                  {index === 0 && (
-                    <>
-                      {/* <div
-                                        style={{
-                                          margin: "6px",
-                                          gridRow: `2 / ${
-                                            Object.entries(
-                                              testCasesForSelectedFunction[testIndex].inputs
-                                            ).length + 2
-                                          }`,
-                                          gridColumn: "3 / 4",
-                                          overflow: "scroll",
-                                        }}
-                                      >
-                                        <code style={{ whiteSpace: "pre" }}>
-                                          {formatOutput(
-                                            testCasesForSelectedFunction[testIndex].output.prev
-                                          )}
-                                        </code>
-                                      </div> */}
-                      <div
-                        style={{
-                          margin: "6px",
-                          gridRow: `2 / ${
-                            Object.entries(
-                              testCasesForSelectedFunction[testIndex].inputs
-                            ).length + 2
-                          }`,
-                          gridColumn: "3 / 4",
-                          overflow: "scroll",
-                        }}
-                      >
-                        <code style={{ whiteSpace: "pre" }}>
-                          {formatOutput(
-                            testCasesForSelectedFunction[testIndex].output
-                              .current
-                          )}
-                        </code>
-                      </div>
-                    </>
-                  )}
-                </>
-              )
+                  <ParamEditor
+                    parameter={param}
+                    value={functionTestCase.inputs[param.name]}
+                    onChange={(newValue) =>
+                      onUpdateTestCase(param.name, newValue)
+                    }
+                  />
+                </div>
+              ))}
+          </div>
+
+          <div
+            style={{
+              margin: "6px",
+              overflow: "scroll",
+            }}
+          >
+            {functionTestCase && (
+              <code style={{ whiteSpace: "pre" }}>
+                {formatOutput(functionTestCase.output.current)}
+              </code>
             )}
+          </div>
         </div>
       </div>
     </>

@@ -1,12 +1,14 @@
 import { VSCodeTextArea } from "@vscode/webview-ui-toolkit/react";
+import { JSONSchema7 } from "json-schema";
 import React, { FC } from "react";
+import { ParameterDescriptor } from "../../src-shared/source-info";
 
 export const ParamEditor: FC<{
   value: string;
-  onChange: (arg0: string) => void;
-}> = ({ value, onChange }) => {
-  const valueToDisplay =
-    typeof value === "string" ? value : JSON.stringify(value);
+  onChange: (arg0: any) => void;
+  parameter: ParameterDescriptor;
+}> = ({ parameter, value, onChange }) => {
+  const valueToDisplay = getEditableValue(parameter.schema, value);
 
   return (
     <VSCodeTextArea
@@ -14,7 +16,51 @@ export const ParamEditor: FC<{
       rows={7}
       resize="vertical"
       value={valueToDisplay}
-      onChange={(e: any) => onChange(e.target.value)}
+      onChange={(e: any) =>
+        onChange(getEditedValue(parameter.schema, e.target.value))
+      }
     />
   );
 };
+function getEditableValue(schema: JSONSchema7 | undefined, value: any): string {
+  switch (schema?.type) {
+    case "string":
+      return typeof value === "string" ? value : "";
+    case "number":
+    case "integer":
+      return typeof value === "number" ? `${value}` : "0";
+    case "boolean":
+      // hack: should use checkbox or something
+      return typeof value === "boolean" ? `${value}` : "false";
+
+    default:
+      break;
+  }
+  return JSON.stringify(value);
+}
+
+function getEditedValue(schema: JSONSchema7 | undefined, value: string): any {
+  // TODO: use basic JSONSchema validation to validate here
+  switch (schema?.type) {
+    case "string":
+      return typeof value === "string" ? value : "";
+    case "number":
+    case "integer":
+      return typeof value === "number" ? value : parseInt(value);
+    case "boolean":
+      // hack should be using checkbox
+      if (value === "true") {
+        return true;
+      }
+      return false;
+
+    default:
+      break;
+  }
+  try {
+    return JSON.parse(value);
+  } catch (ex) {
+    console.warn("invalid value");
+  }
+  return value;
+}

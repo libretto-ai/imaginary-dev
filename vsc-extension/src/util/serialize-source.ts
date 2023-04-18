@@ -1,3 +1,4 @@
+import { tsNodeToJsonSchema } from "@imaginary-dev/typescript-transformer";
 import ts from "typescript";
 import {
   SerializableFunctionDeclaration,
@@ -54,13 +55,9 @@ function makeSerialiableFunction(
           param.name.kind === ts.SyntaxKind.Identifier
             ? param.name.escapedText.toString()
             : "<unknown>",
-        tempType: param.type
-          ? (printer.printNode(
-              ts.EmitHint.Unspecified,
-              param.type,
-              sourceFileInfo.sourceFile
-            ) as any)
-          : "object",
+        schema: param.type
+          ? tsNodeToJsonSchema(param.type, sourceFileInfo.sourceFile)
+          : undefined,
       };
     }),
   };

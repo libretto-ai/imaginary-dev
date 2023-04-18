@@ -1,4 +1,5 @@
 import { ServiceParameters } from "@imaginary-dev/util";
+import { JSONSchema7 } from "json-schema";
 
 export interface FunctionTestCase {
   /** Map of parameter name => value */
@@ -37,8 +38,7 @@ export type SourceFileTestCaseMap = Record<string, SourceFileTestCases>;
 /** TODO: replace with JSONSchema */
 export interface ParameterDescriptor {
   name: string;
-  /** Quick hack for POC of parameters */
-  tempType: "number" | "string" | "object" | "array" | string;
+  schema?: JSONSchema7;
 }
 
 export interface SerializableFunctionDeclaration {
