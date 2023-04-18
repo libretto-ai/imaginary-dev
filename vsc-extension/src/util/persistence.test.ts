@@ -50,10 +50,6 @@ describe("persistence", () => {
                 {
                   name: "add positive numbers",
                   inputs: { a: 1, b: 2 },
-                  output: {
-                    prev: 3,
-                    current: 3,
-                  },
                 },
               ],
             },
@@ -79,10 +75,6 @@ describe("persistence", () => {
               {
                 name: "add positive numbers",
                 inputs: { a: 1, b: 2 },
-                output: {
-                  prev: 3,
-                  current: 3,
-                },
               },
             ],
           },
