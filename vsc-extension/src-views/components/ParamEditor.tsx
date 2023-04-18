@@ -1,4 +1,5 @@
 import {
+  VSCodeCheckbox,
   VSCodeTextArea,
   VSCodeTextField,
 } from "@vscode/webview-ui-toolkit/react";
@@ -13,29 +14,49 @@ export const ParamEditor: FC<{
   parameter: ParameterDescriptor;
 }> = ({ parameter, value, onChange }) => {
   const valueToDisplay = getEditableValue(parameter.schema, value);
-  const isNumber =
-    safeJsonSchemaToTypeScriptText(parameter.schema) === "number";
-  if (isNumber) {
+  const tsType = safeJsonSchemaToTypeScriptText(parameter.schema);
+  const label = (
+    <div>
+      <code>{parameter.name}</code> {parameter.schema && <span>{tsType}</span>}
+    </div>
+  );
+  if (tsType === "number") {
     return (
-      <VSCodeTextField
+      <>
+        {label}
+        <VSCodeTextField
+          style={{ flex: 1, width: "100%", height: "auto" }}
+          value={valueToDisplay}
+          onChange={(e: any) =>
+            onChange(getEditedValue(parameter.schema, e.target.value))
+          }
+        />
+      </>
+    );
+  }
+  if (tsType === "boolean") {
+    return (
+      <VSCodeCheckbox
+        checked={!!value}
+        onChange={(e) => onChange((e.target as any)?.checked)}
+      >
+        <code>{parameter.name}</code>
+      </VSCodeCheckbox>
+    );
+  }
+  return (
+    <>
+      {label}
+      <VSCodeTextArea
         style={{ flex: 1, width: "100%", height: "auto" }}
+        rows={7}
+        resize="vertical"
         value={valueToDisplay}
         onChange={(e: any) =>
           onChange(getEditedValue(parameter.schema, e.target.value))
         }
       />
-    );
-  }
-  return (
-    <VSCodeTextArea
-      style={{ flex: 1, width: "100%", height: "auto" }}
-      rows={7}
-      resize="vertical"
-      value={valueToDisplay}
-      onChange={(e: any) =>
-        onChange(getEditedValue(parameter.schema, e.target.value))
-      }
-    />
+    </>
   );
 };
 function getEditableValue(schema: JSONSchema7 | undefined, value: any): string {
