@@ -1,4 +1,5 @@
 import {
+  VSCodeCheckbox,
   VSCodeTextArea,
   VSCodeTextField,
 } from "@vscode/webview-ui-toolkit/react";
@@ -13,9 +14,8 @@ export const ParamEditor: FC<{
   parameter: ParameterDescriptor;
 }> = ({ parameter, value, onChange }) => {
   const valueToDisplay = getEditableValue(parameter.schema, value);
-  const isNumber =
-    safeJsonSchemaToTypeScriptText(parameter.schema) === "number";
-  if (isNumber) {
+  const tsType = safeJsonSchemaToTypeScriptText(parameter.schema);
+  if (tsType === "number") {
     return (
       <VSCodeTextField
         style={{ flex: 1, width: "100%", height: "auto" }}
@@ -23,6 +23,14 @@ export const ParamEditor: FC<{
         onChange={(e: any) =>
           onChange(getEditedValue(parameter.schema, e.target.value))
         }
+      />
+    );
+  }
+  if (tsType === "boolean") {
+    return (
+      <VSCodeCheckbox
+        checked={!!value}
+        onChange={(e) => onChange((e.target as any)?.checked)}
       />
     );
   }
