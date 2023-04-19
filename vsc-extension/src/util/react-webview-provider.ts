@@ -5,7 +5,11 @@ import { ImaginaryMessage } from "../../src-shared/messages";
 import { State } from "./state";
 import { TypedMap } from "./types";
 
-export function registerWebView<R extends {}>(
+export type BaseRpcHandlers = {
+  [handlerName: string]: (...args: unknown[]) => Promise<unknown>;
+};
+
+export function registerWebView<R extends BaseRpcHandlers>(
   extensionContext: vscode.ExtensionContext,
   viewName: string,
   panelName: string,
@@ -25,10 +29,8 @@ export function registerWebView<R extends {}>(
 }
 
 /** Generic WebviewViewProvider which wraps a react application */
-export class ReactWebViewProvider<
-  S extends object,
-  R extends { [handlerName: string]: () => Promise<unknown> }
-> implements vscode.WebviewViewProvider
+export class ReactWebViewProvider<S extends object, R extends BaseRpcHandlers>
+  implements vscode.WebviewViewProvider
 {
   private _onDidAttachWebview = new vscode.EventEmitter<vscode.Webview>();
   private _onDidDetatchWebview = new vscode.EventEmitter<vscode.Webview>();

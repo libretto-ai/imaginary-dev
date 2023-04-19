@@ -9,7 +9,8 @@
   "extends": [
     "eslint:recommended",
     "plugin:react/recommended",
-    "plugin:react-hooks/recommended"
+    "plugin:react-hooks/recommended",
+    "plugin:@typescript-eslint/recommended"
   ],
   "settings": {
     "react": { "version": "detect" }
@@ -30,10 +31,12 @@
       }
     ],
     "@typescript-eslint/semi": "warn",
-    "curly": "warn",
+    "curly": "error",
     "eqeqeq": "warn",
     "no-throw-literal": "warn",
-    "semi": "off"
+    "semi": "off",
+
+    "@typescript-eslint/no-explicit-any": "off"
   },
   "ignorePatterns": ["dist", "**/*.d.ts"]
 }

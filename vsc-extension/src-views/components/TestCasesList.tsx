@@ -1,16 +1,16 @@
 import React, { FC } from "react";
+import { useRecoilState } from "recoil";
 import {
   FunctionTestCase,
   MaybeSelectedFunction,
 } from "../../src-shared/source-info";
-import { GenerateTestCasesButton } from "./GenerateTestCasesButton";
-import { RunButton } from "./RunButton";
-import { useRecoilState } from "recoil";
-import { testCasesState } from "../shared/state";
 import {
   deleteFunctionTestCase,
   findTestCases,
 } from "../../src-shared/testcases";
+import { testCasesState } from "../shared/state";
+import { GenerateTestCasesButton } from "./GenerateTestCasesButton";
+import { RunButton } from "./RunButton";
 
 interface Props {
   testCases: FunctionTestCase[];
@@ -34,9 +34,12 @@ export const TestCasesList: FC<Props> = ({
   }
 
   const onDelete = async (index: number) => {
-    debugger;
-    if (!fileName) return;
-    if (!functionName) return;
+    if (!fileName) {
+      return;
+    }
+    if (!functionName) {
+      return;
+    }
 
     const newAllTestCases = deleteFunctionTestCase(
       allTestCases,

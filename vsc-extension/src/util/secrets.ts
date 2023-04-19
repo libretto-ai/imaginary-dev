@@ -48,8 +48,9 @@ export class SecretsProxy {
     if (value) {
       this.context.secrets.store(secretKey, value);
       if (secretKey === SECRET_OPENAI_API_KEY) {
-        if (process?.env)
+        if (process?.env) {
           (process.env as Record<string, any>).OPENAI_API_KEY = value;
+        }
       }
     }
     return value;

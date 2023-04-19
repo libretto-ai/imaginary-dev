@@ -17,15 +17,6 @@ import { State } from "./util/state";
 import { SourceFileMap } from "./util/ts-source";
 import { TypedMap } from "./util/types";
 
-// THIS IS AN EXAMPLE FUNCTION TO SHOW HOW IMAGINARY FUNCTIONS WORK
-/**
- * This function returns a random animal that you would see at the zoo.
- *
- * @returns the name of a type of zoo animal
- * @imaginary
- */
-declare function getRandomZooAnimal(): Promise<string>;
-
 /**
  * This function takes in a TypeScript function declaration and gives lists of good test data for those
  * functions. For each function passed in, it returns 5 full sets of test parameters. Each set of test data
@@ -112,8 +103,6 @@ export function makeRpcHandlers(
   const secretsProxy = new SecretsProxy(extensionContext);
 
   return {
-    getRandomZooAnimal,
-
     async generateTestParametersForTypeScriptFunction({
       fileName,
       functionName,

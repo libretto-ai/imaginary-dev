@@ -1,15 +1,21 @@
 import * as vscode from "vscode";
 import { ImaginaryMessage } from "../src-shared/messages";
-import { ReactWebViewProvider } from "./util/react-webview-provider";
+import {
+  BaseRpcHandlers,
+  ReactWebViewProvider,
+} from "./util/react-webview-provider";
 import { State } from "./util/state";
 
 /** A message router to broadcast and recieve messages from multiple webviews */
 
-export interface WebviewMessage<M extends ImaginaryMessage, R extends {}> {
+export interface WebviewMessage<
+  M extends ImaginaryMessage,
+  R extends BaseRpcHandlers
+> {
   webviewProvider: ReactWebViewProvider<State, R>;
   message: M;
 }
-export class ImaginaryMessageRouter<R extends {}> {
+export class ImaginaryMessageRouter<R extends BaseRpcHandlers> {
   webviewProviders: readonly ReactWebViewProvider<State, R>[];
   // Keep track of which webviews are attached or not
   attachedWebviewProviders: ReactWebViewProvider<State, R>[] = [];
