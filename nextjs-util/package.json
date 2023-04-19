@@ -1,6 +1,6 @@
 {
   "name": "@imaginary-dev/nextjs-util",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Utilities for deploying imaginary functions in nextjs",
   "main": "dist/nextjs-util/src/index.js",
   "scripts": {

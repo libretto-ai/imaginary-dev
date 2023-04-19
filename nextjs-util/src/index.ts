@@ -1,7 +1,7 @@
 import { NextRouteHandler, makeNextjsHandler } from "./server";
 import { wrapRemoteImaginaryFunction } from "./browser";
 
-export function makeImaginaryNextAppRouteFunction<
+export function imagineAppRoute<
   F extends (...args: any[]) => R,
   R extends Promise<AR>,
   AR
@@ -29,3 +29,5 @@ export function makeImaginaryNextFunction<
   // we are on the browser side.
   return wrapRemoteImaginaryFunction(url, fn);
 }
+
+export const imaginePageRoute = makeImaginaryNextFunction;
