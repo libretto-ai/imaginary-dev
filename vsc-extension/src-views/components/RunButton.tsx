@@ -7,7 +7,8 @@ export const RunButton: FC<{
   selectedFunction: MaybeSelectedFunction;
   testCaseIndex: number;
   onDelete: () => void;
-}> = ({ selectedFunction, testCaseIndex, onDelete }) => {
+  onRename: (newName: string) => void;
+}> = ({ selectedFunction, testCaseIndex, onDelete, onRename }) => {
   const { rpcProvider } = useExtensionState();
   const { fileName, functionName } = selectedFunction ?? {};
   const [loading, setLoading] = useState(false);
@@ -44,13 +45,20 @@ export const RunButton: FC<{
     : "codicon-play";
 
   return (
-    <>
+    <div className="flex gap-5">
       <VSCodeButton
         onClick={onDelete}
         disabled={!selectedFunction}
         appearance="icon"
       >
-        <span className="codicon codicon-trash mr-5" />
+        <span className="codicon codicon-trash" />
+      </VSCodeButton>
+      <VSCodeButton
+        onClick={() => onRename("xyz")}
+        disabled={!selectedFunction}
+        appearance="icon"
+      >
+        <span className="codicon codicon-edit" />
       </VSCodeButton>
       <VSCodeButton
         onClick={onRun}
@@ -59,6 +67,6 @@ export const RunButton: FC<{
       >
         <span className={`codicon ${iconClass}`} />
       </VSCodeButton>
-    </>
+    </div>
   );
 };

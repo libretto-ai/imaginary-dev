@@ -9,6 +9,7 @@ import {
   findTestCases,
 } from "../../src-shared/testcases";
 import { testCasesState } from "../shared/state";
+import { useExtensionState } from "./ExtensionState";
 import { GenerateTestCasesButton } from "./GenerateTestCasesButton";
 import { RunButton } from "./RunButton";
 
@@ -28,7 +29,7 @@ export const TestCasesList: FC<Props> = ({
 }) => {
   const { fileName, functionName } = selectedFunction ?? {};
   const [allTestCases, setAllTestCases] = useRecoilState(testCasesState);
-
+  const { rpcProvider } = useExtensionState();
   if (!selectedFunction) {
     return <div />;
   }
@@ -57,6 +58,21 @@ export const TestCasesList: FC<Props> = ({
       onSelect(remainingTestCasesCount - 1);
     }
     setAllTestCases(newAllTestCases);
+  };
+
+  const onRename = async (testCaseIndex: number, newTestName: string) => {
+    if (!fileName) {
+      return;
+    }
+    if (!functionName) {
+      return;
+    }
+    await rpcProvider?.rpc("renameTest", {
+      fileName,
+      functionName,
+      testCaseIndex,
+      newTestName,
+    });
   };
 
   return (
@@ -100,6 +116,7 @@ export const TestCasesList: FC<Props> = ({
             selectedFunction={selectedFunction}
             testCaseIndex={index}
             onDelete={() => onDelete(index)}
+            onRename={(newName: string) => onRename(index, newName)}
           />
         </div>
       ))}
