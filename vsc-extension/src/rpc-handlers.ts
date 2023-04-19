@@ -4,11 +4,11 @@ import {
   tsNodeToJsonSchema,
 } from "@imaginary-dev/typescript-transformer";
 import ts from "typescript";
+import * as vscode from "vscode";
 import {
   FunctionTestCase,
   SourceFileTestCaseMap,
-} from "vsc-extension/src-shared/source-info";
-import * as vscode from "vscode";
+} from "../src-shared/source-info";
 import {
   blankTestCase,
   findTestCase,

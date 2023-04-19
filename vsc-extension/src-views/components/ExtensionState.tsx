@@ -8,17 +8,14 @@ import React, {
   useState,
 } from "react";
 import { WebviewApi } from "vscode-webview";
-import { RpcProvider, RpcProviderInterface } from "worker-rpc";
+import { RpcProvider } from "worker-rpc";
+import { ExtensionRpcProvider } from "../../src-shared/ExtensionRpcProvider";
 import { ImaginaryMessage } from "../../src-shared/messages";
-import { type ExtensionRpcInterface } from "../../src/rpc-handlers";
-import { type RpcCaller } from "../../src/util/types";
-type MagicRpcProvider = Omit<RpcProviderInterface, "rpc"> &
-  RpcCaller<ExtensionRpcInterface>;
 /** Main hook that wires up all messaging to/from this webview */
 function useExtensionStateInternal() {
   // Local copies of state as broadcast from extension host
   const vscodeRef = useRef<WebviewApi<unknown>>();
-  const [rpcProvider, setRpcProvider] = useState<MagicRpcProvider>();
+  const [rpcProvider, setRpcProvider] = useState<ExtensionRpcProvider>();
 
   // Synchronize states by listening for events
   useEffect(() => {
