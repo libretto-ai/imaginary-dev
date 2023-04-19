@@ -7,10 +7,12 @@ import {
 } from "../../src-shared/source-info";
 import {
   deleteFunctionTestCase,
+  findTestCase,
   deleteTestOutput,
   findTestCases,
 } from "../../src-shared/testcases";
 import { latestTestOutputState, testCasesState } from "../shared/state";
+import { useExtensionState } from "./ExtensionState";
 import { GenerateTestCasesButton } from "./GenerateTestCasesButton";
 import { RunButton } from "./RunButton";
 
@@ -32,6 +34,7 @@ export const TestCasesList: FC<Props> = ({
 }) => {
   const { fileName, functionName } = selectedFunction ?? {};
   const [allTestCases, setAllTestCases] = useRecoilState(testCasesState);
+  const { rpcProvider } = useExtensionState();
   const [allTestOutputs, setTestOutputs] = useRecoilState(
     latestTestOutputState
   );
@@ -68,6 +71,27 @@ export const TestCasesList: FC<Props> = ({
     setTestOutputs(
       deleteTestOutput(allTestOutputs, fileName, functionName, index)
     );
+  };
+
+  const onRename = async (testCaseIndex: number) => {
+    if (!fileName) {
+      return;
+    }
+    if (!functionName) {
+      return;
+    }
+    const currentTestName = findTestCase(
+      allTestCases,
+      fileName,
+      functionName,
+      testCaseIndex
+    )?.name;
+    await rpcProvider?.rpc("renameTest", {
+      fileName,
+      functionName,
+      testCaseIndex,
+      newTestName: currentTestName,
+    });
   };
 
   return (
@@ -112,6 +136,7 @@ export const TestCasesList: FC<Props> = ({
             hasTestOutput={!!testOutputs[index]}
             testCaseIndex={index}
             onDelete={() => onDelete(index)}
+            onRename={() => onRename(index)}
           />
         </div>
       ))}

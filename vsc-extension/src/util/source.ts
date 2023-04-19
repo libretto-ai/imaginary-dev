@@ -76,3 +76,34 @@ export function findNativeFunction(
   }
   return { fn, sourceFile: functionSource.sourceFile };
 }
+
+/** Generate a full function declaration, including comment and function body */
+export function generateFunctionDefinition(
+  nativeSources: SourceFileMap,
+  fileName: string,
+  functionName: string
+) {
+  const functionInfo = findNativeFunction(
+    nativeSources,
+    fileName,
+    functionName
+  );
+  if (!functionInfo) {
+    console.error(
+      `Unable to find function declaration for ${functionName} in ${fileName}`
+    );
+    throw new Error(
+      `Unable to find function declaration for ${functionName} in ${fileName}`
+    );
+  }
+  const { fn: fnDeclaration, sourceFile } = functionInfo;
+
+  const printer = ts.createPrinter();
+  const printed = printer.printNode(
+    ts.EmitHint.Unspecified,
+    fnDeclaration,
+    sourceFile
+  );
+
+  return printed;
+}

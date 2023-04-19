@@ -6,6 +6,10 @@ import {
 import ts from "typescript";
 import * as vscode from "vscode";
 import {
+  FunctionTestCase,
+  SourceFileTestCaseMap,
+} from "../src-shared/source-info";
+import {
   blankTestCase,
   findTestCase,
   updateSourceFileTestCase,
@@ -13,7 +17,7 @@ import {
 } from "../src-shared/testcases";
 import { ExtensionHostState } from "./util/extension-state";
 import { SecretsProxy } from "./util/secrets";
-import { findNativeFunction } from "./util/source";
+import { findNativeFunction, generateFunctionDefinition } from "./util/source";
 import { State } from "./util/state";
 import { SourceFileMap } from "./util/ts-source";
 import { TypedMap } from "./util/types";
@@ -95,6 +99,11 @@ declare function generateTestCaseName(
   functionDeclaration: string,
   parameters: Record<string, any>
 ): Promise<string>;
+interface TestLocation {
+  fileName: string;
+  functionName: string;
+  testCaseIndex: number;
+}
 
 const OPENAI_API_SECRET_KEY = "openaiApiKey";
 export function makeRpcHandlers(
@@ -151,59 +160,24 @@ export function makeRpcHandlers(
       );
     },
 
-    async runTestCase({
-      fileName,
-      functionName,
-      testCaseIndex,
-    }: {
-      fileName: string;
-      functionName: string;
-      testCaseIndex: number;
-    }) {
+    async runTestCase({ fileName, functionName, testCaseIndex }: TestLocation) {
       console.log(
         `runTestCase: ${fileName}, ${functionName}, ${testCaseIndex}`
       );
       const testCases = state.get("testCases");
-      const testCase = findTestCase(
+      const nativeSources = extensionLocalState.get("nativeSources");
+      const { functionInfo, testCase } = extractTestCaseContext(
         testCases,
         fileName,
         functionName,
-        testCaseIndex
+        testCaseIndex,
+        nativeSources
       );
-      if (!testCase) {
-        const message = `Could not find test case #${testCaseIndex} for ${fileName} ${functionName}`;
-        console.error(message);
-        throw new Error(message);
-      }
-      const functionInfo = findNativeFunction(
-        extensionLocalState.get("nativeSources"),
-        fileName,
-        functionName
-      );
-      if (!functionInfo) {
-        const message = `Unable to find function declaration for ${functionName} in ${fileName}`;
-        console.error(message);
-        throw new Error(message);
-      }
-      const { fn, sourceFile } = functionInfo;
-      const funcComment = getImaginaryTsDocComments(fn, sourceFile)[0];
 
-      console.info("getting api key");
       const apiKey = await secretsProxy.getSecret(OPENAI_API_SECRET_KEY);
       try {
-        console.info("getting params from ", fn);
-        const parameterTypes = getParamTypes(fn, sourceFile);
-        if (!fn.type) {
-          const message = `Missing type in ${fn.name?.getText(sourceFile)}`;
-          console.error(message);
-          throw new Error(message);
-        }
-
-        const returnSchema = tsNodeToJsonSchema(fn.type, sourceFile, true);
-        console.info("translating return type to ", returnSchema);
-        const paramValues = Object.fromEntries(
-          parameterTypes.map(({ name }) => [name, testCase.inputs[name]])
-        );
+        const { funcComment, parameterTypes, returnSchema, paramValues } =
+          extractCallParameters(functionInfo, testCase);
         const result = await callImaginaryFunction(
           funcComment,
           functionName,
@@ -212,20 +186,13 @@ export function makeRpcHandlers(
           paramValues,
           { openai: { apiConfig: { apiKey } } }
         );
-        console.log("got result: ", typeof result, ": ", result);
-        state.set(
-          "latestTestOutput",
-          updateSourceFileTestOutput(
-            state.get("latestTestOutput"),
-            fileName,
-            functionName,
-            testCaseIndex,
-            (output) => ({
-              ...output,
-              output: result,
-              lastRun: new Date().toISOString(),
-            })
-          )
+
+        updateTestRunState(
+          state,
+          fileName,
+          functionName,
+          testCaseIndex,
+          result
         );
         return result;
       } catch (ex) {
@@ -242,41 +209,23 @@ export function makeRpcHandlers(
       fileName,
       functionName,
       testCaseIndex,
-    }: {
-      fileName: string;
-      functionName: string;
-      testCaseIndex: number;
-    }) {
-      const functionInfo = findNativeFunction(
-        extensionLocalState.get("nativeSources"),
-        fileName,
-        functionName
-      );
+    }: TestLocation) {
       const testCases = state.get("testCases");
-      const testCase = findTestCase(
+      const nativeSources = extensionLocalState.get("nativeSources");
+      const { testCase } = extractTestCaseContext(
         testCases,
         fileName,
         functionName,
-        testCaseIndex
+        testCaseIndex,
+        nativeSources
       );
-      if (!testCase) {
-        const message = `Could not find test case #${testCaseIndex} for ${fileName} ${functionName}`;
-        console.error(message);
-        throw new Error(message);
-      }
 
-      if (!functionInfo) {
-        console.error(
-          "failure 2",
-          `Unable to find function declaration for ${functionName} in ${fileName}`
-        );
-        throw new Error(
-          `Unable to find function declaration for ${functionName} in ${fileName}`
-        );
+      if (testCase.hasCustomName) {
+        return;
       }
 
       const imaginaryFunctionDefinition = generateFunctionDefinition(
-        extensionLocalState.get("nativeSources"),
+        nativeSources,
         fileName,
         functionName
       );
@@ -284,58 +233,125 @@ export function makeRpcHandlers(
         imaginaryFunctionDefinition,
         testCase.inputs
       );
-      console.log("got test name = ", testName);
-      if (!testCase.hasCustomName) {
-        state.set(
-          "testCases",
-          updateSourceFileTestCase(
-            state.get("testCases"),
-            fileName,
-            functionName,
-            testCaseIndex,
-            (prevTestCase) => ({
-              ...blankTestCase,
-              ...prevTestCase,
-              hasCustomName: true,
-              name: testName,
-            })
-          )
-        );
-      }
+
+      updateTestName(state, fileName, functionName, testCaseIndex, testName);
       return testName;
+    },
+    async renameTest({
+      fileName,
+      functionName,
+      testCaseIndex,
+      newTestName,
+    }: TestLocation & { newTestName?: string }) {
+      const newName = await vscode.window.showInputBox({
+        prompt: "Enter new name",
+        value: newTestName,
+      });
+      if (newName === undefined) {
+        return;
+      }
+      updateTestName(state, fileName, functionName, testCaseIndex, newName);
     },
   };
 }
 
-function generateFunctionDefinition(
-  nativeSources: SourceFileMap,
+function updateTestName(
+  state: TypedMap<State>,
   fileName: string,
-  functionName: string
+  functionName: string,
+  testCaseIndex: number,
+  newTestName: string
 ) {
+  const testCases = state.get("testCases");
+  state.set(
+    "testCases",
+    updateSourceFileTestCase(
+      testCases,
+      fileName,
+      functionName,
+      testCaseIndex,
+      (prevTestCase) => ({
+        ...blankTestCase,
+        ...prevTestCase,
+        hasCustomName: true,
+        name: newTestName,
+      })
+    )
+  );
+}
+
+function extractTestCaseContext(
+  testCases: SourceFileTestCaseMap,
+  fileName: string,
+  functionName: string,
+  testCaseIndex: number,
+  nativeSources: SourceFileMap
+) {
+  const testCase = findTestCase(
+    testCases,
+    fileName,
+    functionName,
+    testCaseIndex
+  );
+  if (!testCase) {
+    const message = `Could not find test case #${testCaseIndex} for ${fileName} ${functionName}`;
+    console.error(message);
+    throw new Error(message);
+  }
   const functionInfo = findNativeFunction(
     nativeSources,
     fileName,
     functionName
   );
   if (!functionInfo) {
-    console.error(
-      "failure 2",
-      `Unable to find function declaration for ${functionName} in ${fileName}`
-    );
-    throw new Error(
-      `Unable to find function declaration for ${functionName} in ${fileName}`
-    );
+    const message = `Unable to find function declaration for ${functionName} in ${fileName}`;
+    console.error(message);
+    throw new Error(message);
   }
-  const { fn: fnDeclaration, sourceFile } = functionInfo;
+  return { functionInfo, testCase };
+}
 
-  const printer = ts.createPrinter();
-  const printed = printer.printNode(
-    ts.EmitHint.Unspecified,
-    fnDeclaration,
-    sourceFile
+function updateTestRunState(
+  state: TypedMap<State>,
+  fileName: string,
+  functionName: string,
+  testCaseIndex: number,
+  result: any
+) {
+  state.set(
+    "latestTestOutput",
+    updateSourceFileTestOutput(
+      state.get("latestTestOutput"),
+      fileName,
+      functionName,
+      testCaseIndex,
+      (output) => ({
+        ...output,
+        output: result,
+        lastRun: new Date().toISOString(),
+      })
+    )
   );
+}
 
-  return printed;
+function extractCallParameters(
+  functionInfo: { fn: ts.FunctionDeclaration; sourceFile: ts.SourceFile },
+  testCase: FunctionTestCase
+) {
+  const { fn, sourceFile } = functionInfo;
+  const funcComment = getImaginaryTsDocComments(fn, sourceFile)[0];
+  const parameterTypes = getParamTypes(fn, sourceFile);
+  if (!fn.type) {
+    const message = `Missing type in ${fn.name?.getText(sourceFile)}`;
+    console.error(message);
+    throw new Error(message);
+  }
+
+  const returnSchema = tsNodeToJsonSchema(fn.type, sourceFile, true);
+  const paramValues = Object.fromEntries(
+    parameterTypes.map(({ name }) => [name, testCase.inputs[name]])
+  );
+  return { funcComment, parameterTypes, returnSchema, paramValues };
 }
 
 /** This just gets all the types as `any`, since we do not have a ts.TypeChecker available */
@@ -357,3 +373,8 @@ function getParamTypes(fn: ts.FunctionDeclaration, sourceFile: ts.SourceFile) {
     });
   return params;
 }
+
+/**
+ * Generic type for RPC interface - can be consumed elsewhere to make typesafe
+ * callers */
+export type ExtensionRpcInterface = ReturnType<typeof makeRpcHandlers>;

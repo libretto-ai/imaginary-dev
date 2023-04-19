@@ -1,10 +1,13 @@
 import React, { FC, PropsWithChildren, useMemo } from "react";
 import { DefaultValue } from "recoil";
 import { ListenToItems, ReadItem, RecoilSync, WriteItems } from "recoil-sync";
-import { RpcProvider } from "worker-rpc";
+import { ExtensionRpcProvider } from "../../src-shared/ExtensionRpcProvider";
+import { State } from "../../src/util/state";
 import { useExtensionState } from "./ExtensionState";
 
-export const RecoilSyncWebview: FC<PropsWithChildren<{}>> = ({ children }) => {
+export const RecoilSyncWebview: FC<PropsWithChildren<unknown>> = ({
+  children,
+}) => {
   const { rpcProvider } = useExtensionState();
 
   const { reader, writer, listen } = useRpc(rpcProvider);
@@ -19,7 +22,7 @@ export const RecoilSyncWebview: FC<PropsWithChildren<{}>> = ({ children }) => {
   );
 };
 
-function useRpc(rpcProvider: RpcProvider | undefined): {
+function useRpc(rpcProvider: ExtensionRpcProvider | undefined): {
   reader: ReadItem;
   writer: WriteItems;
   listen: ListenToItems;
@@ -31,13 +34,15 @@ function useRpc(rpcProvider: RpcProvider | undefined): {
           console.warn(`[webview] reading ${itemKey} before provider is ready`);
           return new DefaultValue();
         },
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
         writer: () => {},
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
         listen: () => {},
       };
     }
-    const reader: ReadItem = async (itemKey) => {
+    const reader: ReadItem = async (itemKey: string) => {
       console.log(`[webview ${!!rpcProvider}] reading key: `, itemKey);
-      const value = rpcProvider.rpc("read-state", itemKey);
+      const value = rpcProvider.rpc("read-state", itemKey as keyof State);
       if (value === undefined) {
         return new DefaultValue();
       }
