@@ -16,7 +16,22 @@ export const GenerateTestCasesButton: FC<{
 
   const onRun = async () => {
     try {
+      if (loading) return;
       setLoading(true);
+
+      const hasGpt4Support = await rpcProvider?.rpc("hasAccessToModel", {
+        modelName: "gpt-4",
+      });
+
+      if (!hasGpt4Support) {
+        rpcProvider?.rpc("showErrorMessage", {
+          message:
+            "In order to generate test cases, you need access to the GPT-4 API, which is currently in beta. To request beta access to GPT-4, please go to https://openai.com/waitlist/gpt-4-api",
+        });
+        console.log("no gpt-4 support");
+        setLoading(false);
+        return;
+      }
 
       const testCasesForSelectedFunction =
         findTestCases(

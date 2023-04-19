@@ -17,6 +17,7 @@ import { findNativeFunction } from "./util/source";
 import { State } from "./util/state";
 import { SourceFileMap } from "./util/ts-source";
 import { TypedMap } from "./util/types";
+import { Configuration, OpenAIApi } from "openai";
 
 /**
  * This function takes in a TypeScript function declaration and gives one good set of test parameters for that
@@ -104,6 +105,31 @@ export function makeRpcHandlers(
   const secretsProxy = new SecretsProxy(extensionContext);
 
   return {
+    async showErrorMessage({ message }: { message: string }) {
+      await vscode.window.showErrorMessage(message);
+    },
+
+    async hasAccessToModel({
+      modelName,
+    }: {
+      modelName: string;
+    }): Promise<boolean> {
+      const apiKey = await secretsProxy.getSecret(OPENAI_API_SECRET_KEY);
+      if (!apiKey) {
+        return false;
+      }
+
+      const openai = new OpenAIApi(new Configuration({ apiKey }));
+      try {
+        const response = await openai.retrieveModel(modelName);
+
+        return !!response?.data?.id;
+      } catch (e) {
+        // often the API gives a 404 that in turn throws when it's a model you don't have.
+        return false;
+      }
+    },
+
     async generateTestParametersForTypeScriptFunction({
       fileName,
       functionName,
