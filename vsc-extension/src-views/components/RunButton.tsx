@@ -7,7 +7,7 @@ export const RunButton: FC<{
   selectedFunction: MaybeSelectedFunction;
   testCaseIndex: number;
   onDelete: () => void;
-  onRename: (newName: string) => void;
+  onRename: () => void;
 }> = ({ selectedFunction, testCaseIndex, onDelete, onRename }) => {
   const { rpcProvider } = useExtensionState();
   const { fileName, functionName } = selectedFunction ?? {};
@@ -54,7 +54,7 @@ export const RunButton: FC<{
         <span className="codicon codicon-trash" />
       </VSCodeButton>
       <VSCodeButton
-        onClick={() => onRename("xyz")}
+        onClick={onRename}
         disabled={!selectedFunction}
         appearance="icon"
       >

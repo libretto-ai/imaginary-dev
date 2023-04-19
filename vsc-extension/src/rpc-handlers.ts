@@ -216,8 +216,15 @@ export function makeRpcHandlers(
       functionName,
       testCaseIndex,
       newTestName,
-    }: TestLocation & { newTestName: string }) {
-      updateTestName(state, fileName, functionName, testCaseIndex, newTestName);
+    }: TestLocation & { newTestName?: string }) {
+      const newName = await vscode.window.showInputBox({
+        prompt: "Enter new name",
+        value: newTestName,
+      });
+      if (newName === undefined) {
+        return;
+      }
+      updateTestName(state, fileName, functionName, testCaseIndex, newName);
     },
   };
 }
