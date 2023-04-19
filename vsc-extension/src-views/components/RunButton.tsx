@@ -7,12 +7,16 @@ export const RunButton: FC<{
   selectedFunction: MaybeSelectedFunction;
   testCaseIndex: number;
   onDelete: () => void;
-}> = ({ selectedFunction, testCaseIndex, onDelete }) => {
+  onRename: () => void;
+}> = ({ selectedFunction, testCaseIndex, onDelete, onRename }) => {
   const { rpcProvider } = useExtensionState();
   const { fileName, functionName } = selectedFunction ?? {};
   const [loading, setLoading] = useState(false);
 
   const onRun = useCallback(async () => {
+    if (!fileName || !functionName) {
+      return;
+    }
     try {
       setLoading(true);
       await rpcProvider?.rpc("runTestCase", {
@@ -41,13 +45,20 @@ export const RunButton: FC<{
     : "codicon-play";
 
   return (
-    <>
+    <div style={{ display: "flex", gap: "0.25rem" }}>
       <VSCodeButton
         onClick={onDelete}
         disabled={!selectedFunction}
         appearance="icon"
       >
-        <span className="codicon codicon-trash mr-5" />
+        <span className="codicon codicon-trash" />
+      </VSCodeButton>
+      <VSCodeButton
+        onClick={onRename}
+        disabled={!selectedFunction}
+        appearance="icon"
+      >
+        <span className="codicon codicon-edit" />
       </VSCodeButton>
       <VSCodeButton
         onClick={onRun}
@@ -56,6 +67,6 @@ export const RunButton: FC<{
       >
         <span className={`codicon ${iconClass}`} />
       </VSCodeButton>
-    </>
+    </div>
   );
 };
