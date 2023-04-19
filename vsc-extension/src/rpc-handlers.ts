@@ -8,6 +8,7 @@ import ts from "typescript";
 import * as vscode from "vscode";
 import {
   FunctionTestCase,
+  SelectedFileTestCases,
   SourceFileTestCaseMap,
 } from "../src-shared/source-info";
 import {
@@ -15,6 +16,7 @@ import {
   deleteFunctionTestCase,
   deleteTestOutput,
   findTestCase,
+  findTestCases,
   updateSourceFileTestCase,
   updateSourceFileTestOutput,
 } from "../src-shared/testcases";
@@ -259,33 +261,78 @@ export function makeRpcHandlers(
     },
 
     async deleteTest({ fileName, functionName, testCaseIndex }: TestLocation) {
-      state.set(
-        "testCases",
-        deleteFunctionTestCase(
-          state.get("testCases"),
-          fileName,
-          functionName,
-          testCaseIndex
-        )
-      );
-      state.set(
-        "latestTestOutput",
-        deleteTestOutput(
-          state.get("latestTestOutput"),
-          fileName,
-          functionName,
-          testCaseIndex
-        )
-      );
-      state.set(
-        "acceptedTestOutput",
-        deleteTestOutput(
-          state.get("acceptedTestOutput"),
-          fileName,
-          functionName,
-          testCaseIndex
-        )
-      );
+      deleteTestCase(state, fileName, functionName, testCaseIndex);
+    },
+  };
+}
+
+function deleteTestCase(
+  state: TypedMap<State>,
+  fileName: string,
+  functionName: string,
+  testCaseIndex: number
+) {
+  state.set(
+    "testCases",
+    deleteFunctionTestCase(
+      state.get("testCases"),
+      fileName,
+      functionName,
+      testCaseIndex
+    )
+  );
+  state.set(
+    "latestTestOutput",
+    deleteTestOutput(
+      state.get("latestTestOutput"),
+      fileName,
+      functionName,
+      testCaseIndex
+    )
+  );
+  state.set(
+    "acceptedTestOutput",
+    deleteTestOutput(
+      state.get("acceptedTestOutput"),
+      fileName,
+      functionName,
+      testCaseIndex
+    )
+  );
+
+  // Also update selection, in case we selected a test without an index
+  const remainingTestCasesCount =
+    findTestCases(state.get("testCases"), fileName, functionName)?.testCases
+      .length ?? 0;
+  if (
+    remainingTestCasesCount > 0 &&
+    remainingTestCasesCount >= (testCaseIndex ?? -1)
+  ) {
+    const newTestIndex = remainingTestCasesCount - 1;
+    const newSelection: SelectedFileTestCases = selectTestCaseIndex(
+      state.get("selectedTestCases"),
+      fileName,
+      functionName,
+      newTestIndex
+    );
+    state.set("selectedTestCases", newSelection);
+  }
+}
+
+function selectTestCaseIndex(
+  selectedTestCases: SelectedFileTestCases,
+  fileName: string,
+  functionName: string,
+  newTestIndex: number
+): SelectedFileTestCases {
+  return {
+    ...selectedTestCases,
+    [fileName]: {
+      ...selectedTestCases[fileName],
+      [functionName]: {
+        ...selectedTestCases[fileName][functionName],
+        testCaseIndex: newTestIndex,
+      },
     },
   };
 }
