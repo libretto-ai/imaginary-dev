@@ -1,16 +1,22 @@
 import React, { FC, ReactNode } from "react";
-import { useRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import {
   FunctionTestCase,
   SelectedFunction,
   SerializableFunctionDeclaration,
+  TestOutput,
 } from "../../src-shared/source-info";
 import {
   blankTestCase,
   findTestCases,
+  findTestOutputs,
   updateSourceFileTestCase,
 } from "../../src-shared/testcases";
-import { selectedTestCaseIndexState, testCasesState } from "../shared/state";
+import {
+  latestTestOutputState,
+  selectedTestCaseIndexState,
+  testCasesState,
+} from "../shared/state";
 import { ParamEditor } from "./ParamEditor";
 import { TestCasesList } from "./TestCasesList";
 
@@ -30,6 +36,13 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
       selectedFunction?.fileName,
       selectedFunction?.functionName
     )?.testCases ?? [];
+  const testOutputs = useRecoilValue(latestTestOutputState);
+  const testOutputsForSelectedFunction =
+    findTestOutputs(
+      testOutputs,
+      selectedFunction?.fileName,
+      selectedFunction?.functionName
+    )?.outputs ?? [];
 
   const onUpdateTestCase = (paramName: string, value: string) => {
     const { fileName, functionName } = selectedFunction;
@@ -54,6 +67,9 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
   const formattedDeclaration = formatDeclaration(fn);
   const functionTestCase: FunctionTestCase | undefined =
     testCasesForSelectedFunction[testIndex];
+  const functionTestOutput: TestOutput | undefined =
+    testOutputsForSelectedFunction[testIndex];
+
   // if (!functionTestCase) {
   //   console.log("missing functionTestCase for ", testIndex);
   // }
@@ -153,7 +169,7 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
           >
             {functionTestCase && (
               <code style={{ whiteSpace: "pre" }}>
-                {formatOutput(functionTestCase.output.current)}
+                {formatOutput(functionTestOutput?.output)}
               </code>
             )}
           </div>

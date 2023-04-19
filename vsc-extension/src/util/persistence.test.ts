@@ -50,10 +50,6 @@ describe("persistence", () => {
                 {
                   name: "add positive numbers",
                   inputs: { a: 1, b: 2 },
-                  output: {
-                    prev: 3,
-                    current: 3,
-                  },
                 },
               ],
             },
@@ -61,10 +57,13 @@ describe("persistence", () => {
         },
       };
 
-      await writeAllTestCases(testCases);
+      await writeAllTestCases(testCases, {});
 
       const savedTestCases = await loadTestCases("example.ts");
-      expect(savedTestCases).toEqual(testCases["example.ts"]);
+      expect(savedTestCases).toEqual({
+        testCases: testCases["example.ts"],
+        testOutputs: { functionOutputs: [], sourceFileName: "example.ts" },
+      });
     });
   });
 
@@ -79,10 +78,6 @@ describe("persistence", () => {
               {
                 name: "add positive numbers",
                 inputs: { a: 1, b: 2 },
-                output: {
-                  prev: 3,
-                  current: 3,
-                },
               },
             ],
           },
@@ -100,14 +95,23 @@ describe("persistence", () => {
       );
 
       const loadedTestCases = await loadTestCases("example.ts");
-      expect(loadedTestCases).toEqual(testCases);
+      expect(loadedTestCases).toEqual({
+        testCases,
+        testOutputs: { sourceFileName: "example.ts", functionOutputs: [] },
+      });
     });
 
     it("should return an empty object if the test case file does not exist", async () => {
       const loadedTestCases = await loadTestCases("nonexistent.ts");
       expect(loadedTestCases).toEqual({
-        sourceFileName: "nonexistent.ts",
-        functionTestCases: [],
+        testCases: {
+          sourceFileName: "nonexistent.ts",
+          functionTestCases: [],
+        },
+        testOutputs: {
+          sourceFileName: "nonexistent.ts",
+          functionOutputs: [],
+        },
       });
     });
   });

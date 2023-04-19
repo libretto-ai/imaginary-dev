@@ -9,6 +9,7 @@ import {
   blankTestCase,
   findTestCase,
   updateSourceFileTestCase,
+  updateSourceFileTestOutput,
 } from "../src-shared/testcases";
 import { ExtensionHostState } from "./util/extension-state";
 import { SecretsProxy } from "./util/secrets";
@@ -187,20 +188,16 @@ export function makeRpcHandlers(
         );
         console.log("got result: ", typeof result, ": ", result);
         state.set(
-          "testCases",
-          updateSourceFileTestCase(
-            state.get("testCases"),
+          "latestTestOutput",
+          updateSourceFileTestOutput(
+            state.get("latestTestOutput"),
             fileName,
             functionName,
             testCaseIndex,
-            (prevTestCase) => ({
-              ...blankTestCase,
-              ...prevTestCase,
-              output: {
-                ...blankTestCase.output,
-                ...prevTestCase?.output,
-                current: result,
-              },
+            (output) => ({
+              ...output,
+              output: result,
+              lastRun: new Date().toISOString(),
             })
           )
         );

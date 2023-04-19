@@ -2,8 +2,11 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import {
   FunctionTestCases,
+  FunctionTestOutput,
   SourceFileTestCaseMap,
   SourceFileTestCases,
+  SourceFileTestOutput,
+  SourceFileTestOutputMap,
 } from "../../src-shared/source-info";
 import { getAbsolutePathInProject } from "./editor";
 
@@ -12,32 +15,41 @@ interface TestCaseFile {
   version: "0.1";
 
   testCases: FunctionTestCases[];
+  outputs?: FunctionTestOutput[];
 }
 
-export async function writeAllTestCases(testCases: SourceFileTestCaseMap) {
+export async function writeAllTestCases(
+  testCases: SourceFileTestCaseMap,
+  outputs: SourceFileTestOutputMap
+) {
   const promises = Object.values(testCases).map((value) => {
     if (!value.functionTestCases.length) {
       return;
     }
-    return writeSourceFileTestCases(value);
+    const output: SourceFileTestOutput | undefined =
+      outputs[value.sourceFileName];
+    return writeSourceFileTestCases(value, output);
   });
   await Promise.all(promises);
 }
 function writeSourceFileTestCases(
-  value: SourceFileTestCases
+  testCases: SourceFileTestCases,
+  testOutputs?: SourceFileTestOutput
 ): Promise<void> | undefined {
   const testCaseFile: TestCaseFile = {
-    testCases: value.functionTestCases,
+    testCases: testCases.functionTestCases,
+    outputs: testOutputs?.functionOutputs ?? [],
     version: "0.1",
   };
   return fs.writeFile(
-    getAbsolutePathInProject(getTestCaseFilename(value.sourceFileName)),
+    getAbsolutePathInProject(getTestCaseFilename(testCases.sourceFileName)),
     JSON.stringify(testCaseFile, null, 2)
   );
 }
-export async function loadTestCases(
-  sourceFileName: string
-): Promise<SourceFileTestCases> {
+export async function loadTestCases(sourceFileName: string): Promise<{
+  testCases: SourceFileTestCases;
+  testOutputs: SourceFileTestOutput;
+}> {
   const testCaseFileName = getAbsolutePathInProject(
     getTestCaseFilename(sourceFileName)
   );
@@ -52,12 +64,21 @@ export async function loadTestCases(
       console.warn(`Reading in unknown version: ${version}`);
     }
     return {
-      sourceFileName,
-      functionTestCases: testCaseFile.testCases,
+      testCases: {
+        sourceFileName,
+        functionTestCases: testCaseFile.testCases ?? [],
+      },
+      testOutputs: {
+        sourceFileName,
+        functionOutputs: testCaseFile.outputs ?? [],
+      },
     };
   } catch (ex) {
     console.warn(`Unable to load test cases for ${sourceFileName}:`, ex);
-    return { sourceFileName, functionTestCases: [] };
+    return {
+      testCases: { sourceFileName, functionTestCases: [] },
+      testOutputs: { sourceFileName, functionOutputs: [] },
+    };
   }
 }
 function getTestCaseFilename(sourceFileName: string) {

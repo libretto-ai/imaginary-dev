@@ -2,16 +2,21 @@ import { produce } from "immer";
 import {
   FunctionTestCase,
   FunctionTestCases,
+  FunctionTestOutput,
   SourceFileTestCaseMap,
+  SourceFileTestOutput,
+  SourceFileTestOutputMap,
+  TestOutput,
 } from "./source-info";
 
 export const blankTestCase: FunctionTestCase = {
   name: "New test",
   inputs: {},
-  output: {
-    prev: null,
-    current: null,
-  },
+};
+
+export const blankTestOutput: TestOutput = {
+  lastRun: "",
+  output: {},
 };
 
 export function deleteFunctionTestCase(
@@ -137,6 +142,40 @@ export function findTestCase(
   return testCase;
 }
 
+export function findTestOutputs(
+  testOutputs: SourceFileTestOutputMap,
+  fileName?: string,
+  functionNameTarget?: string
+): FunctionTestOutput | undefined {
+  if (!fileName || !functionNameTarget) {
+    return;
+  }
+  return testOutputs[fileName]?.functionOutputs.find(
+    ({ functionName }) => functionName === functionNameTarget
+  );
+}
+
+export function findTestOutput(
+  testOutputs: SourceFileTestOutputMap,
+  fileName: string,
+  functionName: string,
+  testCaseIndex: number
+): TestOutput | null {
+  const functionTestOutput = findTestOutputs(
+    testOutputs,
+    fileName,
+    functionName
+  );
+  if (
+    !functionTestOutput ||
+    testCaseIndex >= functionTestOutput.outputs.length
+  ) {
+    return null;
+  }
+  const testCase = functionTestOutput.outputs[testCaseIndex];
+  return testCase;
+}
+
 function updateFunctionTestCase(
   functionTestCases: FunctionTestCases,
   index: number,
@@ -175,6 +214,57 @@ export function updateSourceFileTestCase(
           draftTestCases.functionTestCases.push(
             updateFunctionTestCase(
               { functionName, testCases: [] },
+              index,
+              updater
+            )
+          );
+        }
+      }
+    );
+  });
+}
+
+function updateFunctionTestOutput(
+  functionOutputs: FunctionTestOutput,
+  index: number,
+  updater: (testOutput?: TestOutput) => TestOutput
+): FunctionTestOutput {
+  return produce(functionOutputs, (draft) => {
+    draft.outputs = produce(draft.outputs, (draftOutputs) => {
+      draftOutputs[index] = updater(draftOutputs[index]);
+    });
+  });
+}
+export function updateSourceFileTestOutput(
+  sourceFileOutputs: SourceFileTestOutputMap,
+  sourceFileName: string,
+  functionName: string,
+  index: number,
+  updater: (testOutput?: TestOutput) => TestOutput
+) {
+  return produce(sourceFileOutputs, (draft) => {
+    draft[sourceFileName] = produce(
+      draft[sourceFileName] ??
+        ({
+          sourceFileName,
+          functionOutputs: [],
+        } satisfies SourceFileTestOutput),
+      (draftFileTestOutput) => {
+        const functionTestOutputIndex =
+          draftFileTestOutput.functionOutputs.findIndex(
+            (functionOutput) => functionOutput.functionName === functionName
+          );
+        if (functionTestOutputIndex !== -1) {
+          draftFileTestOutput.functionOutputs[functionTestOutputIndex] =
+            updateFunctionTestOutput(
+              draftFileTestOutput.functionOutputs[functionTestOutputIndex],
+              index,
+              updater
+            );
+        } else {
+          draftFileTestOutput.functionOutputs.push(
+            updateFunctionTestOutput(
+              { functionName, outputs: [] },
               index,
               updater
             )

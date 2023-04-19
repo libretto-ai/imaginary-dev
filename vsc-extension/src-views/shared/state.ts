@@ -6,6 +6,7 @@ import {
   SelectedFileTestCases,
   SerializableSourceFileMap,
   SourceFileTestCaseMap,
+  SourceFileTestOutputMap,
 } from "../../src-shared/source-info";
 
 function synced<T>(defaultValue: T, isNullable?: boolean) {
@@ -85,4 +86,10 @@ export const selectedTestCaseIndexState = selectorFamily({
         return v;
       });
     },
+});
+
+export const latestTestOutputState = atom<SourceFileTestOutputMap>({
+  default: {},
+  key: "latestTestOutput",
+  effects: [synced({})],
 });
