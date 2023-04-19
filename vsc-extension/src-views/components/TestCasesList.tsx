@@ -6,9 +6,10 @@ import {
 } from "../../src-shared/source-info";
 import {
   deleteFunctionTestCase,
+  deleteTestOutput,
   findTestCases,
 } from "../../src-shared/testcases";
-import { testCasesState } from "../shared/state";
+import { latestTestOutputState, testCasesState } from "../shared/state";
 import { GenerateTestCasesButton } from "./GenerateTestCasesButton";
 import { RunButton } from "./RunButton";
 
@@ -28,6 +29,7 @@ export const TestCasesList: FC<Props> = ({
 }) => {
   const { fileName, functionName } = selectedFunction ?? {};
   const [allTestCases, setAllTestCases] = useRecoilState(testCasesState);
+  const [testOutputs, setTestOutputs] = useRecoilState(latestTestOutputState);
 
   if (!selectedFunction) {
     return <div />;
@@ -57,6 +59,10 @@ export const TestCasesList: FC<Props> = ({
       onSelect(remainingTestCasesCount - 1);
     }
     setAllTestCases(newAllTestCases);
+
+    setTestOutputs(
+      deleteTestOutput(testOutputs, fileName, functionName, index)
+    );
   };
 
   return (

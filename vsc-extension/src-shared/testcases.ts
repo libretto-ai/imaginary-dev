@@ -57,6 +57,43 @@ export function deleteFunctionTestCase(
   };
 }
 
+export function deleteTestOutput(
+  testOutputs: SourceFileTestOutputMap,
+  sourceFileName: string,
+  functionName: string,
+  outputToDeleteIndex: number
+): SourceFileTestOutputMap {
+  const functionTestOutputs = findTestOutputs(
+    testOutputs,
+    sourceFileName,
+    functionName
+  );
+  if (
+    !functionTestOutputs ||
+    functionTestOutputs.outputs.length <= outputToDeleteIndex
+  ) {
+    return testOutputs;
+  }
+
+  const functionTestOutputsAfterDeletion =
+    functionTestOutputs.outputs.filter(
+      (_, index) => index !== outputToDeleteIndex
+    ) ?? [];
+  const fileTestOutputs = testOutputs[sourceFileName];
+
+  return {
+    ...testOutputs,
+    [sourceFileName]: {
+      sourceFileName,
+      functionOutputs: fileTestOutputs.functionOutputs
+        .filter(
+          ({ functionName: thisFunctionName }) =>
+            functionName !== thisFunctionName
+        )
+        .concat({ functionName, outputs: functionTestOutputsAfterDeletion }),
+    },
+  };
+}
 export function addFunctionTestCase(
   testCases: SourceFileTestCaseMap,
   sourceFileName: string,
