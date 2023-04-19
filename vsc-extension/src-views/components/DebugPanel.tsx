@@ -21,7 +21,7 @@ export const DebugPanel: FC = () => {
   const onClearApiKey = useCallback(async () => {
     try {
       setClearing(true);
-      await rpcProvider?.rpc("clearApiKey");
+      await rpcProvider?.rpc("clearApiKey", undefined);
     } finally {
       setClearing(false);
     }

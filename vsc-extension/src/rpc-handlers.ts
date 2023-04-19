@@ -340,3 +340,8 @@ function getParamTypes(fn: ts.FunctionDeclaration, sourceFile: ts.SourceFile) {
     });
   return params;
 }
+
+/**
+ * Generic type for RPC interface - can be consumed elsewhere to make typesafe
+ * callers */
+export type ExtensionRpcInterface = ReturnType<typeof makeRpcHandlers>;

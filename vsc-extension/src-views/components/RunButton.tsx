@@ -13,6 +13,9 @@ export const RunButton: FC<{
   const [loading, setLoading] = useState(false);
 
   const onRun = useCallback(async () => {
+    if (!fileName || !functionName) {
+      return;
+    }
     try {
       setLoading(true);
       await rpcProvider?.rpc("runTestCase", {
