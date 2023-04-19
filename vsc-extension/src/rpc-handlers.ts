@@ -98,6 +98,11 @@ declare function generateTestCaseName(
   functionDeclaration: string,
   parameters: Record<string, any>
 ): Promise<string>;
+interface TestLocation {
+  fileName: string;
+  functionName: string;
+  testCaseIndex: number;
+}
 
 const OPENAI_API_SECRET_KEY = "openaiApiKey";
 export function makeRpcHandlers(
@@ -129,15 +134,7 @@ export function makeRpcHandlers(
       );
     },
 
-    async runTestCase({
-      fileName,
-      functionName,
-      testCaseIndex,
-    }: {
-      fileName: string;
-      functionName: string;
-      testCaseIndex: number;
-    }) {
+    async runTestCase({ fileName, functionName, testCaseIndex }: TestLocation) {
       console.log(
         `runTestCase: ${fileName}, ${functionName}, ${testCaseIndex}`
       );
@@ -186,11 +183,7 @@ export function makeRpcHandlers(
       fileName,
       functionName,
       testCaseIndex,
-    }: {
-      fileName: string;
-      functionName: string;
-      testCaseIndex: number;
-    }) {
+    }: TestLocation) {
       const testCases = state.get("testCases");
       const nativeSources = extensionLocalState.get("nativeSources");
       const { testCase } = extractTestCaseContext(
@@ -214,25 +207,44 @@ export function makeRpcHandlers(
         imaginaryFunctionDefinition,
         testCase.inputs
       );
-      console.log("got test name = ", testName);
-      state.set(
-        "testCases",
-        updateSourceFileTestCase(
-          state.get("testCases"),
-          fileName,
-          functionName,
-          testCaseIndex,
-          (prevTestCase) => ({
-            ...blankTestCase,
-            ...prevTestCase,
-            hasCustomName: true,
-            name: testName,
-          })
-        )
-      );
+
+      updateTestName(state, fileName, functionName, testCaseIndex, testName);
       return testName;
     },
+    async renameTest({
+      fileName,
+      functionName,
+      testCaseIndex,
+      newTestName,
+    }: TestLocation & { newTestName: string }) {
+      updateTestName(state, fileName, functionName, testCaseIndex, newTestName);
+    },
   };
+}
+
+function updateTestName(
+  state: TypedMap<State>,
+  fileName: string,
+  functionName: string,
+  testCaseIndex: number,
+  newTestName: string
+) {
+  const testCases = state.get("testCases");
+  state.set(
+    "testCases",
+    updateSourceFileTestCase(
+      testCases,
+      fileName,
+      functionName,
+      testCaseIndex,
+      (prevTestCase) => ({
+        ...blankTestCase,
+        ...prevTestCase,
+        hasCustomName: true,
+        name: newTestName,
+      })
+    )
+  );
 }
 
 function extractTestCaseContext(
