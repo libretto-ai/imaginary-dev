@@ -57,7 +57,7 @@ describe("persistence", () => {
         },
       };
 
-      await writeAllTestCases(testCases);
+      await writeAllTestCases(testCases, {});
 
       const savedTestCases = await loadTestCases("example.ts");
       expect(savedTestCases).toEqual(testCases["example.ts"]);

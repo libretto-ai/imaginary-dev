@@ -14,6 +14,11 @@ export const blankTestCase: FunctionTestCase = {
   inputs: {},
 };
 
+export const blankTestOutput: TestOutput = {
+  lastRun: "",
+  output: {},
+};
+
 export function deleteFunctionTestCase(
   testCases: SourceFileTestCaseMap,
   sourceFileName: string,

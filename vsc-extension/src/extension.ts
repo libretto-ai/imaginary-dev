@@ -120,8 +120,11 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     messageRouter.updateState(updatedState);
 
     // NOTE: onStateChange does not wait for this promise to finish..
-    if (updatedState.testCases) {
-      await writeAllTestCases(updatedState.testCases);
+    if (updatedState.testCases || updatedState.latestTestOutput) {
+      const testCases = updatedState.testCases ?? state.get("testCases");
+      const outputs =
+        updatedState.latestTestOutput ?? state.get("latestTestOutput");
+      await writeAllTestCases(testCases, outputs);
     }
   });
 
@@ -176,11 +179,19 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
 
 async function maybeLoadTestCases(fileName: string, state: TypedMap<State>) {
   const sourceFileName = getRelativePathToProject(fileName);
-  const testCases = await loadTestCases(sourceFileName);
+  const { testCases, testOutputs } = await loadTestCases(sourceFileName);
+
+  // TODO: Would be nice if we could do both updates in one go and/or debounce them in the WatchedTypeMap
   if (testCases.functionTestCases.length) {
     state.set("testCases", {
       ...state.get("testCases"),
       [sourceFileName]: testCases,
+    });
+  }
+  if (testOutputs.functionOutputs.length) {
+    state.set("latestTestOutput", {
+      ...state.get("latestTestOutput"),
+      [sourceFileName]: testOutputs,
     });
   }
 }
