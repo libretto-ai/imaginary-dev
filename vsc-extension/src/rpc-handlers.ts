@@ -19,14 +19,14 @@ import { SourceFileMap } from "./util/ts-source";
 import { TypedMap } from "./util/types";
 
 /**
- * This function takes in a TypeScript function declaration and gives lists of good test data for those
- * functions. For each function passed in, it returns 5 full sets of test parameters. Each set of test data
+ * This function takes in a TypeScript function declaration and gives one good set of test parameters for that
+ * functions. For the function passed in, it returns 1 full set of test parameters. The set of test data
  * has a value for each of the function's parameters (although the values can sometimes be null or undefined,
  * if the function specification allows it). Each of the arguments it gives is a JSON-compliant object or
  * primitive value, and it is compliant with the TypeScript types in the function declaration. It uses the
  * function name, the function comment, and the function parameter names to come up with good test cases.
  *
- * Each set of test inputs should be a simple JSON object, where the parameter
+ * The set of test inputs should be a simple JSON object, where the parameter
  * names are the keys in the object.
  *
  * If there is a useful, human-readable name for a test case, it is added as an element of the object with
@@ -43,7 +43,7 @@ import { TypedMap } from "./util/types";
  * @param existingTestParameters - an array of test parameters that already exist for the function being
  * passed in. none of the result should be similar to these.
  *
- * @returns an array of 5 sets of test parameters. each set of test parameters is an object where the object
+ * @returns a single set of test parameters. The set of test parameters is an object where the object
  * properties are the parameter names.
  *
  * @imaginary
@@ -52,7 +52,7 @@ import { TypedMap } from "./util/types";
 declare function generateTestParametersForTypeScriptFunction(
   functionDeclaration: string,
   existingTestParameters: Array<Record<string, any>>
-): Promise<Record<string, any>[]>;
+): Promise<Record<string, any>>;
 
 /**
  * This function takes in a TypeScript function declaration as a string, and an

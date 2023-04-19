@@ -34,20 +34,24 @@ export const GenerateTestCasesButton: FC<{
             ({ inputs }) => inputs
           ),
         }
-      )) as Array<{ __testName: string } & Record<string, any>>;
+      )) as { __testName: string } & Record<string, any>;
 
       setLoading(false);
 
       let resultTestCases = testCases;
 
-      newTestCases.forEach((newTestCase) => {
+      // this is a little odd, in that we bundle this test case in an array
+      // and then iterate over it. I originally built this as having the function
+      // return an array of test cases, and then we changed it to one at a time. We
+      // might change it back, so I'm leaving it this way for now.
+      [newTestCases].forEach((newTestCase) => {
         resultTestCases = addFunctionTestCase(
           resultTestCases,
           fileName,
           functionName,
           {
-            name: newTestCase.__testName,
-            hasCustomName: true,
+            name: newTestCase.__testName ?? "New test",
+            hasCustomName: !!newTestCase.__testName,
             inputs: Object.assign({}, newTestCase, { __testName: undefined }),
           }
         );
@@ -65,7 +69,7 @@ export const GenerateTestCasesButton: FC<{
         {loading ? (
           <span className={`codicon codicon-loading codicon-modifier-spin`} />
         ) : (
-          "Generate Test Cases"
+          "Generate Test Case"
         )}
       </VSCodeButton>
     </>
