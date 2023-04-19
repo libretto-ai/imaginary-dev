@@ -50,6 +50,11 @@ export const TestCasesList: FC<Props> = ({
     if (!functionName) {
       return;
     }
+    await rpcProvider?.rpc("deleteTest", {
+      fileName,
+      functionName,
+      testCaseIndex: index,
+    });
 
     const newAllTestCases = deleteFunctionTestCase(
       allTestCases,

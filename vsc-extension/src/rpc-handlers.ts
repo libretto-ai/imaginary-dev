@@ -12,6 +12,8 @@ import {
 } from "../src-shared/source-info";
 import {
   blankTestCase,
+  deleteFunctionTestCase,
+  deleteTestOutput,
   findTestCase,
   updateSourceFileTestCase,
   updateSourceFileTestOutput,
@@ -254,6 +256,36 @@ export function makeRpcHandlers(
         return;
       }
       updateTestName(state, fileName, functionName, testCaseIndex, newName);
+    },
+
+    async deleteTest({ fileName, functionName, testCaseIndex }: TestLocation) {
+      state.set(
+        "testCases",
+        deleteFunctionTestCase(
+          state.get("testCases"),
+          fileName,
+          functionName,
+          testCaseIndex
+        )
+      );
+      state.set(
+        "latestTestOutput",
+        deleteTestOutput(
+          state.get("latestTestOutput"),
+          fileName,
+          functionName,
+          testCaseIndex
+        )
+      );
+      state.set(
+        "acceptedTestOutput",
+        deleteTestOutput(
+          state.get("acceptedTestOutput"),
+          fileName,
+          functionName,
+          testCaseIndex
+        )
+      );
     },
   };
 }
