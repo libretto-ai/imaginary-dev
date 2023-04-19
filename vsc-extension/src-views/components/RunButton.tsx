@@ -1,16 +1,26 @@
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
-import React, { FC, useCallback, useState } from "react";
+import React, { FC, useCallback, useEffect, useState } from "react";
 import { MaybeSelectedFunction } from "../../src-shared/source-info";
 import { useExtensionState } from "./ExtensionState";
 
 export const RunButton: FC<{
   selectedFunction: MaybeSelectedFunction;
+  hasTestOutput: boolean;
   testCaseIndex: number;
   onDelete: () => void;
-}> = ({ selectedFunction, testCaseIndex, onDelete }) => {
+}> = ({ selectedFunction, hasTestOutput, testCaseIndex, onDelete }) => {
   const { rpcProvider } = useExtensionState();
   const { fileName, functionName } = selectedFunction ?? {};
   const [loading, setLoading] = useState(false);
+
+  // this is not my favorite way to do this; we should probably push this
+  // logic to the backend, but that's a lot of work. so: this autoruns any
+  // test case that doesn't have current output.
+  useEffect(() => {
+    if (!hasTestOutput) {
+      onRun();
+    }
+  });
 
   const onRun = useCallback(async () => {
     try {

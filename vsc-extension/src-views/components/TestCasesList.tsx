@@ -3,6 +3,7 @@ import { useRecoilState } from "recoil";
 import {
   FunctionTestCase,
   MaybeSelectedFunction,
+  TestOutput,
 } from "../../src-shared/source-info";
 import {
   deleteFunctionTestCase,
@@ -15,6 +16,7 @@ import { RunButton } from "./RunButton";
 
 interface Props {
   testCases: FunctionTestCase[];
+  testOutputs: TestOutput[];
   selectedFunction: MaybeSelectedFunction;
   selectedIndex: number | null;
   onSelect: (selectedIndex: number) => void;
@@ -23,13 +25,16 @@ interface Props {
 // TestCasesList component
 export const TestCasesList: FC<Props> = ({
   testCases,
+  testOutputs,
   selectedIndex,
   selectedFunction,
   onSelect,
 }) => {
   const { fileName, functionName } = selectedFunction ?? {};
   const [allTestCases, setAllTestCases] = useRecoilState(testCasesState);
-  const [testOutputs, setTestOutputs] = useRecoilState(latestTestOutputState);
+  const [allTestOutputs, setTestOutputs] = useRecoilState(
+    latestTestOutputState
+  );
 
   if (!selectedFunction) {
     return <div />;
@@ -61,7 +66,7 @@ export const TestCasesList: FC<Props> = ({
     setAllTestCases(newAllTestCases);
 
     setTestOutputs(
-      deleteTestOutput(testOutputs, fileName, functionName, index)
+      deleteTestOutput(allTestOutputs, fileName, functionName, index)
     );
   };
 
@@ -104,6 +109,7 @@ export const TestCasesList: FC<Props> = ({
           </span>
           <RunButton
             selectedFunction={selectedFunction}
+            hasTestOutput={!!testOutputs[index]}
             testCaseIndex={index}
             onDelete={() => onDelete(index)}
           />
