@@ -45,7 +45,7 @@ export const RunButton: FC<{
     : "codicon-play";
 
   return (
-    <div className="flex gap-5">
+    <div style={{ display: "flex", gap: "0.25rem" }}>
       <VSCodeButton
         onClick={onDelete}
         disabled={!selectedFunction}
