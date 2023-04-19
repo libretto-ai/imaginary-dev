@@ -4,6 +4,7 @@ import {
   tsNodeToJsonSchema,
 } from "@imaginary-dev/typescript-transformer";
 import ts from "typescript";
+import { FunctionTestCase } from "vsc-extension/src-shared/source-info";
 import * as vscode from "vscode";
 import {
   blankTestCase,
@@ -13,9 +14,8 @@ import {
 } from "../src-shared/testcases";
 import { ExtensionHostState } from "./util/extension-state";
 import { SecretsProxy } from "./util/secrets";
-import { findNativeFunction } from "./util/source";
+import { findNativeFunction, generateFunctionDefinition } from "./util/source";
 import { State } from "./util/state";
-import { SourceFileMap } from "./util/ts-source";
 import { TypedMap } from "./util/types";
 
 /**
@@ -159,25 +159,11 @@ export function makeRpcHandlers(
         console.error(message);
         throw new Error(message);
       }
-      const { fn, sourceFile } = functionInfo;
-      const funcComment = getImaginaryTsDocComments(fn, sourceFile)[0];
 
-      console.info("getting api key");
       const apiKey = await secretsProxy.getSecret(OPENAI_API_SECRET_KEY);
       try {
-        console.info("getting params from ", fn);
-        const parameterTypes = getParamTypes(fn, sourceFile);
-        if (!fn.type) {
-          const message = `Missing type in ${fn.name?.getText(sourceFile)}`;
-          console.error(message);
-          throw new Error(message);
-        }
-
-        const returnSchema = tsNodeToJsonSchema(fn.type, sourceFile, true);
-        console.info("translating return type to ", returnSchema);
-        const paramValues = Object.fromEntries(
-          parameterTypes.map(({ name }) => [name, testCase.inputs[name]])
-        );
+        const { funcComment, parameterTypes, returnSchema, paramValues } =
+          extractCallParameters(functionInfo, testCase);
         const result = await callImaginaryFunction(
           funcComment,
           functionName,
@@ -186,20 +172,13 @@ export function makeRpcHandlers(
           paramValues,
           { openai: { apiConfig: { apiKey } } }
         );
-        console.log("got result: ", typeof result, ": ", result);
-        state.set(
-          "latestTestOutput",
-          updateSourceFileTestOutput(
-            state.get("latestTestOutput"),
-            fileName,
-            functionName,
-            testCaseIndex,
-            (output) => ({
-              ...output,
-              output: result,
-              lastRun: new Date().toISOString(),
-            })
-          )
+
+        updateTestRunState(
+          state,
+          fileName,
+          functionName,
+          testCaseIndex,
+          result
         );
         return result;
       } catch (ex) {
@@ -281,35 +260,47 @@ export function makeRpcHandlers(
   };
 }
 
-function generateFunctionDefinition(
-  nativeSources: SourceFileMap,
+function updateTestRunState(
+  state: TypedMap<State>,
   fileName: string,
-  functionName: string
+  functionName: string,
+  testCaseIndex: number,
+  result: any
 ) {
-  const functionInfo = findNativeFunction(
-    nativeSources,
-    fileName,
-    functionName
+  state.set(
+    "latestTestOutput",
+    updateSourceFileTestOutput(
+      state.get("latestTestOutput"),
+      fileName,
+      functionName,
+      testCaseIndex,
+      (output) => ({
+        ...output,
+        output: result,
+        lastRun: new Date().toISOString(),
+      })
+    )
   );
-  if (!functionInfo) {
-    console.error(
-      "failure 2",
-      `Unable to find function declaration for ${functionName} in ${fileName}`
-    );
-    throw new Error(
-      `Unable to find function declaration for ${functionName} in ${fileName}`
-    );
+}
+
+function extractCallParameters(
+  functionInfo: { fn: ts.FunctionDeclaration; sourceFile: ts.SourceFile },
+  testCase: FunctionTestCase
+) {
+  const { fn, sourceFile } = functionInfo;
+  const funcComment = getImaginaryTsDocComments(fn, sourceFile)[0];
+  const parameterTypes = getParamTypes(fn, sourceFile);
+  if (!fn.type) {
+    const message = `Missing type in ${fn.name?.getText(sourceFile)}`;
+    console.error(message);
+    throw new Error(message);
   }
-  const { fn: fnDeclaration, sourceFile } = functionInfo;
 
-  const printer = ts.createPrinter();
-  const printed = printer.printNode(
-    ts.EmitHint.Unspecified,
-    fnDeclaration,
-    sourceFile
+  const returnSchema = tsNodeToJsonSchema(fn.type, sourceFile, true);
+  const paramValues = Object.fromEntries(
+    parameterTypes.map(({ name }) => [name, testCase.inputs[name]])
   );
-
-  return printed;
+  return { funcComment, parameterTypes, returnSchema, paramValues };
 }
 
 /** This just gets all the types as `any`, since we do not have a ts.TypeChecker available */
