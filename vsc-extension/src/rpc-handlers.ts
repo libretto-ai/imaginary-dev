@@ -4,7 +4,10 @@ import {
   tsNodeToJsonSchema,
 } from "@imaginary-dev/typescript-transformer";
 import ts from "typescript";
-import { FunctionTestCase } from "vsc-extension/src-shared/source-info";
+import {
+  FunctionTestCase,
+  SourceFileTestCaseMap,
+} from "vsc-extension/src-shared/source-info";
 import * as vscode from "vscode";
 import {
   blankTestCase,
@@ -16,6 +19,7 @@ import { ExtensionHostState } from "./util/extension-state";
 import { SecretsProxy } from "./util/secrets";
 import { findNativeFunction, generateFunctionDefinition } from "./util/source";
 import { State } from "./util/state";
+import { SourceFileMap } from "./util/ts-source";
 import { TypedMap } from "./util/types";
 
 /**
@@ -138,27 +142,14 @@ export function makeRpcHandlers(
         `runTestCase: ${fileName}, ${functionName}, ${testCaseIndex}`
       );
       const testCases = state.get("testCases");
-      const testCase = findTestCase(
+      const nativeSources = extensionLocalState.get("nativeSources");
+      const { functionInfo, testCase } = extractTestCaseContext(
         testCases,
         fileName,
         functionName,
-        testCaseIndex
+        testCaseIndex,
+        nativeSources
       );
-      if (!testCase) {
-        const message = `Could not find test case #${testCaseIndex} for ${fileName} ${functionName}`;
-        console.error(message);
-        throw new Error(message);
-      }
-      const functionInfo = findNativeFunction(
-        extensionLocalState.get("nativeSources"),
-        fileName,
-        functionName
-      );
-      if (!functionInfo) {
-        const message = `Unable to find function declaration for ${functionName} in ${fileName}`;
-        console.error(message);
-        throw new Error(message);
-      }
 
       const apiKey = await secretsProxy.getSecret(OPENAI_API_SECRET_KEY);
       try {
@@ -200,36 +191,22 @@ export function makeRpcHandlers(
       functionName: string;
       testCaseIndex: number;
     }) {
-      const functionInfo = findNativeFunction(
-        extensionLocalState.get("nativeSources"),
-        fileName,
-        functionName
-      );
       const testCases = state.get("testCases");
-      const testCase = findTestCase(
+      const nativeSources = extensionLocalState.get("nativeSources");
+      const { testCase } = extractTestCaseContext(
         testCases,
         fileName,
         functionName,
-        testCaseIndex
+        testCaseIndex,
+        nativeSources
       );
-      if (!testCase) {
-        const message = `Could not find test case #${testCaseIndex} for ${fileName} ${functionName}`;
-        console.error(message);
-        throw new Error(message);
-      }
 
-      if (!functionInfo) {
-        console.error(
-          "failure 2",
-          `Unable to find function declaration for ${functionName} in ${fileName}`
-        );
-        throw new Error(
-          `Unable to find function declaration for ${functionName} in ${fileName}`
-        );
+      if (testCase.hasCustomName) {
+        return;
       }
 
       const imaginaryFunctionDefinition = generateFunctionDefinition(
-        extensionLocalState.get("nativeSources"),
+        nativeSources,
         fileName,
         functionName
       );
@@ -238,26 +215,55 @@ export function makeRpcHandlers(
         testCase.inputs
       );
       console.log("got test name = ", testName);
-      if (!testCase.hasCustomName) {
-        state.set(
-          "testCases",
-          updateSourceFileTestCase(
-            state.get("testCases"),
-            fileName,
-            functionName,
-            testCaseIndex,
-            (prevTestCase) => ({
-              ...blankTestCase,
-              ...prevTestCase,
-              hasCustomName: true,
-              name: testName,
-            })
-          )
-        );
-      }
+      state.set(
+        "testCases",
+        updateSourceFileTestCase(
+          state.get("testCases"),
+          fileName,
+          functionName,
+          testCaseIndex,
+          (prevTestCase) => ({
+            ...blankTestCase,
+            ...prevTestCase,
+            hasCustomName: true,
+            name: testName,
+          })
+        )
+      );
       return testName;
     },
   };
+}
+
+function extractTestCaseContext(
+  testCases: SourceFileTestCaseMap,
+  fileName: string,
+  functionName: string,
+  testCaseIndex: number,
+  nativeSources: SourceFileMap
+) {
+  const testCase = findTestCase(
+    testCases,
+    fileName,
+    functionName,
+    testCaseIndex
+  );
+  if (!testCase) {
+    const message = `Could not find test case #${testCaseIndex} for ${fileName} ${functionName}`;
+    console.error(message);
+    throw new Error(message);
+  }
+  const functionInfo = findNativeFunction(
+    nativeSources,
+    fileName,
+    functionName
+  );
+  if (!functionInfo) {
+    const message = `Unable to find function declaration for ${functionName} in ${fileName}`;
+    console.error(message);
+    throw new Error(message);
+  }
+  return { functionInfo, testCase };
 }
 
 function updateTestRunState(

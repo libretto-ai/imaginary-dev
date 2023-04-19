@@ -77,6 +77,7 @@ export function findNativeFunction(
   return { fn, sourceFile: functionSource.sourceFile };
 }
 
+/** Generate a full function declaration, including comment and function body */
 export function generateFunctionDefinition(
   nativeSources: SourceFileMap,
   fileName: string,
