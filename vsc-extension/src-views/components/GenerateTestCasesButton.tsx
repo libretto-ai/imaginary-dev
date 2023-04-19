@@ -1,10 +1,10 @@
+import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
+import React, { FC, useState } from "react";
 import { useRecoilState } from "recoil";
 import { SelectedFunction } from "../../src-shared/source-info";
-import { useExtensionState } from "./ExtensionState";
-import { testCasesState } from "../shared/state";
-import React, { FC, useState } from "react";
 import { addFunctionTestCase, findTestCases } from "../../src-shared/testcases";
-import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
+import { testCasesState } from "../shared/state";
+import { useExtensionState } from "./ExtensionState";
 
 export const GenerateTestCasesButton: FC<{
   selectedFunction: SelectedFunction;
@@ -49,10 +49,6 @@ export const GenerateTestCasesButton: FC<{
             name: newTestCase.__testName,
             hasCustomName: true,
             inputs: Object.assign({}, newTestCase, { __testName: undefined }),
-            output: {
-              prev: null,
-              current: null,
-            },
           }
         );
       });

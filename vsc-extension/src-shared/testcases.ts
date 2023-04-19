@@ -137,6 +137,40 @@ export function findTestCase(
   return testCase;
 }
 
+export function findTestOutputs(
+  testOutputs: SourceFileTestOutputMap,
+  fileName?: string,
+  functionNameTarget?: string
+): FunctionTestOutput | undefined {
+  if (!fileName || !functionNameTarget) {
+    return;
+  }
+  return testOutputs[fileName]?.functionOutputs.find(
+    ({ functionName }) => functionName === functionNameTarget
+  );
+}
+
+export function findTestOutput(
+  testOutputs: SourceFileTestOutputMap,
+  fileName: string,
+  functionName: string,
+  testCaseIndex: number
+): TestOutput | null {
+  const functionTestOutput = findTestOutputs(
+    testOutputs,
+    fileName,
+    functionName
+  );
+  if (
+    !functionTestOutput ||
+    testCaseIndex >= functionTestOutput.outputs.length
+  ) {
+    return null;
+  }
+  const testCase = functionTestOutput.outputs[testCaseIndex];
+  return testCase;
+}
+
 function updateFunctionTestCase(
   functionTestCases: FunctionTestCases,
   index: number,
