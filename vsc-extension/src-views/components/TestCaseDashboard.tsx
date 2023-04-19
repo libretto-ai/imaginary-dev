@@ -95,6 +95,7 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
       <div style={{ display: "flex", flexDirection: "row", gap: "1rem" }}>
         <TestCasesList
           testCases={testCasesForSelectedFunction}
+          testOutputs={testOutputsForSelectedFunction}
           selectedFunction={selectedFunction}
           selectedIndex={testIndex}
           onSelect={setTestIndex}
