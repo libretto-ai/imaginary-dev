@@ -3,6 +3,7 @@ import {
   getImaginaryTsDocComments,
   tsNodeToJsonSchema,
 } from "@imaginary-dev/typescript-transformer";
+import { Configuration, OpenAIApi } from "openai";
 import ts from "typescript";
 import * as vscode from "vscode";
 import {
@@ -21,7 +22,6 @@ import { findNativeFunction, generateFunctionDefinition } from "./util/source";
 import { State } from "./util/state";
 import { SourceFileMap } from "./util/ts-source";
 import { TypedMap } from "./util/types";
-import { Configuration, OpenAIApi } from "openai";
 
 /**
  * This function takes in a TypeScript function declaration and gives one good set of test parameters for that
@@ -175,6 +175,9 @@ export function makeRpcHandlers(
       );
 
       const apiKey = await secretsProxy.getSecret(OPENAI_API_SECRET_KEY);
+      if (!apiKey) {
+        return;
+      }
       try {
         const { funcComment, parameterTypes, returnSchema, paramValues } =
           extractCallParameters(functionInfo, testCase);

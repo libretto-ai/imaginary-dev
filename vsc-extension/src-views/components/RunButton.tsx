@@ -20,15 +20,6 @@ export const RunButton: FC<{
   const { fileName, functionName } = selectedFunction ?? {};
   const [loading, setLoading] = useState(false);
 
-  // this is not my favorite way to do this; we should probably push this
-  // logic to the backend, but that's a lot of work. so: this autoruns any
-  // test case that doesn't have current output.
-  useEffect(() => {
-    if (!hasTestOutput) {
-      onRun();
-    }
-  });
-
   const onRun = useCallback(async () => {
     if (!fileName || !functionName) {
       return;
@@ -51,6 +42,15 @@ export const RunButton: FC<{
       setLoading(false);
     }
   }, [fileName, functionName, rpcProvider, testCaseIndex]);
+
+  // this is not my favorite way to do this; we should probably push this
+  // logic to the backend, but that's a lot of work. so: this autoruns any
+  // test case that doesn't have current output.
+  useEffect(() => {
+    if (!hasTestOutput) {
+      onRun();
+    }
+  }, [hasTestOutput, onRun]);
 
   if (!rpcProvider) {
     return null;
