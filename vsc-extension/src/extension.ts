@@ -3,6 +3,7 @@
 import * as vscode from "vscode";
 import {
   MaybeSelectedFunction,
+  SerializableFunctionDeclaration,
   SerializableSourceFileMap,
   SourceFileTestOutputMap,
 } from "../src-shared/source-info";
@@ -122,7 +123,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
         (workspaceFolder?.uri.fsPath.length ?? 0) + 1
       );
 
-      const preEditFunctionNames = getFunctionNames(
+      const preEditFunctions = getFunctions(
         relativeFileName,
         state.get("sources")
       );
@@ -138,7 +139,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
         functionTreeProvider
       );
 
-      const postEditFunctionNames = getFunctionNames(
+      const postEditFunctions = getFunctions(
         relativeFileName,
         state.get("sources")
       );
@@ -146,8 +147,8 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
       handleProbableRenames(
         relativeFileName,
         e.contentChanges,
-        preEditFunctionNames,
-        postEditFunctionNames,
+        preEditFunctions,
+        postEditFunctions,
         state
       );
     })
@@ -214,21 +215,21 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   initializeExtensionState(localState, state, functionTreeProvider);
 }
 
-function getFunctionNames(
-  fileName: string,
-  sources: SerializableSourceFileMap
-) {
-  return sources[fileName].functions.map(({ name }) => name ?? "") ?? [];
+function getFunctions(fileName: string, sources: SerializableSourceFileMap) {
+  return sources[fileName]?.functions ?? [];
 }
 
 function handleProbableRenames(
   fileName: string,
   contentChanges: readonly vscode.TextDocumentContentChangeEvent[],
-  preEditFunctionNames: string[],
-  postEditFunctionNames: string[],
+  preEditFunctions: SerializableFunctionDeclaration[],
+  postEditFunctions: SerializableFunctionDeclaration[],
   state: TypedMapWithEvent<State>
 ) {
-  // first, let's ignore any functions that kept the same name.
+  const preEditFunctionNames = preEditFunctions.map(({ name }) => name ?? "");
+  const postEditFunctionNames = postEditFunctions.map(({ name }) => name ?? "");
+
+  // first, let's look at functions that kept the same name and see if their params changed.
   const commonFunctionNames = preEditFunctionNames.filter((functionName) =>
     postEditFunctionNames.includes(functionName)
   );
@@ -239,10 +240,6 @@ function handleProbableRenames(
   const postEditUniqueFunctionNames = postEditFunctionNames.filter(
     (functionName) => !commonFunctionNames.includes(functionName)
   );
-
-  if (postEditUniqueFunctionNames.length === 0) {
-    return;
-  }
 
   const totalCharsChanged = contentChanges.reduce(
     (sum, newValue) =>
@@ -263,11 +260,58 @@ function handleProbableRenames(
     });
   });
 
-  if (functionEditMap.size === 0) {
-    return;
+  if (functionEditMap.size !== 0) {
+    renameFunctions(state, fileName, functionEditMap);
   }
 
-  renameFunctions(state, fileName, functionEditMap);
+  // now figure out if any functions have renamed parameters
+  commonFunctionNames.forEach((commonFunctionName) => {
+    const preEditFunction = preEditFunctions.find(
+      ({ name }) => name === commonFunctionName
+    );
+    const postEditFunction = postEditFunctions.find(
+      ({ name }) => name === commonFunctionName
+    );
+
+    if (preEditFunction && postEditFunction) {
+      preEditFunction.parameters.forEach((param, index) => {
+        if (param.name !== postEditFunction.parameters[index].name) {
+          renameFunctionParameter(
+            state,
+            fileName,
+            commonFunctionName,
+            param.name,
+            postEditFunction.parameters[index].name
+          );
+        }
+      });
+    }
+  });
+}
+
+function renameFunctionParameter(
+  state: TypedMapWithEvent<State>,
+  fileName: string,
+  commonFunctionName: string,
+  oldParamName: string,
+  newParamName: string
+) {
+  const newTestCases = JSON.parse(
+    JSON.stringify(state.get("testCases"))
+  ) as SourceFileTestCaseMap;
+
+  newTestCases[fileName]?.functionTestCases
+    .find(({ functionName }) => functionName === commonFunctionName)
+    ?.testCases.forEach(({ inputs }) => {
+      Object.keys(inputs).forEach((paramName) => {
+        if (paramName === oldParamName) {
+          inputs[newParamName] = inputs[paramName];
+          delete inputs[paramName];
+        }
+      });
+    });
+
+  state.set("testCases", newTestCases);
 }
 
 function renameFunctions(
