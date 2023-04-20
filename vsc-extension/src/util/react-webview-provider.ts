@@ -47,6 +47,8 @@ export class ReactWebViewProvider<S extends object, R extends BaseRpcHandlers>
   rpcProvider: RpcProvider;
 
   localStateRef: TypedMap<S>;
+
+  private dirtyState: Partial<S> | null = null;
   constructor(
     extensionContext: vscode.ExtensionContext,
     webviewId: string,
@@ -95,7 +97,25 @@ export class ReactWebViewProvider<S extends object, R extends BaseRpcHandlers>
 
   /** Broadcast out to the webview that some state has changed */
   async sendStateUpdate(newState: Partial<S>) {
-    return this.rpc("update-state", newState);
+    if (this.dirtyState) {
+      this.dirtyState = {
+        ...this.dirtyState,
+        ...newState,
+      };
+    } else {
+      this.dirtyState = newState;
+      setImmediate(() => this.flushStateUpdate());
+    }
+  }
+
+  async flushStateUpdate() {
+    const newState = this.dirtyState;
+    this.dirtyState = null;
+    if (!newState) {
+      console.warn("flush on empty state");
+      return;
+    }
+    await this.rpc("update-state", newState);
   }
 
   async resolveWebviewView(
