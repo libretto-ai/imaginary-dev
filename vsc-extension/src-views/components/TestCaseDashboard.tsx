@@ -18,7 +18,7 @@ import {
   testCasesState,
 } from "../shared/state";
 import { Drawer } from "./Drawer";
-import { ParamEditor } from "./ParamEditor";
+import { TestCaseInputEditor } from "./TestCaseInputEditor";
 import { TestCasesList } from "./TestCasesList";
 import { useToggle } from "./useToggle";
 
@@ -155,33 +155,11 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
             Output
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "0.5rem",
-            }}
-          >
-            {functionTestCase &&
-              fn.parameters.map((param) => (
-                <div
-                  key={param.name}
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "0.25rem",
-                  }}
-                >
-                  <ParamEditor
-                    parameter={param}
-                    value={functionTestCase.inputs[param.name]}
-                    onChange={(newValue) =>
-                      onUpdateTestCase(param.name, newValue)
-                    }
-                  />
-                </div>
-              ))}
-          </div>
+          <TestCaseInputEditor
+            functionTestCase={functionTestCase}
+            fn={fn}
+            onUpdateTestCase={onUpdateTestCase}
+          />
 
           <div
             style={{
