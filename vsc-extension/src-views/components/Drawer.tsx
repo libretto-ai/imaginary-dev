@@ -6,6 +6,7 @@ interface Props {
   onClose: () => void;
 
   header?: React.ReactNode;
+  footer?: React.ReactNode;
 }
 
 export const Drawer: FC<PropsWithChildren<Props>> = ({
@@ -13,11 +14,12 @@ export const Drawer: FC<PropsWithChildren<Props>> = ({
   onClose,
   children,
   header,
+  footer,
 }) => {
   return (
     <div
       style={{
-        position: "absolute",
+        position: "fixed",
         left: "0px",
         top: "0px",
         bottom: "0px",
@@ -28,6 +30,8 @@ export const Drawer: FC<PropsWithChildren<Props>> = ({
         borderRightWidth: "1px",
         borderRightStyle: "solid",
         zIndex: "10",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       <div
@@ -47,7 +51,21 @@ export const Drawer: FC<PropsWithChildren<Props>> = ({
           <span className="codicon codicon-close" />
         </VSCodeButton>
       </div>
-      <div style={{ padding: "1rem" }}>{children}</div>
+      <div style={{ padding: "1rem", flex: 1, overflow: "auto" }}>
+        {children}
+      </div>
+      {footer && (
+        <div
+          style={{
+            padding: "1rem",
+            borderColor: "var(--vscode-widget-border)",
+            borderTopWidth: "1px",
+            borderTopStyle: "solid",
+          }}
+        >
+          {footer}
+        </div>
+      )}
     </div>
   );
 };
