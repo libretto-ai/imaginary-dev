@@ -111,10 +111,11 @@ export class ReactWebViewProvider<S extends object, R extends BaseRpcHandlers>
 
   async flushStateUpdate() {
     const newState = this.dirtyState;
+    this.dirtyState = null;
     if (!newState) {
       console.warn("flush on empty state");
+      return;
     }
-    this.dirtyState = null;
     await this.rpc("update-state", newState);
   }
 
