@@ -1,4 +1,4 @@
-import React, { FC, ReactNode, useState } from "react";
+import React, { FC, ReactNode } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import {
   FunctionTestCase,
@@ -17,7 +17,7 @@ import {
   selectedTestCaseIndexState,
   testCasesState,
 } from "../shared/state";
-import { Drawer } from "./Drawer";
+import { NewTestDrawer } from "./NewTestDrawer";
 import { TestCaseInputEditor } from "./TestCaseInputEditor";
 import { TestCasesList } from "./TestCasesList";
 import { useToggle } from "./useToggle";
@@ -78,8 +78,6 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
   const functionTestOutput: TestOutput | undefined =
     testOutputsForSelectedFunction[testIndex];
 
-  const [draftTestCase, setDraftTestCase] =
-    useState<FunctionTestCase>(blankTestCase);
   // if (!functionTestCase) {
   //   console.log("missing functionTestCase for ", testIndex);
   // }
@@ -87,27 +85,11 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
     <>
       <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
         <b style={{ fontSize: "20px" }}>Function:</b>
-        <Drawer
-          isOpen={isDrawerOpen}
-          onClose={onCloseDrawer}
-          header={
-            <div>
-              <span style={{ fontWeight: "bold" }}>Add test case for</span>{" "}
-              <code>{fn.name}</code>
-            </div>
-          }
-        >
-          <TestCaseInputEditor
-            fn={fn}
-            functionTestCase={draftTestCase}
-            onUpdateTestCase={(paramName, value) =>
-              setDraftTestCase((prevTestCase) => ({
-                ...prevTestCase,
-                inputs: { ...prevTestCase.inputs, [paramName]: value },
-              }))
-            }
-          />
-        </Drawer>
+        <NewTestDrawer
+          isDrawerOpen={isDrawerOpen}
+          onCloseDrawer={onCloseDrawer}
+          fn={fn}
+        />
         <div
           style={{
             paddingTop: "0.5rem",
