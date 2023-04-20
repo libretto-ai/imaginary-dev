@@ -17,8 +17,10 @@ import {
   selectedTestCaseIndexState,
   testCasesState,
 } from "../shared/state";
-import { ParamEditor } from "./ParamEditor";
+import { NewTestDrawer } from "./NewTestDrawer";
+import { TestCaseInputEditor } from "./TestCaseInputEditor";
 import { TestCasesList } from "./TestCasesList";
+import { useToggle } from "./useToggle";
 
 interface Props {
   fn: SerializableFunctionDeclaration;
@@ -29,6 +31,12 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
   const [testIndex, setTestIndex] = useRecoilState(
     selectedTestCaseIndexState(selectedFunction)
   );
+  const {
+    onClose: onCloseDrawer,
+    onOpen: onOpenDrawer,
+    isOpen: isDrawerOpen,
+  } = useToggle();
+
   const [testCases, setTestCases] = useRecoilState(testCasesState);
   const testCasesForSelectedFunction =
     findTestCases(
@@ -77,6 +85,11 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
     <>
       <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
         <b style={{ fontSize: "20px" }}>Function:</b>
+        <NewTestDrawer
+          isDrawerOpen={isDrawerOpen}
+          onCloseDrawer={onCloseDrawer}
+          fn={fn}
+        />
         <div
           style={{
             paddingTop: "0.5rem",
@@ -87,6 +100,8 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
             borderColor: "var(--checkbox-border)",
             borderWidth: "var(--border-width)",
             borderStyle: "solid",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
           }}
         >
           <code style={{ whiteSpace: "nowrap" }}>{formattedDeclaration}</code>
@@ -99,6 +114,7 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
           selectedFunction={selectedFunction}
           selectedIndex={testIndex}
           onSelect={setTestIndex}
+          onCreate={onOpenDrawer}
         />
         <div
           style={{
@@ -134,33 +150,11 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
             Output
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "0.5rem",
-            }}
-          >
-            {functionTestCase &&
-              fn.parameters.map((param) => (
-                <div
-                  key={param.name}
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "0.25rem",
-                  }}
-                >
-                  <ParamEditor
-                    parameter={param}
-                    value={functionTestCase.inputs[param.name]}
-                    onChange={(newValue) =>
-                      onUpdateTestCase(param.name, newValue)
-                    }
-                  />
-                </div>
-              ))}
-          </div>
+          <TestCaseInputEditor
+            functionTestCase={functionTestCase}
+            fn={fn}
+            onUpdateTestCase={onUpdateTestCase}
+          />
 
           <div
             style={{

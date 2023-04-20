@@ -28,10 +28,7 @@ function useExtensionStateInternal() {
       } satisfies ImaginaryMessage;
       vscodeRef.current?.postMessage(msg);
     });
-    rpcProvider.registerRpcHandler("getViewOrigin", async (payload: string) => {
-      console.log("Handler in view with payload:", payload);
-      return window.origin;
-    });
+
     setRpcProvider(rpcProvider);
     window.addEventListener("message", (event) => {
       const message: ImaginaryMessage = event.data;
