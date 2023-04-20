@@ -204,6 +204,9 @@ export function makeRpcHandlers(
         return result;
       } catch (ex) {
         console.error(ex);
+        if (ex instanceof Error) {
+          throw ex.message;
+        }
         throw ex;
       }
     },
