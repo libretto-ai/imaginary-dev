@@ -1,4 +1,4 @@
-import React, { FC, ReactNode } from "react";
+import React, { FC, ReactNode, useState } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import {
   FunctionTestCase,
@@ -78,6 +78,8 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
   const functionTestOutput: TestOutput | undefined =
     testOutputsForSelectedFunction[testIndex];
 
+  const [draftTestCase, setDraftTestCase] =
+    useState<FunctionTestCase>(blankTestCase);
   // if (!functionTestCase) {
   //   console.log("missing functionTestCase for ", testIndex);
   // }
@@ -95,7 +97,16 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
             </div>
           }
         >
-          This is some stuff
+          <TestCaseInputEditor
+            fn={fn}
+            functionTestCase={draftTestCase}
+            onUpdateTestCase={(paramName, value) =>
+              setDraftTestCase((prevTestCase) => ({
+                ...prevTestCase,
+                inputs: { ...prevTestCase.inputs, [paramName]: value },
+              }))
+            }
+          />
         </Drawer>
         <div
           style={{
