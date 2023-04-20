@@ -14,7 +14,12 @@
   ],
   "main": "./dist/vsc-extension/src/extension.js",
   "contributes": {
-    "commands": [],
+    "commands": [
+      {
+        "command": "imaginary.clearOpenAIApiKey",
+        "title": "Imaginary Programming: Clear OpenAI API Key"
+      }
+    ],
     "viewsContainers": {
       "panel": [
         {

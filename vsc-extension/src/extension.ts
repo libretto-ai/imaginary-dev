@@ -99,6 +99,10 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     treeDataProvider: functionTreeProvider,
   });
   vscode.commands.registerCommand("imaginary.clickFunction", focusNode);
+  vscode.commands.registerCommand("imaginary.clearOpenAIApiKey", async () => {
+    await secretsProxy.clearSecret(SECRET_OPENAI_API_KEY);
+    vscode.window.showInformationMessage("OpenAI API Key has been cleared");
+  });
 
   extensionContext.subscriptions.push(
     vscode.workspace.onDidChangeTextDocument((e) => {
