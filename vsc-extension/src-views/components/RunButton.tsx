@@ -60,9 +60,8 @@ export const RunButton: FC<{
     return null;
   }
 
-  const iconClass = loading
-    ? "codicon-loading codicon-modifier-spin"
-    : "codicon-play";
+  console.log("error = ", runError);
+  const iconClass = getPlayIcon(loading, !!runError);
 
   return (
     <div style={{ display: "flex", gap: "0.25rem" }}>
@@ -90,3 +89,13 @@ export const RunButton: FC<{
     </div>
   );
 };
+function getPlayIcon(loading: boolean, error: boolean) {
+  if (loading) {
+    return "codicon-loading codicon-modifier-spin";
+  }
+  if (error) {
+    return "codicon-run-errors";
+  }
+
+  return "codicon-play";
+}
