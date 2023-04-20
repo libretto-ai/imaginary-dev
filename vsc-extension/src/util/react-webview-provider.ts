@@ -106,7 +106,6 @@ export class ReactWebViewProvider<S extends object, R extends BaseRpcHandlers>
       this.dirtyState = newState;
       setImmediate(() => this.flushStateUpdate());
     }
-    return this.rpc("update-state", newState);
   }
 
   async flushStateUpdate() {
