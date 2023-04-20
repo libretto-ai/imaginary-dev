@@ -73,7 +73,7 @@
     "@vscode/codicons": "^0.0.32",
     "@vscode/webview-ui-toolkit": "^1.2.2",
     "html-template-tag": "^4.0.1",
-    "immer": "^9.0.21",
+    "immer": "^10.0.1",
     "json-schema": "^0.4.0",
     "openai": "^3.2.1",
     "react": "^18.2.0",
