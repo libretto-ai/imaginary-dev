@@ -1,10 +1,12 @@
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
-import React, { FC, useState } from "react";
+import React, { FC, useCallback, useState } from "react";
+import { useRecoilState, useRecoilValue } from "recoil";
 import {
   FunctionTestCase,
   SerializableFunctionDeclaration,
 } from "../../src-shared/source-info";
-import { blankTestCase } from "../../src-shared/testcases";
+import { addFunctionTestCase, blankTestCase } from "../../src-shared/testcases";
+import { selectedFunctionState, testCasesState } from "../shared/state";
 import { Drawer } from "./Drawer";
 import { TestCaseInputEditor } from "./TestCaseInputEditor";
 
@@ -19,6 +21,8 @@ export const NewTestDrawer: FC<Props> = ({
   onCloseDrawer,
   fn,
 }) => {
+  const [testCases, setTestCases] = useRecoilState(testCasesState);
+  const selectedFunction = useRecoilValue(selectedFunctionState);
   const [draftTestCase, setDraftTestCase] =
     useState<FunctionTestCase>(blankTestCase);
   const onUpdateDraftTestCase = (paramName: string, value: string): void =>
@@ -26,6 +30,21 @@ export const NewTestDrawer: FC<Props> = ({
       ...prevTestCase,
       inputs: { ...prevTestCase.inputs, [paramName]: value },
     }));
+
+  const onCreate = useCallback(() => {
+    if (!selectedFunction) {
+      console.warn("Trying to add function but lost selection");
+      return;
+    }
+    const newTestCases = addFunctionTestCase(
+      testCases,
+      selectedFunction.fileName,
+      selectedFunction.functionName,
+      draftTestCase
+    );
+    setTestCases(newTestCases);
+    onCloseDrawer();
+  }, [draftTestCase, onCloseDrawer, selectedFunction, setTestCases, testCases]);
 
   return (
     <Drawer
@@ -39,7 +58,7 @@ export const NewTestDrawer: FC<Props> = ({
       }
       footer={
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <VSCodeButton>Create test case</VSCodeButton>
+          <VSCodeButton onClick={onCreate}>Create test case</VSCodeButton>
         </div>
       }
     >
