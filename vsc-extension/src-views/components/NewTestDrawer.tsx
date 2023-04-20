@@ -1,3 +1,4 @@
+import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import React, { FC, useState } from "react";
 import {
   FunctionTestCase,
@@ -34,6 +35,11 @@ export const NewTestDrawer: FC<Props> = ({
         <div>
           <span style={{ fontWeight: "bold" }}>Add test case for</span>{" "}
           <code>{fn.name}</code>
+        </div>
+      }
+      footer={
+        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <VSCodeButton>Create test case</VSCodeButton>
         </div>
       }
     >
