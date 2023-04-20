@@ -1,5 +1,5 @@
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
-import React, { FC, useCallback, useState } from "react";
+import React, { FC, useCallback, useEffect, useState } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import {
   FunctionTestCase,
@@ -46,6 +46,15 @@ export const NewTestDrawer: FC<Props> = ({
     onCloseDrawer();
     setDraftTestCase(blankTestCase);
   }, [draftTestCase, onCloseDrawer, selectedFunction, setTestCases, testCases]);
+
+  // Close the drawer whenever the selected function changes
+  useEffect(() => {
+    onCloseDrawer();
+  }, [
+    onCloseDrawer,
+    selectedFunction?.fileName,
+    selectedFunction?.functionName,
+  ]);
 
   return (
     <Drawer
