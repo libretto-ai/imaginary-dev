@@ -85,7 +85,16 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
     <>
       <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
         <b style={{ fontSize: "20px" }}>Function:</b>
-        <Drawer isOpen={isDrawerOpen} onClose={onCloseDrawer} minWidth="100px">
+        <Drawer
+          isOpen={isDrawerOpen}
+          onClose={onCloseDrawer}
+          header={
+            <div>
+              <span style={{ fontWeight: "bold" }}>Add test case for</span>{" "}
+              <code>{fn.name}</code>
+            </div>
+          }
+        >
           This is some stuff
         </Drawer>
         <div

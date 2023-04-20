@@ -1,38 +1,53 @@
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
-import React, { CSSProperties, FC, PropsWithChildren } from "react";
+import React, { FC, PropsWithChildren } from "react";
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  minWidth: Exclude<CSSProperties["minWidth"], undefined>;
-  style?: CSSProperties;
+
+  header?: React.ReactNode;
 }
 
 export const Drawer: FC<PropsWithChildren<Props>> = ({
   isOpen,
   onClose,
   children,
-  style,
+  header,
 }) => {
   return (
     <div
       style={{
         position: "absolute",
-        left: 0,
-        top: 0,
-        bottom: 0,
-        transition: "transform 0.3s ease",
+        left: "0px",
+        top: "0px",
+        bottom: "0px",
+        transition: "transform 0.3s ease 0s",
         transform: `translateX(${isOpen ? "0%" : "-100%"})`,
         backgroundColor: "var(--background)",
-        ...style,
+        borderColor: "var(--vscode-widget-border)",
+        borderRightWidth: "1px",
+        borderRightStyle: "solid",
+        zIndex: "10",
       }}
     >
-      <div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: "1rem",
+          padding: "1rem",
+          borderColor: "var(--vscode-widget-border)",
+          borderBottomWidth: "1px",
+          borderBottomStyle: "solid",
+        }}
+      >
+        <div>{header}</div>
         <VSCodeButton appearance="icon" onClick={onClose}>
           <span className="codicon codicon-close" />
         </VSCodeButton>
       </div>
-      <div>{children}</div>
+      <div style={{ padding: "1rem" }}>{children}</div>
     </div>
   );
 };
