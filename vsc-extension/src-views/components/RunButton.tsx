@@ -47,10 +47,10 @@ export const RunButton: FC<{
   // logic to the backend, but that's a lot of work. so: this autoruns any
   // test case that doesn't have current output.
   useEffect(() => {
-    if (!hasTestOutput) {
+    if (!hasTestOutput && !loading) {
       onRun();
     }
-  }, [hasTestOutput, onRun]);
+  }, [hasTestOutput, loading, onRun]);
 
   if (!rpcProvider) {
     return null;

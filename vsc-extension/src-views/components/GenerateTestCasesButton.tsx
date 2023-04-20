@@ -16,7 +16,9 @@ export const GenerateTestCasesButton: FC<{
 
   const onRun = async () => {
     try {
-      if (loading) return;
+      if (loading) {
+        return;
+      }
       setLoading(true);
 
       const hasGpt4Support = await rpcProvider?.rpc("hasAccessToModel", {
