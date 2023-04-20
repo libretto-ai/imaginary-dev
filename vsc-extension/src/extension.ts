@@ -1,7 +1,11 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
-import { MaybeSelectedFunction } from "../src-shared/source-info";
+import {
+  MaybeSelectedFunction,
+  SerializableSourceFileMap,
+  SourceFileTestOutputMap,
+} from "../src-shared/source-info";
 import { ImaginaryFunctionProvider } from "./function-tree-provider";
 import { ImaginaryMessageRouter } from "./imaginary-message-router";
 import { makeRpcHandlers } from "./rpc-handlers";
@@ -24,6 +28,8 @@ import { State } from "./util/state";
 import { SourceFileMap } from "./util/ts-source";
 import { TypedMap } from "./util/types";
 import { createWatchedMap, TypedMapWithEvent } from "./util/watched-map";
+import { SourceFileTestCaseMap } from "../src-shared/source-info";
+import { distance } from "fastest-levenshtein";
 
 const initialState: State = {
   "app.debugMode": false,
@@ -108,6 +114,19 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     vscode.workspace.onDidChangeTextDocument((e) => {
       console.info("onDidChangeTextDocument", e.document.fileName, e.reason);
 
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(
+        e.document.uri
+      );
+
+      const relativeFileName = e.document.fileName.slice(
+        (workspaceFolder?.uri.fsPath.length ?? 0) + 1
+      );
+
+      const preEditFunctionNames = getFunctionNames(
+        relativeFileName,
+        state.get("sources")
+      );
+
       const newSources = updateFile(
         localState.get("nativeSources"),
         e.document
@@ -117,6 +136,19 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
         localState.get("nativeSources"),
         state,
         functionTreeProvider
+      );
+
+      const postEditFunctionNames = getFunctionNames(
+        relativeFileName,
+        state.get("sources")
+      );
+
+      handleProbableRenames(
+        relativeFileName,
+        e.contentChanges,
+        preEditFunctionNames,
+        postEditFunctionNames,
+        state
       );
     })
   );
@@ -178,7 +210,106 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
       state.set("selectedFunction", selectedFunction);
     })
   );
+
   initializeExtensionState(localState, state, functionTreeProvider);
+}
+
+function getFunctionNames(
+  fileName: string,
+  sources: SerializableSourceFileMap
+) {
+  return sources[fileName].functions.map(({ name }) => name ?? "") ?? [];
+}
+
+function handleProbableRenames(
+  fileName: string,
+  contentChanges: readonly vscode.TextDocumentContentChangeEvent[],
+  preEditFunctionNames: string[],
+  postEditFunctionNames: string[],
+  state: TypedMapWithEvent<State>
+) {
+  // first, let's ignore any functions that kept the same name.
+  const commonFunctionNames = preEditFunctionNames.filter((functionName) =>
+    postEditFunctionNames.includes(functionName)
+  );
+
+  const preEditUniqueFunctionNames = preEditFunctionNames.filter(
+    (functionName) => !commonFunctionNames.includes(functionName)
+  );
+  const postEditUniqueFunctionNames = postEditFunctionNames.filter(
+    (functionName) => !commonFunctionNames.includes(functionName)
+  );
+
+  if (postEditUniqueFunctionNames.length === 0) {
+    return;
+  }
+
+  const totalCharsChanged = contentChanges.reduce(
+    (sum, newValue) =>
+      (sum += Math.max(newValue.text.length, newValue.rangeLength)),
+    0
+  );
+
+  // create a map of pre-edit to post-edit probable changes, using Levenshtein distance
+  const functionEditMap = new Map<string, string>();
+
+  preEditUniqueFunctionNames.forEach((preEditFunctionName) => {
+    postEditUniqueFunctionNames.forEach((postEditFunctionName) => {
+      if (
+        distance(preEditFunctionName, postEditFunctionName) <= totalCharsChanged
+      ) {
+        functionEditMap.set(preEditFunctionName, postEditFunctionName);
+      }
+    });
+  });
+
+  if (functionEditMap.size === 0) {
+    return;
+  }
+
+  renameFunctions(state, fileName, functionEditMap);
+}
+
+function renameFunctions(
+  state: TypedMapWithEvent<State>,
+  fileName: string,
+  functionEditMap: Map<string, string>
+) {
+  const newTestCases = JSON.parse(
+    JSON.stringify(state.get("testCases"))
+  ) as SourceFileTestCaseMap;
+  const newLatestTestOutputs = JSON.parse(
+    JSON.stringify(state.get("latestTestOutput"))
+  ) as SourceFileTestOutputMap;
+  const newAcceptedTestOutputs = JSON.parse(
+    JSON.stringify(state.get("acceptedTestOutput"))
+  ) as SourceFileTestOutputMap;
+
+  functionEditMap.forEach((newFnName, oldFnName) => {
+    newTestCases[fileName]?.functionTestCases.forEach((functionTestCases) => {
+      if (functionTestCases.functionName === oldFnName) {
+        functionTestCases.functionName = newFnName;
+      }
+    });
+    newLatestTestOutputs[fileName]?.functionOutputs.forEach(
+      (functionOutputs) => {
+        if (functionOutputs.functionName === oldFnName) {
+          functionOutputs.functionName = newFnName;
+        }
+      }
+    );
+    newAcceptedTestOutputs[fileName]?.functionOutputs.forEach(
+      (functionOutputs) => {
+        if (functionOutputs.functionName === oldFnName) {
+          functionOutputs.functionName = newFnName;
+        }
+      }
+    );
+  });
+
+  state.set("testCases", newTestCases);
+  state.set("latestTestOutput", newLatestTestOutputs);
+  state.set("acceptedTestOutput", newAcceptedTestOutputs);
 }
 
 async function maybeLoadTestCases(fileName: string, state: TypedMap<State>) {
