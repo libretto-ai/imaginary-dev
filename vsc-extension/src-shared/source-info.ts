@@ -108,6 +108,7 @@ export interface FunctionTestOutput {
 /** Test output results and metadata */
 export interface TestOutput {
   output: any;
+  error?: string;
   /** ISO8601 date? */
   lastRun: string;
 }

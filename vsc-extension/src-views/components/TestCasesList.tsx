@@ -80,8 +80,9 @@ export const TestCasesList: FC<Props> = ({
       }}
     >
       {testCases.map((testCase, index) => (
+        // Generate a unique key so we have a fresh loading state if we switch functions/files/etc
         <div
-          key={index}
+          key={`${fileName}-${functionName}-${index}`}
           style={{
             fontWeight: "bold",
             fontSize: "15px",

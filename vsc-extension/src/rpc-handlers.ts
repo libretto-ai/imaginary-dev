@@ -204,7 +204,16 @@ export function makeRpcHandlers(
         return result;
       } catch (ex) {
         console.error(ex);
-        throw ex;
+        const errorMessage = ex instanceof Error ? ex.message : ex;
+        updateTestRunState(
+          state,
+          fileName,
+          functionName,
+          testCaseIndex,
+          null,
+          errorMessage
+        );
+        throw errorMessage;
       }
     },
 
@@ -398,7 +407,8 @@ function updateTestRunState(
   fileName: string,
   functionName: string,
   testCaseIndex: number,
-  result: any
+  result: any,
+  error?: any
 ) {
   state.set(
     "latestTestOutput",
@@ -410,6 +420,7 @@ function updateTestRunState(
       (output) => ({
         ...output,
         output: result,
+        error,
         lastRun: new Date().toISOString(),
       })
     )
