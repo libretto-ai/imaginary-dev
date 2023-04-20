@@ -44,6 +44,7 @@ export const NewTestDrawer: FC<Props> = ({
     );
     setTestCases(newTestCases);
     onCloseDrawer();
+    setDraftTestCase(blankTestCase);
   }, [draftTestCase, onCloseDrawer, selectedFunction, setTestCases, testCases]);
 
   return (
