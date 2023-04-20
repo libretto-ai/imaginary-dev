@@ -149,6 +149,11 @@ export class ReactWebViewProvider<S extends object, R extends BaseRpcHandlers>
               ` <= Return from call #${rpcMessage.transactionId}: `,
               rpcMessage.payload
             );
+          } else if (rpcMessage.id === "reject_transaction") {
+            console.warn(
+              ` <= Error from call #${rpcMessage.transactionId}`,
+              rpcMessage.payload
+            );
           } else {
             console.log(
               ` => Calling ${rpcMessage.id} #${rpcMessage.transactionId} with parameters`,

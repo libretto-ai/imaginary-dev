@@ -44,6 +44,11 @@ function useExtensionStateInternal() {
             `[${window.origin}] <= Return from call #${rpcMessage.transactionId}: `,
             rpcMessage.payload
           );
+        } else if (rpcMessage.id === "reject_transaction") {
+          console.warn(
+            `[${window.origin}] <= Error from call #${rpcMessage.transactionId}`,
+            rpcMessage.payload
+          );
         } else {
           console.log(
             `[${window.origin}] => Calling ${rpcMessage.id} #${rpcMessage.transactionId} with parameters`,
