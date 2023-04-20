@@ -3,15 +3,20 @@ import {
   getImaginaryTsDocComments,
   tsNodeToJsonSchema,
 } from "@imaginary-dev/typescript-transformer";
+import { Configuration, OpenAIApi } from "openai";
 import ts from "typescript";
 import * as vscode from "vscode";
 import {
   FunctionTestCase,
+  SelectedFileTestCases,
   SourceFileTestCaseMap,
 } from "../src-shared/source-info";
 import {
   blankTestCase,
+  deleteFunctionTestCase,
+  deleteTestOutput,
   findTestCase,
+  findTestCases,
   updateSourceFileTestCase,
   updateSourceFileTestOutput,
 } from "../src-shared/testcases";
@@ -21,7 +26,6 @@ import { findNativeFunction, generateFunctionDefinition } from "./util/source";
 import { State } from "./util/state";
 import { SourceFileMap } from "./util/ts-source";
 import { TypedMap } from "./util/types";
-import { Configuration, OpenAIApi } from "openai";
 
 /**
  * This function takes in a TypeScript function declaration and gives one good set of test parameters for that
@@ -175,6 +179,9 @@ export function makeRpcHandlers(
       );
 
       const apiKey = await secretsProxy.getSecret(OPENAI_API_SECRET_KEY);
+      if (!apiKey) {
+        return;
+      }
       try {
         const { funcComment, parameterTypes, returnSchema, paramValues } =
           extractCallParameters(functionInfo, testCase);
@@ -197,7 +204,16 @@ export function makeRpcHandlers(
         return result;
       } catch (ex) {
         console.error(ex);
-        throw ex;
+        const errorMessage = ex instanceof Error ? ex.message : ex;
+        updateTestRunState(
+          state,
+          fileName,
+          functionName,
+          testCaseIndex,
+          null,
+          errorMessage
+        );
+        throw errorMessage;
       }
     },
 
@@ -251,6 +267,81 @@ export function makeRpcHandlers(
         return;
       }
       updateTestName(state, fileName, functionName, testCaseIndex, newName);
+    },
+
+    async deleteTest({ fileName, functionName, testCaseIndex }: TestLocation) {
+      deleteTestCase(state, fileName, functionName, testCaseIndex);
+    },
+  };
+}
+
+function deleteTestCase(
+  state: TypedMap<State>,
+  fileName: string,
+  functionName: string,
+  testCaseIndex: number
+) {
+  state.set(
+    "testCases",
+    deleteFunctionTestCase(
+      state.get("testCases"),
+      fileName,
+      functionName,
+      testCaseIndex
+    )
+  );
+  state.set(
+    "latestTestOutput",
+    deleteTestOutput(
+      state.get("latestTestOutput"),
+      fileName,
+      functionName,
+      testCaseIndex
+    )
+  );
+  state.set(
+    "acceptedTestOutput",
+    deleteTestOutput(
+      state.get("acceptedTestOutput"),
+      fileName,
+      functionName,
+      testCaseIndex
+    )
+  );
+
+  // Also update selection, in case we selected a test without an index
+  const remainingTestCasesCount =
+    findTestCases(state.get("testCases"), fileName, functionName)?.testCases
+      .length ?? 0;
+  if (
+    remainingTestCasesCount > 0 &&
+    remainingTestCasesCount >= (testCaseIndex ?? -1)
+  ) {
+    const newTestIndex = remainingTestCasesCount - 1;
+    const newSelection: SelectedFileTestCases = selectTestCaseIndex(
+      state.get("selectedTestCases"),
+      fileName,
+      functionName,
+      newTestIndex
+    );
+    state.set("selectedTestCases", newSelection);
+  }
+}
+
+function selectTestCaseIndex(
+  selectedTestCases: SelectedFileTestCases,
+  fileName: string,
+  functionName: string,
+  newTestIndex: number
+): SelectedFileTestCases {
+  return {
+    ...selectedTestCases,
+    [fileName]: {
+      ...selectedTestCases[fileName],
+      [functionName]: {
+        ...selectedTestCases[fileName][functionName],
+        testCaseIndex: newTestIndex,
+      },
     },
   };
 }
@@ -316,7 +407,8 @@ function updateTestRunState(
   fileName: string,
   functionName: string,
   testCaseIndex: number,
-  result: any
+  result: any,
+  error?: any
 ) {
   state.set(
     "latestTestOutput",
@@ -328,6 +420,7 @@ function updateTestRunState(
       (output) => ({
         ...output,
         output: result,
+        error,
         lastRun: new Date().toISOString(),
       })
     )

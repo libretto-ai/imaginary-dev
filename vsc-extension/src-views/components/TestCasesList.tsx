@@ -1,17 +1,12 @@
 import React, { FC } from "react";
-import { useRecoilState } from "recoil";
+import { useRecoilValue } from "recoil";
 import {
   FunctionTestCase,
   MaybeSelectedFunction,
   TestOutput,
 } from "../../src-shared/source-info";
-import {
-  deleteFunctionTestCase,
-  findTestCase,
-  deleteTestOutput,
-  findTestCases,
-} from "../../src-shared/testcases";
-import { latestTestOutputState, testCasesState } from "../shared/state";
+import { findTestCase } from "../../src-shared/testcases";
+import { testCasesState } from "../shared/state";
 import { useExtensionState } from "./ExtensionState";
 import { GenerateTestCasesButton } from "./GenerateTestCasesButton";
 import { RunButton } from "./RunButton";
@@ -33,11 +28,8 @@ export const TestCasesList: FC<Props> = ({
   onSelect,
 }) => {
   const { fileName, functionName } = selectedFunction ?? {};
-  const [allTestCases, setAllTestCases] = useRecoilState(testCasesState);
+  const allTestCases = useRecoilValue(testCasesState);
   const { rpcProvider } = useExtensionState();
-  const [allTestOutputs, setTestOutputs] = useRecoilState(
-    latestTestOutputState
-  );
 
   if (!selectedFunction) {
     return <div />;
@@ -50,27 +42,11 @@ export const TestCasesList: FC<Props> = ({
     if (!functionName) {
       return;
     }
-
-    const newAllTestCases = deleteFunctionTestCase(
-      allTestCases,
+    await rpcProvider?.rpc("deleteTest", {
       fileName,
       functionName,
-      index
-    );
-    const remainingTestCasesCount =
-      findTestCases(newAllTestCases, fileName, functionName)?.testCases
-        .length ?? 0;
-    if (
-      remainingTestCasesCount > 0 &&
-      remainingTestCasesCount >= (selectedIndex ?? -1)
-    ) {
-      onSelect(remainingTestCasesCount - 1);
-    }
-    setAllTestCases(newAllTestCases);
-
-    setTestOutputs(
-      deleteTestOutput(allTestOutputs, fileName, functionName, index)
-    );
+      testCaseIndex: index,
+    });
   };
 
   const onRename = async (testCaseIndex: number) => {
@@ -104,8 +80,9 @@ export const TestCasesList: FC<Props> = ({
       }}
     >
       {testCases.map((testCase, index) => (
+        // Generate a unique key so we have a fresh loading state if we switch functions/files/etc
         <div
-          key={index}
+          key={`${fileName}-${functionName}-${index}`}
           style={{
             fontWeight: "bold",
             fontSize: "15px",
@@ -126,7 +103,12 @@ export const TestCasesList: FC<Props> = ({
         >
           {/* special flex + padding to ensure whitespace is clickable, even if test name is blank */}
           <span
-            style={{ flex: 1, paddingRight: "1rem" }}
+            style={{
+              flex: 1,
+              paddingRight: "1rem",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
             onClick={() => onSelect(index)}
           >
             {testCase.name}

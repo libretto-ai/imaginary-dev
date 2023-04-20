@@ -19,6 +19,7 @@ export const RunButton: FC<{
   const { rpcProvider } = useExtensionState();
   const { fileName, functionName } = selectedFunction ?? {};
   const [loading, setLoading] = useState(false);
+  const [runError, setRunError] = useState<Error | null>(null);
 
   // this is not my favorite way to do this; we should probably push this
   // logic to the backend, but that's a lot of work. so: this autoruns any
@@ -35,30 +36,41 @@ export const RunButton: FC<{
     }
     try {
       setLoading(true);
-      await rpcProvider?.rpc("runTestCase", {
+      setRunError(null);
+      const p1 = rpcProvider?.rpc("runTestCase", {
         fileName,
         functionName,
         testCaseIndex,
       });
-      await rpcProvider?.rpc("guessTestName", {
+      const p2 = rpcProvider?.rpc("guessTestName", {
         fileName,
         functionName,
         testCaseIndex,
       });
+      await Promise.all([p1, p2]);
     } catch (ex) {
       console.error(`Failure to run: ${ex}`, ex);
+      setRunError(ex as any);
     } finally {
       setLoading(false);
     }
   }, [fileName, functionName, rpcProvider, testCaseIndex]);
 
+  // this is not my favorite way to do this; we should probably push this
+  // logic to the backend, but that's a lot of work. so: this autoruns any
+  // test case that doesn't have current output.
+  useEffect(() => {
+    if (!hasTestOutput && !loading && !runError) {
+      onRun();
+    }
+  }, [hasTestOutput, loading, onRun, runError]);
+
   if (!rpcProvider) {
     return null;
   }
 
-  const iconClass = loading
-    ? "codicon-loading codicon-modifier-spin"
-    : "codicon-play";
+  console.log("error = ", runError);
+  const iconClass = getPlayIcon(loading, !!runError);
 
   return (
     <div style={{ display: "flex", gap: "0.25rem" }}>
@@ -86,3 +98,13 @@ export const RunButton: FC<{
     </div>
   );
 };
+function getPlayIcon(loading: boolean, error: boolean) {
+  if (loading) {
+    return "codicon-loading codicon-modifier-spin";
+  }
+  if (error) {
+    return "codicon-run-errors";
+  }
+
+  return "codicon-play";
+}

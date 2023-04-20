@@ -4,27 +4,31 @@ import {
   BaseRpcHandlers,
   ReactWebViewProvider,
 } from "./util/react-webview-provider";
-import { State } from "./util/state";
 
 /** A message router to broadcast and recieve messages from multiple webviews */
 
 export interface WebviewMessage<
+  S extends object,
   M extends ImaginaryMessage,
   R extends BaseRpcHandlers
 > {
-  webviewProvider: ReactWebViewProvider<State, R>;
+  webviewProvider: ReactWebViewProvider<S, R>;
   message: M;
 }
-export class ImaginaryMessageRouter<R extends BaseRpcHandlers> {
-  webviewProviders: readonly ReactWebViewProvider<State, R>[];
+export class ImaginaryMessageRouter<
+  S extends object,
+  R extends BaseRpcHandlers
+> {
+  webviewProviders: readonly ReactWebViewProvider<S, R>[];
   // Keep track of which webviews are attached or not
-  attachedWebviewProviders: ReactWebViewProvider<State, R>[] = [];
+  attachedWebviewProviders: ReactWebViewProvider<S, R>[] = [];
   disposables: vscode.Disposable[] = [];
   private _onDidReceiveMessage = new vscode.EventEmitter<
-    WebviewMessage<ImaginaryMessage, R>
+    WebviewMessage<S, ImaginaryMessage, R>
   >();
   onDidReceiveMessage = this._onDidReceiveMessage.event;
-  constructor(webviewProviders: readonly ReactWebViewProvider<State, R>[]) {
+
+  constructor(webviewProviders: readonly ReactWebViewProvider<S, R>[]) {
     this.webviewProviders = webviewProviders;
 
     const disposables = webviewProviders.flatMap((webviewProvider) => {
@@ -46,14 +50,14 @@ export class ImaginaryMessageRouter<R extends BaseRpcHandlers> {
     this.disposables.push(...disposables);
   }
 
-  private _onDidDetachWebview(webviewProvider: ReactWebViewProvider<State, R>) {
+  private _onDidDetachWebview(webviewProvider: ReactWebViewProvider<S, R>) {
     this.attachedWebviewProviders = this.attachedWebviewProviders.filter(
       (provider) => provider !== webviewProvider
     );
   }
 
   private _onDidAttachWebview(
-    webviewProvider: ReactWebViewProvider<State, R>,
+    webviewProvider: ReactWebViewProvider<S, R>,
     webview: vscode.Webview
   ) {
     this.attachedWebviewProviders.push(webviewProvider);
@@ -68,8 +72,8 @@ export class ImaginaryMessageRouter<R extends BaseRpcHandlers> {
   }
 
   updateState(
-    partialState: Partial<State>,
-    ignoreProvider?: ReactWebViewProvider<State, R>
+    partialState: Partial<S>,
+    ignoreProvider?: ReactWebViewProvider<S, R>
   ) {
     this.attachedWebviewProviders.forEach((provider) => {
       if (provider !== ignoreProvider) {
@@ -87,7 +91,7 @@ export class ImaginaryMessageRouter<R extends BaseRpcHandlers> {
     M extends ImaginaryMessage,
     K extends M["id"],
     T extends M["params"]
-  >(messageId: K, params: T, ignoreWebview?: ReactWebViewProvider<State, R>) {
+  >(messageId: K, params: T, ignoreWebview?: ReactWebViewProvider<S, R>) {
     const result = this.attachedWebviewProviders.map((provider) => {
       if (!provider.webviewView) {
         throw new Error("webview has not been initialized");
