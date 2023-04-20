@@ -21,6 +21,15 @@ export const RunButton: FC<{
   const [loading, setLoading] = useState(false);
   const [runError, setRunError] = useState<Error | null>(null);
 
+  // this is not my favorite way to do this; we should probably push this
+  // logic to the backend, but that's a lot of work. so: this autoruns any
+  // test case that doesn't have current output.
+  useEffect(() => {
+    if (!hasTestOutput) {
+      onRun();
+    }
+  });
+
   const onRun = useCallback(async () => {
     if (!fileName || !functionName) {
       return;
