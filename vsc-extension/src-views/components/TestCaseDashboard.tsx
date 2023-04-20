@@ -100,6 +100,8 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
             borderColor: "var(--checkbox-border)",
             borderWidth: "var(--border-width)",
             borderStyle: "solid",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
           }}
         >
           <code style={{ whiteSpace: "nowrap" }}>{formattedDeclaration}</code>
