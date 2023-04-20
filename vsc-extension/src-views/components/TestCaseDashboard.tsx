@@ -170,7 +170,7 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
           >
             {functionTestCase && (
               <code style={{ whiteSpace: "pre" }}>
-                {formatOutput(functionTestOutput?.output)}
+                {formatOutput(functionTestOutput)}
               </code>
             )}
           </div>
@@ -202,7 +202,14 @@ function formatDeclaration(fn: SerializableFunctionDeclaration) {
     });
 }
 
-export function formatOutput(value: any) {
+export function formatOutput(output?: TestOutput) {
+  if (!output) {
+    return "-";
+  }
+  if (output.error) {
+    return `${output.error}`;
+  }
+  const { output: value } = output;
   if (typeof value === "string") {
     return value;
   }
