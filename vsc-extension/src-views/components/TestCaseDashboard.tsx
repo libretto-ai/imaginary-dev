@@ -17,8 +17,10 @@ import {
   selectedTestCaseIndexState,
   testCasesState,
 } from "../shared/state";
+import { Drawer } from "./Drawer";
 import { ParamEditor } from "./ParamEditor";
 import { TestCasesList } from "./TestCasesList";
+import { useToggle } from "./useToggle";
 
 interface Props {
   fn: SerializableFunctionDeclaration;
@@ -29,6 +31,12 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
   const [testIndex, setTestIndex] = useRecoilState(
     selectedTestCaseIndexState(selectedFunction)
   );
+  const {
+    onClose: onCloseDrawer,
+    onOpen: onOpenDrawer,
+    isOpen: isDrawerOpen,
+  } = useToggle();
+
   const [testCases, setTestCases] = useRecoilState(testCasesState);
   const testCasesForSelectedFunction =
     findTestCases(
@@ -77,6 +85,9 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
     <>
       <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
         <b style={{ fontSize: "20px" }}>Function:</b>
+        <Drawer isOpen={isDrawerOpen} onClose={onCloseDrawer} minWidth="100px">
+          This is some stuff
+        </Drawer>
         <div
           style={{
             paddingTop: "0.5rem",
@@ -99,6 +110,7 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
           selectedFunction={selectedFunction}
           selectedIndex={testIndex}
           onSelect={setTestIndex}
+          onCreate={onOpenDrawer}
         />
         <div
           style={{

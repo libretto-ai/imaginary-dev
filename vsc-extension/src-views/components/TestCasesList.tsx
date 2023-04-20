@@ -1,3 +1,4 @@
+import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import React, { FC } from "react";
 import { useRecoilValue } from "recoil";
 import {
@@ -17,6 +18,7 @@ interface Props {
   selectedFunction: MaybeSelectedFunction;
   selectedIndex: number | null;
   onSelect: (selectedIndex: number) => void;
+  onCreate: () => void;
 }
 
 // TestCasesList component
@@ -26,6 +28,7 @@ export const TestCasesList: FC<Props> = ({
   selectedIndex,
   selectedFunction,
   onSelect,
+  onCreate,
 }) => {
   const { fileName, functionName } = selectedFunction ?? {};
   const allTestCases = useRecoilValue(testCasesState);
@@ -123,6 +126,7 @@ export const TestCasesList: FC<Props> = ({
         </div>
       ))}
       <GenerateTestCasesButton selectedFunction={selectedFunction} />
+      <VSCodeButton onClick={onCreate}>Add new test</VSCodeButton>
     </div>
   );
 };
