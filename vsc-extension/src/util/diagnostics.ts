@@ -1,5 +1,5 @@
 import ts from "typescript";
-import * as vscode from "vscode";
+import vscode from "vscode";
 import { getRelativePathToProject } from "./editor";
 import { SourceFileMap } from "./ts-source";
 
