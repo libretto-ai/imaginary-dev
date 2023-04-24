@@ -1,15 +1,18 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
+import { distance } from "fastest-levenshtein";
 import * as vscode from "vscode";
 import {
   MaybeSelectedFunction,
   SerializableFunctionDeclaration,
   SerializableSourceFileMap,
+  SourceFileTestCaseMap,
   SourceFileTestOutputMap,
 } from "../src-shared/source-info";
 import { ImaginaryFunctionProvider } from "./function-tree-provider";
 import { ImaginaryMessageRouter } from "./imaginary-message-router";
 import { makeRpcHandlers } from "./rpc-handlers";
+import { updateDiagnostics } from "./util/diagnostics";
 import {
   focusNode,
   getEditorSelectedFunction,
@@ -29,8 +32,6 @@ import { State } from "./util/state";
 import { SourceFileMap } from "./util/ts-source";
 import { TypedMap } from "./util/types";
 import { createWatchedMap, TypedMapWithEvent } from "./util/watched-map";
-import { SourceFileTestCaseMap } from "../src-shared/source-info";
-import { distance } from "fastest-levenshtein";
 
 const initialState: State = {
   "app.debugMode": false,
@@ -69,6 +70,11 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
       (process.env as Record<string, any>).OPENAI_API_KEY = openAiApiKey;
     }
   }
+
+  const diagnosticCollection = vscode.languages.createDiagnosticCollection(
+    "imaginary-programming"
+  );
+
   const rawState: TypedMap<State> = new Map();
   const state = createWatchedMap(rawState);
   Object.entries(initialState).forEach(([key, value]) => {
@@ -132,6 +138,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
         localState.get("nativeSources"),
         e.document
       );
+      updateDiagnostics(newSources, e.document, diagnosticCollection);
       localState.set("nativeSources", newSources);
       updateSourceState(
         localState.get("nativeSources"),
@@ -173,6 +180,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
       console.info("onDidOpenTextDocument", document.fileName);
 
       const newSources = updateFile(localState.get("nativeSources"), document);
+      updateDiagnostics(newSources, document, diagnosticCollection);
       const fileName = document.fileName;
       await maybeLoadTestCases(fileName, state);
       localState.set("nativeSources", newSources);
@@ -212,7 +220,12 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     })
   );
 
-  initializeExtensionState(localState, state, functionTreeProvider);
+  initializeExtensionState(
+    localState,
+    state,
+    functionTreeProvider,
+    diagnosticCollection
+  );
 }
 
 function getFunctions(fileName: string, sources: SerializableSourceFileMap) {
@@ -378,9 +391,15 @@ async function maybeLoadTestCases(fileName: string, state: TypedMap<State>) {
 async function initializeExtensionState(
   localState: TypedMap<ExtensionHostState>,
   state: TypedMapWithEvent<State>,
-  functionTreeProvider: ImaginaryFunctionProvider
+  functionTreeProvider: ImaginaryFunctionProvider,
+  diagnosticCollection: vscode.DiagnosticCollection
 ) {
-  await initializeOpenEditors(localState, state, functionTreeProvider);
+  await initializeOpenEditors(
+    localState,
+    state,
+    functionTreeProvider,
+    diagnosticCollection
+  );
   updateSourceState(
     localState.get("nativeSources"),
     state,
@@ -444,12 +463,14 @@ function updateViewsWithSelection(
 async function initializeOpenEditors(
   localState: TypedMap<ExtensionHostState>,
   state: TypedMap<State>,
-  functionTreeProvider: ImaginaryFunctionProvider
+  functionTreeProvider: ImaginaryFunctionProvider,
+  diagnosticCollection: vscode.DiagnosticCollection
 ) {
   let updated = false;
   let sources = localState.get("nativeSources");
   vscode.window.visibleTextEditors.map(({ document }) => {
     sources = updateFile(sources, document);
+    updateDiagnostics(sources, document, diagnosticCollection);
 
     updated = true;
   });
