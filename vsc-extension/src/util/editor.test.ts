@@ -1,6 +1,7 @@
 import ts from "typescript";
 import vscode from "vscode";
 import { MaybeSelectedFunction } from "../../src-shared/source-info";
+import { findImaginaryFunctions } from "./ast";
 import {
   focusNode,
   getAbsolutePathInProject,
@@ -81,22 +82,16 @@ describe("editor", () => {
 
   describe("focusNode", () => {
     it("should open the text document and show the function at the correct position", async () => {
-      const decl = ts.factory.createFunctionDeclaration(
-        undefined,
-        undefined,
-        "myFunction",
-        undefined,
-        [],
-        undefined,
-        undefined
-      );
       const sourceFile = ts.createSourceFile(
         "myFile.ts",
-        "",
+        `const foo = 1;
+        /** @imaginary */
+        declare function bar();`,
         ts.ScriptTarget.ES2015,
         true,
         ts.ScriptKind.TS
       );
+      const [decl] = findImaginaryFunctions(sourceFile);
 
       await focusNode(decl, sourceFile);
 
@@ -114,26 +109,19 @@ describe("editor", () => {
         functionName: "myFunction",
       };
 
+      const sourceFile = ts.createSourceFile(
+        "myFile.ts",
+        `/** @imaginary */
+        declare function myFunction();`,
+        ts.ScriptTarget.ES2015,
+        true,
+        ts.ScriptKind.TS
+      );
+      const [node] = findImaginaryFunctions(sourceFile);
       const sources: SourceFileMap = {
         "myFile.ts": {
-          sourceFile: ts.createSourceFile(
-            "myFile.ts",
-            "",
-            ts.ScriptTarget.ES2015,
-            true,
-            ts.ScriptKind.TS
-          ),
-          functions: [
-            ts.factory.createFunctionDeclaration(
-              undefined,
-              undefined,
-              "myFunction",
-              undefined,
-              [],
-              undefined,
-              undefined
-            ),
-          ],
+          sourceFile: sourceFile,
+          functions: [node],
         },
       };
 
