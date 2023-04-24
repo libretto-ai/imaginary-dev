@@ -10,59 +10,6 @@ import {
 } from "./editor";
 import { SourceFileMap } from "./ts-source";
 
-jest.mock("vscode", () => {
-  const { URI: Uri, Utils } = jest.requireActual("vscode-uri");
-  Uri.joinPath = Utils.joinPath;
-
-  return {
-    Uri,
-    workspace: {
-      workspaceFolders: [
-        {
-          uri: Uri.file("/path/to/workspace"),
-        },
-      ],
-      openTextDocument: jest.fn(),
-    },
-    window: {
-      showTextDocument: jest.fn(),
-    },
-    Position: jest.fn().mockImplementation(function (): vscode.Position {
-      return {
-        line: 0,
-        character: 0,
-        isBefore(other) {
-          return false;
-        },
-        compareTo(other) {
-          return 0;
-        },
-        isAfter(other) {
-          return false;
-        },
-        isAfterOrEqual(other) {
-          return false;
-        },
-        isBeforeOrEqual(other) {
-          return false;
-        },
-        isEqual(other) {
-          return false;
-        },
-        translate() {
-          return this;
-        },
-        with() {
-          return this;
-        },
-      };
-    }),
-    Range: jest.fn(),
-  };
-});
-vscode.Position;
-// Importing the mocked vscode module
-
 describe("editor", () => {
   describe("getRelativePathToProject", () => {
     it("should return the relative path to the project", () => {

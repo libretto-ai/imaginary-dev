@@ -9,6 +9,8 @@ export function getRelativePathToProject(absPath: string) {
   if (projectPath) {
     return relative(projectPath, absPath);
   }
+  console.error(`No paths in ${vscode.workspace.workspaceFolders}`);
+  throw new Error(`No paths in ${vscode.workspace.workspaceFolders}`);
   return absPath;
 }
 
