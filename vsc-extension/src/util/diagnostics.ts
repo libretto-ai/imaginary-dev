@@ -16,6 +16,9 @@ export function updateDiagnostics(
       const start = document.positionAt(fn.getStart(sourceFileInfo.sourceFile));
       const end = document.positionAt(fn.getEnd());
       const returnType = fn.type;
+
+      // TODO: Unify this error handling with tsNodeToJsonSchema or some other common path
+
       if (!returnType) {
         diagnostics.push(
           makeDiagnostic(
@@ -42,8 +45,11 @@ export function updateDiagnostics(
         );
         return;
       }
-      const param = returnType.typeArguments?.[0];
-      if (!param || ts.isTypeReferenceNode(param)) {
+      const resolvedType = returnType.typeArguments?.[0];
+      if (
+        !resolvedType ||
+        (ts.isTypeReferenceNode(resolvedType) && !isRecordType(resolvedType))
+      ) {
         diagnostics.push(
           makeDiagnostic(
             start,
@@ -52,9 +58,22 @@ export function updateDiagnostics(
           )
         );
       }
+      if (fn.typeParameters?.length) {
+        diagnostics.push(
+          makeDiagnostic(
+            start,
+            end,
+            "Imaginary function cannot have type parameters"
+          )
+        );
+      }
     });
   }
   collection.set(document.uri, diagnostics);
+}
+
+function isRecordType(node: ts.TypeReferenceNode) {
+  return ts.isIdentifier(node.typeName) && node.typeName.text === "Record";
 }
 
 function makeDiagnostic(
