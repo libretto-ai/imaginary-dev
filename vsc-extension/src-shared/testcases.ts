@@ -143,7 +143,7 @@ function addTestCaseToFunction(
   if (prevFunctionTestCase.functionName === functionName) {
     return {
       ...prevFunctionTestCase,
-      testCases: [...prevFunctionTestCase.testCases, newTestCase],
+      testCases: [newTestCase, ...prevFunctionTestCase.testCases],
     };
   }
   return prevFunctionTestCase;

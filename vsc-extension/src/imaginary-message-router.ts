@@ -1,4 +1,4 @@
-import * as vscode from "vscode";
+import vscode from "vscode";
 import { ImaginaryMessage } from "../src-shared/messages";
 import {
   BaseRpcHandlers,
