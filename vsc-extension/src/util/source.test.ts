@@ -15,8 +15,10 @@ describe("removeFile", () => {
       },
     };
 
+    const workspacePath = vscode.workspace.workspaceFolders?.[0]
+      .uri as vscode.Uri;
     const document = {
-      fileName: "file1.ts",
+      fileName: vscode.Uri.joinPath(workspacePath, "file1.ts").fsPath,
     } as vscode.TextDocument;
 
     const newSources = removeFile(sources, document);
@@ -75,9 +77,11 @@ describe("updateFile", () => {
         sourceFile: ts.createSourceFile("file1.ts", "", ts.ScriptTarget.Latest),
       },
     };
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0]
+      .uri as vscode.Uri;
 
     const document = {
-      fileName: "file2.ts",
+      fileName: vscode.Uri.joinPath(workspaceFolder, "file2.ts").fsPath,
       languageId: "typescript",
       getText: () => `
       /** @imaginary */
