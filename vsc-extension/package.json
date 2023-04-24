@@ -6,6 +6,10 @@
   "engines": {
     "vscode": "^1.76.0"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/imaginary-dev/imaginary-dev.git"
+  },
   "categories": [
     "Other"
   ],
