@@ -17,7 +17,10 @@ import {
 } from "./util/editor";
 import { ExtensionHostState } from "./util/extension-state";
 import { loadTestCases, writeAllTestCases } from "./util/persistence";
-import { registerWebView } from "./util/react-webview-provider";
+import {
+  BaseRpcHandlers,
+  registerWebView,
+} from "./util/react-webview-provider";
 import { SecretsProxy, SECRET_OPENAI_API_KEY } from "./util/secrets";
 import { makeSerializable } from "./util/serialize-source";
 import {
@@ -83,14 +86,14 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     "imaginary.currentfunctions",
     "function-panel",
     state,
-    rpcHandlers
+    rpcHandlers as BaseRpcHandlers
   );
   const inputsWebviewProvider = registerWebView(
     extensionContext,
     "imaginary.inputs",
     "input-panel",
     state,
-    rpcHandlers
+    rpcHandlers as BaseRpcHandlers
   );
   const messageRouter = new ImaginaryMessageRouter([
     outputsWebviewProvider,
