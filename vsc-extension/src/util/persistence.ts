@@ -1,3 +1,4 @@
+import { constants as fsConstants } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 import {
@@ -49,7 +50,7 @@ async function writeSourceFileTestCases(
 
 async function accessible(path: string) {
   try {
-    await fs.access(path, fs.constants.R_OK);
+    await fs.access(path, fsConstants.R_OK);
     return true;
   } catch {
     return false;
