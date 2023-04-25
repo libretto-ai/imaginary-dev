@@ -46,6 +46,15 @@ async function writeSourceFileTestCases(
     JSON.stringify(testCaseFile, null, 2)
   );
 }
+
+async function accessible(path: string) {
+  try {
+    await fs.access(path, fs.constants.R_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
 export async function loadTestCases(sourceFileName: string): Promise<{
   testCases: SourceFileTestCases;
   testOutputs: SourceFileTestOutput;
@@ -53,6 +62,12 @@ export async function loadTestCases(sourceFileName: string): Promise<{
   const testCaseFileName = getAbsolutePathInProject(
     getTestCaseFilename(sourceFileName)
   );
+  if (!(await accessible(testCaseFileName))) {
+    return {
+      testCases: { sourceFileName, functionTestCases: [] },
+      testOutputs: { sourceFileName, functionOutputs: [] },
+    };
+  }
   try {
     const testCasesRaw = await fs.readFile(testCaseFileName, {
       encoding: "utf-8",
