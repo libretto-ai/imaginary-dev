@@ -12,6 +12,7 @@ import {
 import { ImaginaryFunctionProvider } from "./function-tree-provider";
 import { ImaginaryMessageRouter } from "./imaginary-message-router";
 import { makeRpcHandlers } from "./rpc-handlers";
+import { makeSerializedAsyncFunction } from "./util/async";
 import { updateDiagnostics } from "./util/diagnostics";
 import {
   focusNode,
@@ -35,7 +36,6 @@ import { State } from "./util/state";
 import { SourceFileMap } from "./util/ts-source";
 import { TypedMap } from "./util/types";
 import { createWatchedMap, TypedMapWithEvent } from "./util/watched-map";
-
 const initialState: State = {
   "app.debugMode": false,
   selectedFunction: null,
@@ -163,16 +163,13 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
       );
     })
   );
+  const saveState = makeSerializedAsyncFunction(rawSaveState);
+
   state.onStateChange(async (updatedState) => {
     messageRouter.updateState(updatedState);
 
     // NOTE: onStateChange does not wait for this promise to finish..
-    if (updatedState.testCases || updatedState.latestTestOutput) {
-      const testCases = updatedState.testCases ?? state.get("testCases");
-      const outputs =
-        updatedState.latestTestOutput ?? state.get("latestTestOutput");
-      await writeAllTestCases(testCases, outputs);
-    }
+    saveState(state);
   });
 
   extensionContext.subscriptions.push(
@@ -489,6 +486,14 @@ async function initializeOpenEditors(
     }
   );
   await Promise.all(promises);
+}
+
+async function rawSaveState(state: TypedMap<State>) {
+  if (state.get("testCases") || state.get("latestTestOutput")) {
+    const testCases = state.get("testCases");
+    const outputs = state.get("latestTestOutput");
+    await writeAllTestCases(testCases, outputs);
+  }
 }
 
 // This method is called when your extension is deactivated
