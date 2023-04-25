@@ -32,10 +32,10 @@ export async function writeAllTestCases(
   });
   await Promise.all(promises);
 }
-function writeSourceFileTestCases(
+async function writeSourceFileTestCases(
   testCases: SourceFileTestCases,
   testOutputs?: SourceFileTestOutput
-): Promise<void> | undefined {
+): Promise<void> {
   const testCaseFile: TestCaseFile = {
     testCases: testCases.functionTestCases,
     outputs: testOutputs?.functionOutputs ?? [],
