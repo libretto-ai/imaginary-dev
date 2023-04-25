@@ -11,6 +11,4 @@ vsc-extension-quickstart.md
 **/*.ts
 **/*.tsx
 **/.DS_Store
-node_modules
 readme-images
-../**

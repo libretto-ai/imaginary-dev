@@ -26,6 +26,7 @@ import { findNativeFunction, generateFunctionDefinition } from "./util/source";
 import { State } from "./util/state";
 import { SourceFileMap } from "./util/ts-source";
 import { TypedMap } from "./util/types";
+import { ServiceParameters } from "@imaginary-dev/util";
 
 /**
  * This function takes in a TypeScript function declaration and gives one good set of test parameters for that
@@ -191,7 +192,7 @@ export function makeRpcHandlers(
           parameterTypes,
           returnSchema,
           paramValues,
-          { openai: { apiConfig: { apiKey } } }
+          { openai: { apiConfig: { apiKey } } } as ServiceParameters
         );
 
         updateTestRunState(
