@@ -104,6 +104,7 @@ export const NewTestDrawer: FC<Props> = ({
     >
       <TestCaseInputEditor
         fn={fn}
+        autoFocusFirst={isDrawerOpen}
         functionTestCase={draftTestCase}
         onUpdateTestCase={onUpdateDraftTestCase}
       />

@@ -41,7 +41,6 @@ function useRpc(rpcProvider: ExtensionRpcProvider | undefined): {
       };
     }
     const reader: ReadItem = async (itemKey: string) => {
-      console.log(`[webview ${!!rpcProvider}] reading key: `, itemKey);
       const value = rpcProvider.rpc("read-state", itemKey as keyof State);
       if (value === undefined) {
         return new DefaultValue();
