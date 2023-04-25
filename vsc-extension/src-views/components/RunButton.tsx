@@ -60,7 +60,6 @@ export const RunButton: FC<{
     return null;
   }
 
-  console.log("error = ", runError);
   const iconClass = getPlayIcon(loading, !!runError);
 
   return (

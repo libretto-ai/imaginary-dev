@@ -9,12 +9,14 @@ interface Props {
   functionTestCase: FunctionTestCase;
   fn: SerializableFunctionDeclaration;
   onUpdateTestCase: (paramName: string, value: string) => void;
+  autoFocusFirst?: boolean;
 }
 
 export const TestCaseInputEditor: FC<Props> = ({
   functionTestCase,
   fn,
   onUpdateTestCase,
+  autoFocusFirst,
 }) => {
   return (
     <div
@@ -25,7 +27,7 @@ export const TestCaseInputEditor: FC<Props> = ({
       }}
     >
       {functionTestCase &&
-        fn.parameters.map((param) => (
+        fn.parameters.map((param, index) => (
           <div
             key={param.name}
             style={{
@@ -36,6 +38,7 @@ export const TestCaseInputEditor: FC<Props> = ({
           >
             <ParamEditor
               parameter={param}
+              autoFocus={index === 0 ? autoFocusFirst : undefined}
               value={functionTestCase.inputs[param.name]}
               onChange={(newValue) => onUpdateTestCase(param.name, newValue)}
             />
