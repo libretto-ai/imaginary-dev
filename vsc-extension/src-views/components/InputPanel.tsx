@@ -1,14 +1,9 @@
-import {
-  VSCodeButton,
-  VSCodeDropdown,
-  VSCodeOption,
-} from "@vscode/webview-ui-toolkit/react";
-import React, { FC, useCallback, useState } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
+import React, { useCallback, useState } from "react";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import {
   findMatchingFunction,
   FunctionTestCase,
-  SelectedFunction,
 } from "../../src-shared/source-info";
 import { addFunctionTestCase, blankTestCase } from "../../src-shared/testcases";
 import {
@@ -18,8 +13,6 @@ import {
   testCasesState,
 } from "../shared/state";
 import { TestCaseEditor } from "./TestCaseEditor";
-import { useExtensionState } from "./ExtensionState";
-import { GenerateTestCasesButton } from "./GenerateTestCasesButton";
 
 // wrapper designed to reset the InputPanel state when the selected function changes. see
 // https://react.dev/learn/you-might-not-need-an-effect#resetting-all-state-when-a-prop-changes
@@ -37,7 +30,7 @@ export const InputPanel = () => {
 export const InputPanelForFunction = () => {
   const selectedFunction = useRecoilValue(selectedFunctionState);
   const sources = useRecoilValue(sourcesState);
-  const [testCases, setTestCases] = useRecoilState(testCasesState);
+  const setTestCases = useSetRecoilState(testCasesState);
   const [selectedTestCaseIndex, setSelectedTestCaseIndex] = useRecoilState(
     selectedTestCaseIndexState(selectedFunction)
   );
@@ -77,32 +70,28 @@ export const InputPanelForFunction = () => {
       newTestCase.inputs
     );
 
-    const newTestCaseWithFilledInUndefineds = Object.assign({}, newTestCase, {
+    const newTestCaseWithFilledInUndefineds = {
+      ...newTestCase,
       inputs: inputsWithFilledInUndefinedValues,
-    });
+    };
     // add the form's test case into the object model.
-    const newTestCases = addFunctionTestCase(
-      testCases,
-      fileName,
-      functionName,
-      newTestCaseWithFilledInUndefineds
-    );
-    setTestCases(newTestCases);
+    setTestCases((prevTestCases) => {
+      return addFunctionTestCase(
+        prevTestCases,
+        fileName,
+        functionName,
+        newTestCaseWithFilledInUndefineds
+      );
+    });
 
     // reset the form.
     setNewTestCase(blankTestCase);
 
-    // select the most recently added input.
-    const currentLength = newTestCases[fileName]?.functionTestCases.find(
-      ({ functionName: arg }) => arg === functionName
-    )?.testCases.length;
-    setSelectedTestCaseIndex(
-      typeof currentLength === "undefined" ? 0 : currentLength - 1
-    );
+    // New test will appear at the front of the list
+    setSelectedTestCaseIndex(0);
   }, [
     selectedFunction,
     sources,
-    testCases,
     newTestCase,
     setTestCases,
     setSelectedTestCaseIndex,
