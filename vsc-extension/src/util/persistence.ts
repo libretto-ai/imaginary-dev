@@ -57,7 +57,7 @@ export async function loadTestCases(sourceFileName: string): Promise<{
     const testCasesRaw = await fs.readFile(testCaseFileName, {
       encoding: "utf-8",
     });
-    const testCaseFile: TestCaseFile = JSON.parse(testCasesRaw);
+    const testCaseFile: TestCaseFile = safelyParseJson(testCasesRaw);
     const version = testCaseFile.version;
 
     if (version !== "0.1") {
@@ -81,6 +81,21 @@ export async function loadTestCases(sourceFileName: string): Promise<{
     };
   }
 }
+
+/** Parse the test cases from disk, but if the file is corrupt just return an empty result */
+function safelyParseJson(testCasesRaw: string): TestCaseFile {
+  try {
+    return JSON.parse(testCasesRaw);
+  } catch (ex) {
+    console.error("Failure to parse JSON:", ex);
+    return {
+      testCases: [],
+      version: "0.1",
+      outputs: [],
+    };
+  }
+}
+
 function getTestCaseFilename(sourceFileName: string) {
   const parsedPath = path.parse(sourceFileName);
   // TODO: should we retain the current extension somewhere?
