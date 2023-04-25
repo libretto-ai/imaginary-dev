@@ -8,7 +8,8 @@ import PQueue from "p-queue";
  * e.g.
  *
  * ```
- * const writeMessage = makeSerializedAsyncFunction((msg) => fs.writeFile(msg, 'file.txt'));
+ * const writeMessage = makeSerializedAsyncFunction(
+ *     (msg) => fs.writeFile(msg, 'file.txt'));
  *
  * writeMessage("one");
  * writeMessage("two");
