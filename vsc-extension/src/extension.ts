@@ -43,6 +43,10 @@ const initialState: State = {
   latestTestOutput: {},
 };
 
+const initialExtensionState: ExtensionHostState = {
+  nativeSources: {},
+};
+
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export async function activate(extensionContext: vscode.ExtensionContext) {
@@ -82,7 +86,9 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   });
 
   const localState: TypedMap<ExtensionHostState> = new Map();
-
+  Object.entries(initialExtensionState).forEach(([key, value]) => {
+    localState.set(key as keyof ExtensionHostState, value);
+  });
   const rpcHandlers = makeRpcHandlers(extensionContext, state, localState);
   const outputsWebviewProvider = registerWebView(
     extensionContext,
