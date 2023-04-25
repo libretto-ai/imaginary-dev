@@ -4,7 +4,7 @@ import {
   VSCodeTextField,
 } from "@vscode/webview-ui-toolkit/react";
 import { JSONSchema7 } from "json-schema";
-import React, { FC } from "react";
+import React, { FC, useEffect, useRef } from "react";
 import { ParameterDescriptor } from "../../src-shared/source-info";
 import { safeJsonSchemaToTypeScriptText } from "../../src/util/schema";
 
@@ -12,7 +12,8 @@ export const ParamEditor: FC<{
   value: string;
   onChange: (arg0: any) => void;
   parameter: ParameterDescriptor;
-}> = ({ parameter, value, onChange }) => {
+  autoFocus?: boolean;
+}> = ({ parameter, value, onChange, autoFocus }) => {
   const valueToDisplay = getEditableValue(parameter.schema, value);
   const tsType = safeJsonSchemaToTypeScriptText(parameter.schema);
   const label = (
@@ -20,11 +21,20 @@ export const ParamEditor: FC<{
       <code>{parameter.name}</code> {parameter.schema && <span>{tsType}</span>}
     </div>
   );
+
+  const inputRef = useRef<HTMLInputElement>();
+  useEffect(() => {
+    if (autoFocus) {
+      inputRef.current?.focus();
+    }
+  }, [autoFocus]);
   if (tsType === "number") {
     return (
       <>
         {label}
         <VSCodeTextField
+          autofocus={autoFocus}
+          ref={inputRef as any}
           style={{ flex: 1, width: "100%", height: "auto" }}
           value={valueToDisplay}
           onChange={(e: any) =>
@@ -39,6 +49,7 @@ export const ParamEditor: FC<{
       <VSCodeCheckbox
         checked={!!value}
         onChange={(e) => onChange((e.target as any)?.checked)}
+        ref={inputRef as any}
       >
         <code>{parameter.name}</code>
       </VSCodeCheckbox>
@@ -51,6 +62,7 @@ export const ParamEditor: FC<{
         style={{ flex: 1, width: "100%", height: "auto" }}
         rows={7}
         resize="vertical"
+        ref={inputRef as any}
         value={valueToDisplay}
         onChange={(e: any) =>
           onChange(getEditedValue(parameter.schema, e.target.value))

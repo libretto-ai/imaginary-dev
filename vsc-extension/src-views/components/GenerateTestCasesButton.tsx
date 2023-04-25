@@ -1,6 +1,8 @@
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
-import React, { FC, useState } from "react";
+import React, { FC } from "react";
 import { useRecoilState } from "recoil";
+import useSWR from "swr";
+import useSWRMutation from "swr/mutation";
 import { SelectedFunction } from "../../src-shared/source-info";
 import { addFunctionTestCase, findTestCases } from "../../src-shared/testcases";
 import { testCasesState } from "../shared/state";
@@ -12,29 +14,17 @@ export const GenerateTestCasesButton: FC<{
   const { rpcProvider } = useExtensionState();
   const { fileName, functionName } = selectedFunction;
   const [testCases, setTestCases] = useRecoilState(testCasesState);
-  const [loading, setLoading] = useState(false);
-
-  const onRun = async () => {
-    try {
-      if (loading) {
-        return;
-      }
-      setLoading(true);
-
-      const hasGpt4Support = await rpcProvider?.rpc("hasAccessToModel", {
+  const { isLoading, data: hasGpt4Support } = useSWR(
+    "gpt-4-suport",
+    async () =>
+      rpcProvider?.rpc("hasAccessToModel", {
         modelName: "gpt-4",
-      });
-
-      if (!hasGpt4Support) {
-        rpcProvider?.rpc("showErrorMessage", {
-          message:
-            "In order to generate test cases, you need access to the GPT-4 API, which is currently in beta. To request beta access to GPT-4, please go to https://openai.com/waitlist/gpt-4-api",
-        });
-        console.log("no gpt-4 support");
-        setLoading(false);
-        return;
-      }
-
+      }),
+    { revalidateOnFocus: false }
+  );
+  const { isMutating, trigger: generateTestParameters } = useSWRMutation(
+    "generateTestParameters",
+    () => {
       const testCasesForSelectedFunction =
         findTestCases(
           testCases,
@@ -42,18 +32,32 @@ export const GenerateTestCasesButton: FC<{
           selectedFunction?.functionName
         )?.testCases ?? [];
 
-      const newTestCases = (await rpcProvider?.rpc(
-        "generateTestParametersForTypeScriptFunction",
-        {
-          fileName,
-          functionName,
-          existingTestInputs: testCasesForSelectedFunction.map(
-            ({ inputs }) => inputs
-          ),
-        }
-      )) as { __testName: string } & Record<string, any>;
+      return rpcProvider?.rpc("generateTestParametersForTypeScriptFunction", {
+        fileName,
+        functionName,
+        existingTestInputs: testCasesForSelectedFunction.map(
+          ({ inputs }) => inputs
+        ),
+      });
+    }
+  );
 
-      setLoading(false);
+  const onRun = async () => {
+    try {
+      if (!hasGpt4Support) {
+        rpcProvider?.rpc("showErrorMessage", {
+          message:
+            "In order to generate test cases, you need access to the GPT-4 API, which is currently in beta. To request beta access to GPT-4, please go to https://openai.com/waitlist/gpt-4-api",
+        });
+        console.log("no gpt-4 support");
+        return;
+      }
+
+      const newTestCases = await generateTestParameters();
+
+      if (!newTestCases) {
+        return;
+      }
 
       let resultTestCases = testCases;
 
@@ -80,9 +84,10 @@ export const GenerateTestCasesButton: FC<{
     }
   };
 
+  const loading = isLoading || isMutating;
   return (
     <>
-      <VSCodeButton onClick={onRun}>
+      <VSCodeButton onClick={onRun} disabled={loading}>
         {loading ? (
           <span className={`codicon codicon-loading codicon-modifier-spin`} />
         ) : (

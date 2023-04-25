@@ -12,5 +12,5 @@ export interface RpcCaller<
     id: K,
     parameters: P[0],
     t?: Array<any>
-  ) => Promise<any>;
+  ) => Promise<ReturnType<I[K]>>;
 }

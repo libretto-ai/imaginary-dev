@@ -16,6 +16,10 @@ const localMock = {
   window: {
     showTextDocument: jest.fn(),
   },
+  DiagnosticSeverity: {
+    Warning: 1,
+    Error: 1,
+  },
 };
 
 export default {

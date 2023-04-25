@@ -75,12 +75,12 @@ describe("addFunctionTestCase", () => {
             functionName: "existingFunction",
             testCases: [
               {
-                name: "Test case 1",
-                inputs: { a: 1, b: 2 },
-              },
-              {
                 name: "Test case 2",
                 inputs: { a: 3, b: 4 },
+              },
+              {
+                name: "Test case 1",
+                inputs: { a: 1, b: 2 },
               },
             ],
           },
