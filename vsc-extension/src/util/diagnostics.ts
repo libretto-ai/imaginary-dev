@@ -10,7 +10,7 @@ export function updateDiagnostics(
 ) {
   const modifiedFile = getRelativePathToProject(document.fileName);
   const diagnostics: vscode.Diagnostic[] = [];
-  if (modifiedFile in sources) {
+  if (sources && modifiedFile in sources) {
     const sourceFileInfo = sources[modifiedFile];
     sourceFileInfo.functions.forEach((fn) => {
       const start = document.positionAt(fn.getStart(sourceFileInfo.sourceFile));
