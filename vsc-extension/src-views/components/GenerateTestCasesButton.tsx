@@ -24,7 +24,7 @@ export const GenerateTestCasesButton: FC<{
   );
   const { isMutating, trigger: generateTestParameters } = useSWRMutation(
     "generateTestParameters",
-    () => {
+    async () => {
       const testCasesForSelectedFunction =
         findTestCases(
           testCases,
@@ -53,32 +53,20 @@ export const GenerateTestCasesButton: FC<{
         return;
       }
 
-      const newTestCases = await generateTestParameters();
+      const newInputs = await generateTestParameters();
 
-      if (!newTestCases) {
+      if (!newInputs) {
         return;
       }
 
-      let resultTestCases = testCases;
-
-      // this is a little odd, in that we bundle this test case in an array
-      // and then iterate over it. I originally built this as having the function
-      // return an array of test cases, and then we changed it to one at a time. We
-      // might change it back, so I'm leaving it this way for now.
-      [newTestCases].forEach((newTestCase) => {
-        resultTestCases = addFunctionTestCase(
-          resultTestCases,
-          fileName,
-          functionName,
-          {
-            name: newTestCase.__testName ?? "New test",
-            hasCustomName: !!newTestCase.__testName,
-            inputs: Object.assign({}, newTestCase, { __testName: undefined }),
-          }
-        );
+      setTestCases((prevTestCases) => {
+        const { __testName, ...inputs } = newInputs;
+        return addFunctionTestCase(prevTestCases, fileName, functionName, {
+          name: __testName ?? "New test",
+          hasCustomName: !!__testName,
+          inputs,
+        });
       });
-
-      setTestCases(resultTestCases);
     } catch (ex) {
       console.error(`Failure to run: ${ex}`, ex);
     }

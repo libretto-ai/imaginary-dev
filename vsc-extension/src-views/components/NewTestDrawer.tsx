@@ -1,15 +1,11 @@
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import React, { FC, useCallback, useEffect, useState } from "react";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import {
   FunctionTestCase,
   SerializableFunctionDeclaration,
 } from "../../src-shared/source-info";
-import {
-  addFunctionTestCase,
-  blankTestCase,
-  findTestCases,
-} from "../../src-shared/testcases";
+import { addFunctionTestCase, blankTestCase } from "../../src-shared/testcases";
 import {
   selectedFunctionState,
   selectedTestCaseIndexState,
@@ -29,7 +25,7 @@ export const NewTestDrawer: FC<Props> = ({
   onCloseDrawer,
   fn,
 }) => {
-  const [testCases, setTestCases] = useRecoilState(testCasesState);
+  const setTestCases = useSetRecoilState(testCasesState);
   const selectedFunction = useRecoilValue(selectedFunctionState);
   const setTestCaseIndex = useSetRecoilState(
     selectedTestCaseIndexState(selectedFunction)
@@ -47,22 +43,17 @@ export const NewTestDrawer: FC<Props> = ({
       console.warn("Trying to add function but lost selection");
       return;
     }
-    const newTestCases = addFunctionTestCase(
-      testCases,
-      selectedFunction.fileName,
-      selectedFunction.functionName,
-      draftTestCase
-    );
-    setTestCases(newTestCases);
-
-    // Find the index of the new test (at the end) and select it
-    const totalTestCases =
-      findTestCases(
-        newTestCases,
+    setTestCases((prevTestCases) =>
+      addFunctionTestCase(
+        prevTestCases,
         selectedFunction.fileName,
-        selectedFunction.functionName
-      )?.testCases.length ?? 0;
-    setTestCaseIndex(totalTestCases - 1);
+        selectedFunction.functionName,
+        draftTestCase
+      )
+    );
+
+    // new test is added at the top
+    setTestCaseIndex(0);
 
     onCloseDrawer();
 
@@ -74,7 +65,6 @@ export const NewTestDrawer: FC<Props> = ({
     selectedFunction,
     setTestCaseIndex,
     setTestCases,
-    testCases,
   ]);
 
   // Close the drawer whenever the selected function changes
