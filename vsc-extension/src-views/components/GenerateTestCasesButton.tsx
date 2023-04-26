@@ -3,9 +3,12 @@ import React, { FC } from "react";
 import { useRecoilState } from "recoil";
 import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
-import { SelectedFunction } from "../../src-shared/source-info";
+import {
+  SelectedFunction,
+  SourceFileTestOutputMap,
+} from "../../src-shared/source-info";
 import { addFunctionTestCase, findTestCases } from "../../src-shared/testcases";
-import { testCasesState } from "../shared/state";
+import { latestTestOutputState, testCasesState } from "../shared/state";
 import { useExtensionState } from "./ExtensionState";
 import { HasAccessToModel } from "../../src/has-access-enum";
 
@@ -15,6 +18,10 @@ export const GenerateTestCasesButton: FC<{
   const { rpcProvider } = useExtensionState();
   const { fileName, functionName } = selectedFunction;
   const [testCases, setTestCases] = useRecoilState(testCasesState);
+  const [latestTestOutput, setLatestTestOutput] = useRecoilState(
+    latestTestOutputState
+  );
+
   const { isMutating: isAccessToModelMutating, trigger: hasAccessToModel } =
     useSWRMutation("gpt-4-suport", async () =>
       rpcProvider?.rpc("hasAccessToModel", {
@@ -72,6 +79,20 @@ export const GenerateTestCasesButton: FC<{
           hasCustomName: !!__testName,
           inputs,
         });
+      });
+
+      setLatestTestOutput((prevTestOutput) => {
+        const result: SourceFileTestOutputMap = JSON.parse(
+          JSON.stringify(prevTestOutput)
+        );
+        result[fileName].functionOutputs
+          .find(
+            ({ functionName: thisFunctionName }) =>
+              thisFunctionName === functionName
+          )
+          ?.outputs?.unshift({ output: null, lastRun: "" });
+
+        return result;
       });
     } catch (ex) {
       console.error(`Failure to run: ${ex}`, ex);
