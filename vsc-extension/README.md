@@ -24,6 +24,8 @@ In order to use the "Generate Test Case" feature, you must have API access to GP
 
 ## Issues
 
+PLEASE NOTE: this is an alpha version for testing only; we are still actively fixing bugs in it.
+
 If you find issues or have feedback, please feel free to file them at [https://github.com/imaginary-dev/imaginary-dev].
 
 ## Release Notes
