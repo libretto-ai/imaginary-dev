@@ -494,19 +494,18 @@ async function initializeOpenEditors(
   functionTreeProvider: ImaginaryFunctionProvider,
   diagnosticCollection: vscode.DiagnosticCollection
 ) {
-  let updated = false;
-  let sources = localState.get("nativeSources");
-  vscode.window.visibleTextEditors.map(({ document }) => {
-    sources = updateFile(sources, document);
-    updateDiagnostics(sources, document, diagnosticCollection);
-
-    updated = true;
+  // It is not clear that this really means anything?
+  vscode.window.visibleTextEditors.map((editor) => {
+    const { document } = editor;
+    updateDocument(
+      document,
+      state,
+      localState,
+      diagnosticCollection,
+      functionTreeProvider
+    );
   });
 
-  if (updated) {
-    functionTreeProvider.update(sources);
-    localState.set("nativeSources", sources);
-  }
   const promises = vscode.window.visibleTextEditors.map(
     async ({ document }) => {
       console.log("trying to load test cases for ", document.fileName);
