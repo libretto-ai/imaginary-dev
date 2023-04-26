@@ -72,11 +72,11 @@ export const runPrompt: (
       },
       { role: "user", content: promptParts.prompt },
     ],
+    max_tokens: serviceParameters?.openai?.max_tokens ?? undefined,
     temperature: serviceParameters?.openai?.temperature ?? DEFAULT_TEMPERATURE,
-    max_tokens:
-      serviceParameters?.openai?.max_tokens ?? getMaxTokensForModel(model),
     ...getSafeOpenAIServiceParameters(serviceParameters),
   };
+
   if (process.env.PROMPTJS_LOGGING_ENABLED) {
     console.log("requesting messages: ", completionRequest.messages);
     console.log("params: ", serviceParameters);
@@ -117,13 +117,6 @@ export const runPrompt: (
 
   return choices[0];
 };
-
-function getMaxTokensForModel(model: string) {
-  // GPT-3.5 can do about 4k total.
-  if (model.includes("gpt-3.5")) return 3000;
-  // GPT-4 can do about 8k total.
-  return 7000;
-}
 
 export const runPromptWithRetry = wrapWithRetry(runPrompt, {
   minTimeout: 300,
