@@ -1,71 +1,33 @@
 # imaginary-programming README
 
-This is the README for your extension "imaginary-programming". After writing up a brief description, we recommend including the following sections.
+The imaginary-dev extension lets you test and iterate on imaginary functions directly from Visual Studio Code. For more information about how to write imaginary functions, check out [https://imaginary.dev/].
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+To use the imaginary-dev extension, first navigate to an imaginary function in your code, then pull up the "Current Functions" panel below. From here, you can input new test cases for your imaginary function. Those test inputs will run and show results after you enter them so you can get a sense of how well the imaginary function is written. All of your test cases are saved to a JSON file next to your imaginary function's file, so that the test cases can be saved amongst your team.
 
-For example if there is an image subfolder under your extension project workspace:
+\!\[Add Test Case\]\(readme-images/add-test-case.gif\)
 
-\!\[feature X\]\(images/feature-x.png\)
+As you modify the input parameters or the function itself, you can press the play button off to the right of the test case name to re-run the test case and see how the output changes.
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+\!\[Modify Test Case\]\(readme-images/modify-test-case.gif\)
+
+Can't think of a good test case for your imaginary function? Press the "Generate Test Case" button to create new test cases for your function. Note that this button requires access to the GPT-4 API and, because GPT-4 is quite complex, can take a decent amount of time.
+
+\!\[Generate Test Case\]\(readme-images/generate-test-case.gif\)
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+You must have an OpenAI API key to use the extension. The first time it is needed by the extension, you will be asked for your API key, and the extension will store it locally. If you don't have an OpenAI API key, [set up an OpenAI account](https://platform.openai.com/signup) and generate a new API key at [your API keys page](https://platform.openai.com/account/api-keys).
 
-## Extension Settings
+In order to use the "Generate Test Case" feature, you must have API access to GPT-4. If you don't have that access yet, you can sign up at [this sign up form](https://openai.com/waitlist/gpt-4-api).
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+## Issues
 
-For example:
-
-This extension contributes the following settings:
-
-- `myExtension.enable`: Enable/disable this extension.
-- `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
+If you find issues or have feedback, please feel free to file them at [https://github.com/imaginary-dev/imaginary-dev].
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
+### 0.1.0
 
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-- [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-- Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-- Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-- Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-- [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-- [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+Initial release of the imaginary-dev extension.
