@@ -151,6 +151,11 @@ export class ReactWebViewProvider<S extends object, R extends BaseRpcHandlers>
               .with({ scheme: "vscode-resource" })
               .toString()}/"
           />
+          <style>
+            body {
+              padding: 0px;
+            }
+          </style>
         </head>
         <body>
           <main id="root"></main>

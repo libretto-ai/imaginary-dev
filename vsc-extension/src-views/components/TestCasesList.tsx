@@ -79,6 +79,9 @@ export const TestCasesList: FC<Props> = ({
         display: "flex",
         flexDirection: "column",
         minWidth: "120px",
+        overflow: "auto",
+        paddingLeft: "0.5rem",
+        paddingRight: "0.5rem",
         gap: 10,
       }}
     >

@@ -3,7 +3,6 @@ import { useRecoilValue } from "recoil";
 import logo from "../../resources/favicon-32x32.png";
 import { findMatchingFunction } from "../../src-shared/source-info";
 import { selectedFunctionState, sourcesState } from "../shared/state";
-import { DebugPanel } from "./DebugPanel";
 import { TestCaseDashboard } from "./TestCaseDashboard";
 export function OutputPanel() {
   const sources = useRecoilValue(sourcesState);
@@ -19,7 +18,8 @@ export function OutputPanel() {
         display: "flex",
         flexDirection: "column",
         gap: "1rem",
-        marginTop: "1rem",
+        height: "100vh",
+        width: "100vw",
       }}
     >
       {haveFn && (
@@ -40,7 +40,6 @@ export function OutputPanel() {
           <p>Please move your cursor into an imaginary function.</p>
         </div>
       )}
-      <DebugPanel />
     </div>
   );
 }

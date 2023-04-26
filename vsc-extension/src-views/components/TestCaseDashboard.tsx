@@ -83,7 +83,14 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
   // }
   return (
     <>
-      <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: "1rem",
+          alignItems: "center",
+          paddingTop: "1rem",
+        }}
+      >
         <b style={{ fontSize: "20px" }}>Function:</b>
         <NewTestDrawer
           isDrawerOpen={isDrawerOpen}
@@ -107,7 +114,15 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
           <code style={{ whiteSpace: "nowrap" }}>{formattedDeclaration}</code>
         </div>
       </div>
-      <div style={{ display: "flex", flexDirection: "row", gap: "1rem" }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          gap: "1rem",
+          flex: 1,
+          overflow: "hidden",
+        }}
+      >
         <TestCasesList
           testCases={testCasesForSelectedFunction}
           testOutputs={testOutputsForSelectedFunction}
@@ -125,6 +140,7 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
             margin: "12px",
             minWidth: "500px",
             width: "100%",
+            overflow: "auto",
           }}
         >
           <div
