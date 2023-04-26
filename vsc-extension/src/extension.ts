@@ -176,24 +176,29 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   });
 
   extensionContext.subscriptions.push(
-    vscode.workspace.onDidOpenTextDocument(async (document) => {
-      if (!couldContainImaginaryFunctions(document)) {
+    vscode.window.onDidChangeActiveTextEditor(async (editor) => {
+      if (!editor) {
         return;
       }
-      console.info("onDidOpenTextDocument", document.fileName);
-
-      const newSources = updateFile(localState.get("nativeSources"), document);
-      updateDiagnostics(newSources, document, diagnosticCollection);
-      const fileName = document.fileName;
-      await maybeLoadTestCases(fileName, state);
-      localState.set("nativeSources", newSources);
-      updateSourceState(
-        localState.get("nativeSources"),
+      const { document } = editor;
+      console.log("onDidChangeActiveTextEditor", document.fileName);
+      // Note this is somewhat redund
+      await updateDocument(
+        document,
         state,
+        localState,
+        diagnosticCollection,
         functionTreeProvider
       );
+      const selectedFunction = updateViewsWithSelection(
+        state.get("selectedFunction"),
+        localState.get("nativeSources"),
+        editor
+      );
+      state.set("selectedFunction", selectedFunction);
     })
   );
+
   extensionContext.subscriptions.push(
     vscode.workspace.onDidCloseTextDocument((document) => {
       if (!couldContainImaginaryFunctions(document)) {
@@ -210,6 +215,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
       );
     })
   );
+
   extensionContext.subscriptions.push(
     vscode.window.onDidChangeTextEditorSelection((e) => {
       // TODO: update tree view with treeView.reveal()
@@ -228,6 +234,25 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     state,
     functionTreeProvider,
     diagnosticCollection
+  );
+}
+
+async function updateDocument(
+  document: vscode.TextDocument,
+  state: TypedMap<State>,
+  localState: TypedMap<ExtensionHostState>,
+  diagnosticCollection: vscode.DiagnosticCollection,
+  functionTreeProvider: ImaginaryFunctionProvider
+) {
+  const newSources = updateFile(localState.get("nativeSources"), document);
+  updateDiagnostics(newSources, document, diagnosticCollection);
+  const fileName = document.fileName;
+  await maybeLoadTestCases(fileName, state);
+  localState.set("nativeSources", newSources);
+  updateSourceState(
+    localState.get("nativeSources"),
+    state,
+    functionTreeProvider
   );
 }
 
