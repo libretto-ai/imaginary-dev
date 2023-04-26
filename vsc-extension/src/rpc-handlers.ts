@@ -138,7 +138,7 @@ export function makeRpcHandlers(
       try {
         const response = await openai.retrieveModel(modelName);
 
-        return !!response?.data?.id
+        return response?.data?.id
           ? HasAccessToModel.HAS_ACCESS
           : HasAccessToModel.NO_ACCESS;
       } catch (e) {
