@@ -3,7 +3,7 @@
   "displayName": "Imaginary Programming",
   "description": "Imaginary Programming lets you write and test implementation-free TypeScript functions directly from your IDE.",
   "publisher": "imaginary-dev",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.76.0"
   },
