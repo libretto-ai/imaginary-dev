@@ -27,6 +27,7 @@ import { State } from "./util/state";
 import { SourceFileMap } from "./util/ts-source";
 import { TypedMap } from "./util/types";
 import { ServiceParameters } from "@imaginary-dev/util";
+import { HasAccessToModel } from "./has-access-enum";
 
 /**
  * This function takes in a TypeScript function declaration and gives one good set of test parameters for that
@@ -127,20 +128,22 @@ export function makeRpcHandlers(
       modelName,
     }: {
       modelName: string;
-    }): Promise<boolean> {
+    }): Promise<HasAccessToModel> {
       const apiKey = await secretsProxy.getSecret(OPENAI_API_SECRET_KEY);
       if (!apiKey) {
-        return false;
+        return HasAccessToModel.NO_API_KEY;
       }
 
       const openai = new OpenAIApi(new Configuration({ apiKey }));
       try {
         const response = await openai.retrieveModel(modelName);
 
-        return !!response?.data?.id;
+        return !!response?.data?.id
+          ? HasAccessToModel.HAS_ACCESS
+          : HasAccessToModel.NO_ACCESS;
       } catch (e) {
         // often the API gives a 404 that in turn throws when it's a model you don't have.
-        return false;
+        return HasAccessToModel.NO_ACCESS;
       }
     },
 

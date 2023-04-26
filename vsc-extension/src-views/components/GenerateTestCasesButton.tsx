@@ -7,6 +7,7 @@ import { SelectedFunction } from "../../src-shared/source-info";
 import { addFunctionTestCase, findTestCases } from "../../src-shared/testcases";
 import { testCasesState } from "../shared/state";
 import { useExtensionState } from "./ExtensionState";
+import { HasAccessToModel } from "../../src/has-access-enum";
 
 export const GenerateTestCasesButton: FC<{
   selectedFunction: SelectedFunction;
@@ -14,14 +15,12 @@ export const GenerateTestCasesButton: FC<{
   const { rpcProvider } = useExtensionState();
   const { fileName, functionName } = selectedFunction;
   const [testCases, setTestCases] = useRecoilState(testCasesState);
-  const { isLoading, data: hasGpt4Support } = useSWR(
-    "gpt-4-suport",
-    async () =>
+  const { isMutating: isAccessToModelMutating, trigger: hasAccessToModel } =
+    useSWRMutation("gpt-4-suport", async () =>
       rpcProvider?.rpc("hasAccessToModel", {
         modelName: "gpt-4",
-      }),
-    { revalidateOnFocus: false }
-  );
+      })
+    );
   const { isMutating, trigger: generateTestParameters } = useSWRMutation(
     "generateTestParameters",
     async () => {
@@ -44,7 +43,14 @@ export const GenerateTestCasesButton: FC<{
 
   const onRun = async () => {
     try {
-      if (!hasGpt4Support) {
+      const hasGpt4Support = await hasAccessToModel();
+      if (typeof hasGpt4Support === "undefined") return;
+      if (hasGpt4Support == HasAccessToModel.NO_API_KEY) {
+        // if the user declined to give OpenAI API key, then just return
+        return;
+      }
+
+      if (HasAccessToModel.NO_ACCESS === hasGpt4Support) {
         rpcProvider?.rpc("showErrorMessage", {
           message:
             "In order to generate test cases, you need access to the GPT-4 API, which is currently in beta. To request beta access to GPT-4, please go to https://openai.com/waitlist/gpt-4-api",
@@ -72,7 +78,7 @@ export const GenerateTestCasesButton: FC<{
     }
   };
 
-  const loading = isLoading || isMutating;
+  const loading = isAccessToModelMutating || isMutating;
   return (
     <>
       <VSCodeButton onClick={onRun} disabled={loading}>
