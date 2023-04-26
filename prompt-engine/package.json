@@ -1,6 +1,6 @@
 {
   "name": "@imaginary-dev/runtime",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Runs imaginary functions as LLM prompts",
   "files": [
     "dist"
