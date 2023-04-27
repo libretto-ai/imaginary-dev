@@ -11,8 +11,8 @@ import cleanGptResponse, {
   isSchemaForNull,
 } from "./clean-gpt-response";
 import { getJSONSchemaType } from "./json-schema-util";
-import { runPromptWithRetry as runCompletionPromptWithRetry } from "./prompt-openai-completion";
 import { runPromptWithRetry as runChatPromptWithRetry } from "./prompt-openai-chat";
+import { runPromptWithRetry as runCompletionPromptWithRetry } from "./prompt-openai-completion";
 import { beginReportEvent, finishReport, reportEventErrors } from "./reporting";
 
 const ajv = new Ajv();
@@ -136,7 +136,7 @@ Return value as JSON: ${prefix}`;
       `Error parsing the result from OpenAI as a JSON object: \`${prefix}${completion.text}\``,
       e
     );
-    return null;
+    throw e;
   }
 
   // TODO: pre-compile schemas?
