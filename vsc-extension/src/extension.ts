@@ -21,10 +21,7 @@ import {
 } from "./util/editor";
 import { ExtensionHostState } from "./util/extension-state";
 import { loadTestCases, writeAllTestCases } from "./util/persistence";
-import {
-  BaseRpcHandlers,
-  registerWebView,
-} from "./util/react-webview-provider";
+import { registerWebView } from "./util/react-webview-provider";
 import { SecretsProxy, SECRET_OPENAI_API_KEY } from "./util/secrets";
 import { makeSerializable } from "./util/serialize-source";
 import {
@@ -98,14 +95,14 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     "imaginary.currentfunctions",
     "function-panel",
     state,
-    rpcHandlers as BaseRpcHandlers
+    rpcHandlers
   );
   const inputsWebviewProvider = registerWebView(
     extensionContext,
     "imaginary.inputs",
     "input-panel",
     state,
-    rpcHandlers as BaseRpcHandlers
+    rpcHandlers
   );
   const messageRouter = new ImaginaryMessageRouter([
     outputsWebviewProvider,
@@ -179,24 +176,29 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   });
 
   extensionContext.subscriptions.push(
-    vscode.workspace.onDidOpenTextDocument(async (document) => {
-      if (!couldContainImaginaryFunctions(document)) {
+    vscode.window.onDidChangeActiveTextEditor(async (editor) => {
+      if (!editor) {
         return;
       }
-      console.info("onDidOpenTextDocument", document.fileName);
-
-      const newSources = updateFile(localState.get("nativeSources"), document);
-      updateDiagnostics(newSources, document, diagnosticCollection);
-      const fileName = document.fileName;
-      await maybeLoadTestCases(fileName, state);
-      localState.set("nativeSources", newSources);
-      updateSourceState(
-        localState.get("nativeSources"),
+      const { document } = editor;
+      console.log("onDidChangeActiveTextEditor", document.fileName);
+      // Note this is somewhat redund
+      await updateDocument(
+        document,
         state,
+        localState,
+        diagnosticCollection,
         functionTreeProvider
       );
+      const selectedFunction = updateViewsWithSelection(
+        state.get("selectedFunction"),
+        localState.get("nativeSources"),
+        editor
+      );
+      state.set("selectedFunction", selectedFunction);
     })
   );
+
   extensionContext.subscriptions.push(
     vscode.workspace.onDidCloseTextDocument((document) => {
       if (!couldContainImaginaryFunctions(document)) {
@@ -213,6 +215,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
       );
     })
   );
+
   extensionContext.subscriptions.push(
     vscode.window.onDidChangeTextEditorSelection((e) => {
       // TODO: update tree view with treeView.reveal()
@@ -231,6 +234,25 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     state,
     functionTreeProvider,
     diagnosticCollection
+  );
+}
+
+async function updateDocument(
+  document: vscode.TextDocument,
+  state: TypedMap<State>,
+  localState: TypedMap<ExtensionHostState>,
+  diagnosticCollection: vscode.DiagnosticCollection,
+  functionTreeProvider: ImaginaryFunctionProvider
+) {
+  const newSources = updateFile(localState.get("nativeSources"), document);
+  updateDiagnostics(newSources, document, diagnosticCollection);
+  const fileName = document.fileName;
+  await maybeLoadTestCases(fileName, state);
+  localState.set("nativeSources", newSources);
+  updateSourceState(
+    localState.get("nativeSources"),
+    state,
+    functionTreeProvider
   );
 }
 
@@ -472,19 +494,18 @@ async function initializeOpenEditors(
   functionTreeProvider: ImaginaryFunctionProvider,
   diagnosticCollection: vscode.DiagnosticCollection
 ) {
-  let updated = false;
-  let sources = localState.get("nativeSources");
-  vscode.window.visibleTextEditors.map(({ document }) => {
-    sources = updateFile(sources, document);
-    updateDiagnostics(sources, document, diagnosticCollection);
-
-    updated = true;
+  // It is not clear that this really means anything?
+  vscode.window.visibleTextEditors.map((editor) => {
+    const { document } = editor;
+    updateDocument(
+      document,
+      state,
+      localState,
+      diagnosticCollection,
+      functionTreeProvider
+    );
   });
 
-  if (updated) {
-    functionTreeProvider.update(sources);
-    localState.set("nativeSources", sources);
-  }
   const promises = vscode.window.visibleTextEditors.map(
     async ({ document }) => {
       console.log("trying to load test cases for ", document.fileName);

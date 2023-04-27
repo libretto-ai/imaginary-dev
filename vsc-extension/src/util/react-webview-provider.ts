@@ -6,7 +6,7 @@ import { State } from "./state";
 import { TypedMap } from "./types";
 
 export type BaseRpcHandlers = {
-  [handlerName: string]: (...args: unknown[]) => Promise<unknown>;
+  [handlerName: string]: (...args: any[]) => Promise<any>;
 };
 
 export function registerWebView<R extends BaseRpcHandlers>(

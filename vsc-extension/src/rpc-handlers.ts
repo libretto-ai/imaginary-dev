@@ -3,6 +3,7 @@ import {
   getImaginaryTsDocComments,
   tsNodeToJsonSchema,
 } from "@imaginary-dev/typescript-transformer";
+import { ServiceParameters } from "@imaginary-dev/util";
 import { Configuration, OpenAIApi } from "openai";
 import ts from "typescript";
 import * as vscode from "vscode";
@@ -20,14 +21,13 @@ import {
   updateSourceFileTestCase,
   updateSourceFileTestOutput,
 } from "../src-shared/testcases";
+import { HasAccessToModel } from "./has-access-enum";
 import { ExtensionHostState } from "./util/extension-state";
 import { SecretsProxy } from "./util/secrets";
 import { findNativeFunction, generateFunctionDefinition } from "./util/source";
 import { State } from "./util/state";
 import { SourceFileMap } from "./util/ts-source";
 import { TypedMap } from "./util/types";
-import { ServiceParameters } from "@imaginary-dev/util";
-import { HasAccessToModel } from "./has-access-enum";
 
 /**
  * This function takes in a TypeScript function declaration and gives one good set of test parameters for that
@@ -138,7 +138,7 @@ export function makeRpcHandlers(
       try {
         const response = await openai.retrieveModel(modelName);
 
-        return !!response?.data?.id
+        return response?.data?.id
           ? HasAccessToModel.HAS_ACCESS
           : HasAccessToModel.NO_ACCESS;
       } catch (e) {
@@ -195,7 +195,7 @@ export function makeRpcHandlers(
           parameterTypes,
           returnSchema,
           paramValues,
-          { openai: { apiConfig: { apiKey } } } as ServiceParameters
+          { openai: { apiConfig: { apiKey } } } satisfies ServiceParameters
         );
 
         updateTestRunState(
