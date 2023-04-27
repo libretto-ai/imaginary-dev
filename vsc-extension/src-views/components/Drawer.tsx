@@ -27,6 +27,7 @@ export const Drawer: FC<PropsWithChildren<Props>> = ({
             width: "100vw",
             height: "100vh",
             background: "rgba(0, 0, 0, 0.48)",
+            zIndex: 10,
           }}
         />
       )}
@@ -42,7 +43,7 @@ export const Drawer: FC<PropsWithChildren<Props>> = ({
           borderColor: "var(--vscode-widget-border)",
           borderRightWidth: "1px",
           borderRightStyle: "solid",
-          zIndex: "10",
+          zIndex: 20,
           display: "flex",
           flexDirection: "column",
           // TODO: parameterize this

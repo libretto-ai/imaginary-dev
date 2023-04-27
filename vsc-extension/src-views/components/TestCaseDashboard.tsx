@@ -83,32 +83,32 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
   // }
   return (
     <>
+      <NewTestDrawer
+        isDrawerOpen={isDrawerOpen}
+        onCloseDrawer={onCloseDrawer}
+        fn={fn}
+      />
       <div
         style={{
           display: "flex",
           gap: "1rem",
           alignItems: "center",
           paddingTop: "1rem",
+          paddingLeft: "1rem",
+          paddingRight: "1rem",
         }}
       >
-        <b style={{ fontSize: "20px" }}>Function:</b>
-        <NewTestDrawer
-          isDrawerOpen={isDrawerOpen}
-          onCloseDrawer={onCloseDrawer}
-          fn={fn}
-        />
+        <span style={{ fontSize: "16px" }}>Function:</span>
         <div
           style={{
-            paddingTop: "0.5rem",
-            paddingBottom: "0.5rem",
-            paddingLeft: "1rem",
-            paddingRight: "1rem",
+            padding: "0.5rem",
             backgroundColor: "var(--vscode-editor-inactiveSelectionBackground)",
             borderColor: "var(--checkbox-border)",
             borderWidth: "var(--border-width)",
             borderStyle: "solid",
             overflow: "hidden",
             textOverflow: "ellipsis",
+            borderRadius: "var(--button-icon-corner-radius)",
           }}
         >
           <code style={{ whiteSpace: "nowrap" }}>{formattedDeclaration}</code>
