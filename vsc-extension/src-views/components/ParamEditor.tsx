@@ -20,6 +20,12 @@ export const ParamEditor: FC<{
   // When editing text, we keep a local copy around so that we can manage line count
   const [localValue, setLocalValue] = useState(valueToDisplay);
 
+  // make sure to reset localValue whenever output component changes, otherwise
+  // we'll have stale state.
+  useEffect(() => {
+    setLocalValue(valueToDisplay);
+  }, [valueToDisplay]);
+
   const label = (
     <div>
       <code>{parameter.name}</code> {parameter.schema && <span>{tsType}</span>}
