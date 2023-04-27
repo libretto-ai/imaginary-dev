@@ -16,13 +16,14 @@
   "author": "Sasha Aickin",
   "license": "MIT",
   "dependencies": {
+    "@imaginary-dev/util": "*",
     "@microsoft/tsdoc": "^0.14.2",
     "ajv": "^8.12.0",
     "@imaginary-dev/util": "*"
   },
   "devDependencies": {
-    "ts-jest": "^29.0.5",
-    "transformer-shared-tests": "*"
+    "transformer-shared-tests": "*",
+    "ts-jest": "^29.0.5"
   },
   "volta": {
     "extends": "../../package.json"
