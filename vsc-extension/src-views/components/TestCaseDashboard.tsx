@@ -1,3 +1,4 @@
+import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import React, { FC, ReactNode } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import {
@@ -17,6 +18,7 @@ import {
   selectedTestCaseIndexState,
   testCasesState,
 } from "../shared/state";
+import { GenerateTestCasesButton } from "./GenerateTestCasesButton";
 import { NewTestDrawer } from "./NewTestDrawer";
 import { TestCaseInputEditor } from "./TestCaseInputEditor";
 import { TestCasesList } from "./TestCasesList";
@@ -82,7 +84,15 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
   //   console.log("missing functionTestCase for ", testIndex);
   // }
   return (
-    <>
+    <div
+      style={{
+        paddingLeft: "0.5rem",
+        display: "flex",
+        flexDirection: "column",
+        gap: "1rem",
+        overflow: "hidden",
+      }}
+    >
       <NewTestDrawer
         isDrawerOpen={isDrawerOpen}
         onCloseDrawer={onCloseDrawer}
@@ -116,77 +126,81 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
       </div>
       <div
         style={{
-          display: "flex",
-          flexDirection: "row",
-          gap: "1rem",
-          flex: 1,
-          overflow: "hidden",
+          display: "grid",
+          gap: "0.5rem",
+          gridTemplateColumns: "min-content 1fr 1fr",
+          paddingLeft: "0.5rem",
+          minWidth: "500px",
+          width: "100%",
+          overflow: "auto",
         }}
       >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: "1rem",
+          }}
+        >
+          <VSCodeButton style={{ flex: 1 }} onClick={onOpenDrawer}>
+            Add new test
+          </VSCodeButton>
+          <GenerateTestCasesButton
+            style={{ flex: 1 }}
+            selectedFunction={selectedFunction}
+          >
+            Generate
+          </GenerateTestCasesButton>
+        </div>
+
+        <div
+          style={{
+            fontSize: 16,
+            fontWeight: "bolder",
+            alignSelf: "center",
+          }}
+        >
+          Inputs
+        </div>
+        <div
+          style={{
+            fontSize: 16,
+            fontWeight: "bolder",
+            alignSelf: "center",
+          }}
+        >
+          Output
+        </div>
         <TestCasesList
           testCases={testCasesForSelectedFunction}
           testOutputs={testOutputsForSelectedFunction}
           selectedFunction={selectedFunction}
           selectedIndex={testIndex}
           onSelect={setTestIndex}
-          onCreate={onOpenDrawer}
+          style={{ overflow: "auto" }}
         />
+
+        <TestCaseInputEditor
+          functionTestCase={functionTestCase}
+          fn={fn}
+          onUpdateTestCase={onUpdateTestCase}
+          style={{ overflow: "auto", paddingRight: "0.5rem" }}
+        />
+
         <div
           style={{
-            display: "grid",
-            gap: "1rem",
-            alignContent: "start",
-            gridTemplateColumns: "1fr 1fr",
-            margin: "12px",
-            minWidth: "500px",
-            width: "100%",
+            margin: "6px",
             overflow: "auto",
           }}
         >
-          <div
-            style={{
-              fontSize: 16,
-              fontWeight: "bolder",
-              position: "sticky",
-              top: 0,
-              backgroundColor: "var(--background)",
-            }}
-          >
-            Inputs
-          </div>
-          <div
-            style={{
-              fontSize: 16,
-              fontWeight: "bolder",
-              position: "sticky",
-              top: 0,
-              backgroundColor: "var(--background)",
-            }}
-          >
-            Output
-          </div>
-
-          <TestCaseInputEditor
-            functionTestCase={functionTestCase}
-            fn={fn}
-            onUpdateTestCase={onUpdateTestCase}
-          />
-
-          <div
-            style={{
-              margin: "6px",
-              overflow: "scroll",
-            }}
-          >
-            {functionTestCase && (
-              <code style={{ whiteSpace: "pre" }}>
-                {formatOutput(functionTestOutput)}
-              </code>
-            )}
-          </div>
+          {functionTestCase && (
+            <code style={{ whiteSpace: "pre" }}>
+              {formatOutput(functionTestOutput)}
+            </code>
+          )}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

@@ -1,5 +1,4 @@
-import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
-import React, { FC } from "react";
+import React, { CSSProperties, FC } from "react";
 import { useRecoilValue } from "recoil";
 import {
   FunctionTestCase,
@@ -9,7 +8,6 @@ import {
 import { findTestCase } from "../../src-shared/testcases";
 import { testCasesState } from "../shared/state";
 import { useExtensionState } from "./ExtensionState";
-import { GenerateTestCasesButton } from "./GenerateTestCasesButton";
 import { RunButton } from "./RunButton";
 
 interface Props {
@@ -18,7 +16,7 @@ interface Props {
   selectedFunction: MaybeSelectedFunction;
   selectedIndex: number | null;
   onSelect: (selectedIndex: number) => void;
-  onCreate: () => void;
+  style?: CSSProperties;
 }
 
 // TestCasesList component
@@ -28,7 +26,7 @@ export const TestCasesList: FC<Props> = ({
   selectedIndex,
   selectedFunction,
   onSelect,
-  onCreate,
+  style,
 }) => {
   const { fileName, functionName } = selectedFunction ?? {};
   const allTestCases = useRecoilValue(testCasesState);
@@ -76,33 +74,14 @@ export const TestCasesList: FC<Props> = ({
   return (
     <div
       style={{
+        ...style,
         display: "flex",
         flexDirection: "column",
         minWidth: "250px",
         maxWidth: "50%",
-        overflow: "auto",
-        paddingLeft: "0.5rem",
-        paddingRight: "0.5rem",
-        gap: 10,
+        gap: "0.5rem",
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          gap: "1rem",
-        }}
-      >
-        <VSCodeButton style={{ flex: 1 }} onClick={onCreate}>
-          Add new test
-        </VSCodeButton>
-        <GenerateTestCasesButton
-          style={{ flex: 1 }}
-          selectedFunction={selectedFunction}
-        >
-          Generate
-        </GenerateTestCasesButton>
-      </div>
       {testCases.map((testCase, index) => (
         // Generate a unique key so we have a fresh loading state if we switch functions/files/etc
         <div
