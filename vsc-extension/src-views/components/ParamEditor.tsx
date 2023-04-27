@@ -1,10 +1,11 @@
+import { TextFieldType } from "@vscode/webview-ui-toolkit";
 import {
   VSCodeCheckbox,
   VSCodeTextArea,
   VSCodeTextField,
 } from "@vscode/webview-ui-toolkit/react";
 import { JSONSchema7 } from "json-schema";
-import React, { FC, useEffect, useRef } from "react";
+import React, { FC, useEffect, useRef, useState } from "react";
 import { ParameterDescriptor } from "../../src-shared/source-info";
 import { safeJsonSchemaToTypeScriptText } from "../../src/util/schema";
 
@@ -16,6 +17,9 @@ export const ParamEditor: FC<{
 }> = ({ parameter, value, onChange, autoFocus }) => {
   const valueToDisplay = getEditableValue(parameter.schema, value);
   const tsType = safeJsonSchemaToTypeScriptText(parameter.schema);
+  // When editing text, we keep a local copy around so that we can manage line count
+  const [localValue, setLocalValue] = useState(valueToDisplay);
+
   const label = (
     <div>
       <code>{parameter.name}</code> {parameter.schema && <span>{tsType}</span>}
@@ -36,10 +40,11 @@ export const ParamEditor: FC<{
           autofocus={autoFocus}
           ref={inputRef as any}
           style={{ flex: 1, width: "100%", height: "auto" }}
+          type={"number" as TextFieldType}
           value={valueToDisplay}
-          onChange={(e: any) =>
-            onChange(getEditedValue(parameter.schema, e.target.value))
-          }
+          onChange={(e: any) => {
+            return onChange(getEditedValue(parameter.schema, e.target.value));
+          }}
         />
       </>
     );
@@ -55,15 +60,20 @@ export const ParamEditor: FC<{
       </VSCodeCheckbox>
     );
   }
+  const rows = localValue.split(/[\n\r]/).length;
+
   return (
     <>
       {label}
       <VSCodeTextArea
         style={{ flex: 1, width: "100%", height: "auto" }}
-        rows={7}
+        rows={rows}
         resize="vertical"
         ref={inputRef as any}
-        value={valueToDisplay}
+        value={localValue}
+        onInput={(e: any) => {
+          setLocalValue(e.target.value);
+        }}
         onChange={(e: any) =>
           onChange(getEditedValue(parameter.schema, e.target.value))
         }
@@ -72,6 +82,9 @@ export const ParamEditor: FC<{
   );
 };
 function getEditableValue(schema: JSONSchema7 | undefined, value: any): string {
+  if (value === undefined) {
+    return "";
+  }
   switch (schema?.type) {
     case "string":
       return typeof value === "string" ? value : "";
@@ -97,7 +110,7 @@ function getEditedValue(schema: JSONSchema7 | undefined, value: string): any {
       return typeof value === "string" ? value : "";
     case "number":
     case "integer":
-      return typeof value === "number" ? value : parseInt(value);
+      return typeof value === "number" ? value : parseFloat(value);
     case "boolean":
       // hack should be using checkbox
       if (value === "true") {
