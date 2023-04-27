@@ -1,4 +1,4 @@
-import { join, relative } from "path";
+import path, { join, relative } from "path";
 import ts from "typescript";
 import vscode from "vscode";
 import { MaybeSelectedFunction } from "../../src-shared/source-info";
@@ -10,16 +10,20 @@ export function getRelativePathToProject(absPath: string) {
     return relative(projectPath, absPath);
   }
   console.error(`No paths in ${vscode.workspace.workspaceFolders}`);
-  throw new Error(`No paths in ${vscode.workspace.workspaceFolders}`);
   return absPath;
 }
 
 export function getAbsolutePathInProject(relPath: string) {
-  const u = vscode.workspace.workspaceFolders?.[0].uri;
-  if (!u) {
-    throw new Error(`Cannot find path without workspace`);
+  const projectPathUri = vscode.workspace.workspaceFolders?.[0].uri;
+  if (!projectPathUri) {
+    if (!path.isAbsolute(relPath)) {
+      // if there is no workspace, we assume `getRelativePathToProject` returned
+      // an absolute path. If not, then who knows what went wrong!
+      console.warn(`Cannot resolve relative path${relPath}, using as-is`);
+    }
+    return relPath;
   }
-  return vscode.Uri.joinPath(u, relPath).fsPath;
+  return vscode.Uri.joinPath(projectPathUri, relPath).fsPath;
 }
 
 /**

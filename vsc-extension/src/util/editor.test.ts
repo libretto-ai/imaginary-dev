@@ -16,6 +16,21 @@ describe("editor", () => {
       const absPath = "/path/to/workspace/myFile.ts";
       expect(getRelativePathToProject(absPath)).toEqual("myFile.ts");
     });
+    describe("with no workspace", () => {
+      let ws;
+      beforeEach(() => {
+        ws = vscode.workspace.workspaceFolders;
+        (vscode.workspace as any).workspaceFolders = undefined;
+      });
+      afterEach(() => {
+        (vscode.workspace as any).workspaceFolders = ws;
+        ws = null;
+      });
+      it("should return the raw path when there is no workspace", () => {
+        const absPath = "/path/to/workspace/myFile.ts";
+        expect(getRelativePathToProject(absPath)).toEqual(absPath);
+      });
+    });
   });
 
   describe("getAbsolutePathInProject", () => {
@@ -24,6 +39,22 @@ describe("editor", () => {
       expect(getAbsolutePathInProject(relPath)).toEqual(
         "/path/to/workspace/myFile.ts"
       );
+    });
+    describe("with no workspace", () => {
+      let ws;
+      beforeEach(() => {
+        ws = vscode.workspace.workspaceFolders;
+        (vscode.workspace as any).workspaceFolders = undefined;
+      });
+      afterEach(() => {
+        (vscode.workspace as any).workspaceFolders = ws;
+        ws = null;
+      });
+
+      it("should return the absolute path in the project", () => {
+        const relPath = "/path/to/workspace/myFile.ts";
+        expect(getAbsolutePathInProject(relPath)).toEqual(relPath);
+      });
     });
   });
 
