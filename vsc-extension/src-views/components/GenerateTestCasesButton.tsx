@@ -1,5 +1,5 @@
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
-import React, { FC } from "react";
+import React, { CSSProperties, FC, PropsWithChildren } from "react";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import useSWRMutation from "swr/mutation";
 import {
@@ -11,9 +11,12 @@ import { HasAccessToModel } from "../../src/has-access-enum";
 import { latestTestOutputState, testCasesState } from "../shared/state";
 import { useExtensionState } from "./ExtensionState";
 
-export const GenerateTestCasesButton: FC<{
-  selectedFunction: SelectedFunction;
-}> = ({ selectedFunction }) => {
+export const GenerateTestCasesButton: FC<
+  PropsWithChildren<{
+    style?: CSSProperties;
+    selectedFunction: SelectedFunction;
+  }>
+> = ({ selectedFunction, children, style }) => {
   const { rpcProvider } = useExtensionState();
   const { fileName, functionName } = selectedFunction;
   const [testCases, setTestCases] = useRecoilState(testCasesState);
@@ -101,11 +104,11 @@ export const GenerateTestCasesButton: FC<{
   const loading = isAccessToModelMutating || isMutating;
   return (
     <>
-      <VSCodeButton onClick={onRun} disabled={loading}>
+      <VSCodeButton style={style} onClick={onRun} disabled={loading}>
         {loading ? (
           <span className={`codicon codicon-loading codicon-modifier-spin`} />
         ) : (
-          "Generate"
+          children
         )}
       </VSCodeButton>
     </>

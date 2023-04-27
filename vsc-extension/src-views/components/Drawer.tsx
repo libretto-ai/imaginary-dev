@@ -45,6 +45,9 @@ export const Drawer: FC<PropsWithChildren<Props>> = ({
           zIndex: "10",
           display: "flex",
           flexDirection: "column",
+          // TODO: parameterize this
+          minWidth: "250px",
+          maxWidth: "50%",
         }}
       >
         <div

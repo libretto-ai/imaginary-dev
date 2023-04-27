@@ -12,7 +12,7 @@ As you modify the input parameters or the function itself, you can press the pla
 
 ![Modify Test Case](vsc-extension/readme-images/modify-test-case.gif)
 
-Can't think of a good test case for your imaginary function? Press the "Generate Test Case" button to create new test cases for your function. Note that this button requires access to the GPT-4 API and, because GPT-4 is quite complex, can take a decent amount of time.
+Can't think of a good test case for your imaginary function? Press the "Generate" button to create new test cases for your function. Note that this button requires access to the GPT-4 API and, because GPT-4 is quite complex, can take a decent amount of time.
 
 ![Generate Test Case](vsc-extension/readme-images/generate-test-case.gif)
 

@@ -78,13 +78,31 @@ export const TestCasesList: FC<Props> = ({
       style={{
         display: "flex",
         flexDirection: "column",
-        minWidth: "120px",
+        minWidth: "250px",
+        maxWidth: "50%",
         overflow: "auto",
         paddingLeft: "0.5rem",
         paddingRight: "0.5rem",
         gap: 10,
       }}
     >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          gap: "1rem",
+        }}
+      >
+        <VSCodeButton style={{ flex: 1 }} onClick={onCreate}>
+          Add new test
+        </VSCodeButton>
+        <GenerateTestCasesButton
+          style={{ flex: 1 }}
+          selectedFunction={selectedFunction}
+        >
+          Generate
+        </GenerateTestCasesButton>
+      </div>
       {testCases.map((testCase, index) => (
         // Generate a unique key so we have a fresh loading state if we switch functions/files/etc
         <div
@@ -128,8 +146,6 @@ export const TestCasesList: FC<Props> = ({
           />
         </div>
       ))}
-      <GenerateTestCasesButton selectedFunction={selectedFunction} />
-      <VSCodeButton onClick={onCreate}>Add new test</VSCodeButton>
     </div>
   );
 };
