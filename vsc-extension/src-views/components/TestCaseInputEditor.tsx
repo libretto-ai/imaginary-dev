@@ -1,4 +1,4 @@
-import React, { FC } from "react";
+import React, { CSSProperties, FC } from "react";
 import {
   FunctionTestCase,
   SerializableFunctionDeclaration,
@@ -10,6 +10,7 @@ interface Props {
   fn: SerializableFunctionDeclaration;
   onUpdateTestCase: (paramName: string, value: string) => void;
   autoFocusFirst?: boolean;
+  style?: CSSProperties;
 }
 
 export const TestCaseInputEditor: FC<Props> = ({
@@ -17,10 +18,12 @@ export const TestCaseInputEditor: FC<Props> = ({
   fn,
   onUpdateTestCase,
   autoFocusFirst,
+  style,
 }) => {
   return (
     <div
       style={{
+        ...style,
         display: "flex",
         flexDirection: "column",
         gap: "0.5rem",

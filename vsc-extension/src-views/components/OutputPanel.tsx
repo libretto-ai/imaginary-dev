@@ -17,7 +17,6 @@ export function OutputPanel() {
       style={{
         display: "flex",
         flexDirection: "column",
-        gap: "1rem",
         height: "100vh",
         width: "100vw",
       }}

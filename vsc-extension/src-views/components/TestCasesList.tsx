@@ -1,5 +1,4 @@
-import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
-import React, { FC } from "react";
+import React, { CSSProperties, FC } from "react";
 import { useRecoilValue } from "recoil";
 import {
   FunctionTestCase,
@@ -9,7 +8,6 @@ import {
 import { findTestCase } from "../../src-shared/testcases";
 import { testCasesState } from "../shared/state";
 import { useExtensionState } from "./ExtensionState";
-import { GenerateTestCasesButton } from "./GenerateTestCasesButton";
 import { RunButton } from "./RunButton";
 
 interface Props {
@@ -18,7 +16,7 @@ interface Props {
   selectedFunction: MaybeSelectedFunction;
   selectedIndex: number | null;
   onSelect: (selectedIndex: number) => void;
-  onCreate: () => void;
+  style?: CSSProperties;
 }
 
 // TestCasesList component
@@ -28,7 +26,7 @@ export const TestCasesList: FC<Props> = ({
   selectedIndex,
   selectedFunction,
   onSelect,
-  onCreate,
+  style,
 }) => {
   const { fileName, functionName } = selectedFunction ?? {};
   const allTestCases = useRecoilValue(testCasesState);
@@ -76,13 +74,12 @@ export const TestCasesList: FC<Props> = ({
   return (
     <div
       style={{
+        ...style,
         display: "flex",
         flexDirection: "column",
-        minWidth: "120px",
-        overflow: "auto",
-        paddingLeft: "0.5rem",
-        paddingRight: "0.5rem",
-        gap: 10,
+        minWidth: "250px",
+        maxWidth: "50%",
+        gap: "0.5rem",
       }}
     >
       {testCases.map((testCase, index) => (
@@ -90,8 +87,6 @@ export const TestCasesList: FC<Props> = ({
         <div
           key={`${fileName}-${functionName}-${index}`}
           style={{
-            fontWeight: "bold",
-            fontSize: "15px",
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
@@ -99,12 +94,8 @@ export const TestCasesList: FC<Props> = ({
               index === selectedIndex
                 ? "var(--list-active-selection-background)"
                 : "",
-            border:
-              index === selectedIndex
-                ? "solid calc(var(--border-width) * 1px) var(--focus-border)"
-                : "1px solid gray",
             padding: "5px",
-            borderRadius: "5px",
+            borderRadius: "var(--button-icon-corner-radius)",
           }}
         >
           {/* special flex + padding to ensure whitespace is clickable, even if test name is blank */}
@@ -128,8 +119,6 @@ export const TestCasesList: FC<Props> = ({
           />
         </div>
       ))}
-      <GenerateTestCasesButton selectedFunction={selectedFunction} />
-      <VSCodeButton onClick={onCreate}>Add new test</VSCodeButton>
     </div>
   );
 };
