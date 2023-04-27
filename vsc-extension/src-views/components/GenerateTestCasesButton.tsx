@@ -1,16 +1,15 @@
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import React, { FC } from "react";
-import { useRecoilState } from "recoil";
-import useSWR from "swr";
+import { useRecoilState, useSetRecoilState } from "recoil";
 import useSWRMutation from "swr/mutation";
 import {
   SelectedFunction,
   SourceFileTestOutputMap,
 } from "../../src-shared/source-info";
 import { addFunctionTestCase, findTestCases } from "../../src-shared/testcases";
+import { HasAccessToModel } from "../../src/has-access-enum";
 import { latestTestOutputState, testCasesState } from "../shared/state";
 import { useExtensionState } from "./ExtensionState";
-import { HasAccessToModel } from "../../src/has-access-enum";
 
 export const GenerateTestCasesButton: FC<{
   selectedFunction: SelectedFunction;
@@ -18,9 +17,7 @@ export const GenerateTestCasesButton: FC<{
   const { rpcProvider } = useExtensionState();
   const { fileName, functionName } = selectedFunction;
   const [testCases, setTestCases] = useRecoilState(testCasesState);
-  const [latestTestOutput, setLatestTestOutput] = useRecoilState(
-    latestTestOutputState
-  );
+  const setLatestTestOutput = useSetRecoilState(latestTestOutputState);
 
   const { isMutating: isAccessToModelMutating, trigger: hasAccessToModel } =
     useSWRMutation("gpt-4-suport", async () =>
@@ -51,8 +48,10 @@ export const GenerateTestCasesButton: FC<{
   const onRun = async () => {
     try {
       const hasGpt4Support = await hasAccessToModel();
-      if (typeof hasGpt4Support === "undefined") return;
-      if (hasGpt4Support == HasAccessToModel.NO_API_KEY) {
+      if (typeof hasGpt4Support === "undefined") {
+        return;
+      }
+      if (hasGpt4Support === HasAccessToModel.NO_API_KEY) {
         // if the user declined to give OpenAI API key, then just return
         return;
       }
@@ -106,7 +105,7 @@ export const GenerateTestCasesButton: FC<{
         {loading ? (
           <span className={`codicon codicon-loading codicon-modifier-spin`} />
         ) : (
-          "Generate Test Case"
+          "Generate"
         )}
       </VSCodeButton>
     </>
