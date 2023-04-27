@@ -146,15 +146,15 @@ describe("callImaginaryFunction", () => {
   });
   test("should fail on bad response", async () => {
     runMock.mockResolvedValue({ text: "mocked response string" });
-    const result = await callImaginaryFunction(
-      `/** emojify function
+    expect(async () => {
+      await callImaginaryFunction(
+        `/** emojify function
       * @imaginary */`,
-      "emojify",
-      [{ name: "input", type: { type: "string" } }],
-      { type: "string" },
-      { input: "Emojify this" }
-    );
-
-    expect(result).toEqual(null);
+        "emojify",
+        [{ name: "input", type: { type: "string" } }],
+        { type: "string" },
+        { input: "Emojify this" }
+      );
+    }).rejects.toThrow("end of input found");
   });
 });
