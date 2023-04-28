@@ -1,4 +1,4 @@
-import path, { join, relative } from "path";
+import path, { relative } from "path";
 import ts from "typescript";
 import vscode from "vscode";
 import { MaybeSelectedFunction } from "../../src-shared/source-info";
@@ -35,13 +35,9 @@ export const focusNode = async (
   decl: ts.FunctionDeclaration,
   sourceFile: ts.SourceFile
 ) => {
-  const ws = vscode.workspace.workspaceFolders?.[0];
-  if (!ws) {
-    return;
-  }
-  const f = await vscode.workspace.openTextDocument(
-    join(ws.uri.fsPath, sourceFile.fileName)
-  );
+  console.log("focusNode ", decl, sourceFile);
+  const fileName = getAbsolutePathInProject(sourceFile.fileName);
+  const f = await vscode.workspace.openTextDocument(vscode.Uri.file(fileName));
   const declLocation = sourceFile.getLineAndCharacterOfPosition(
     decl.getStart(sourceFile)
   );
