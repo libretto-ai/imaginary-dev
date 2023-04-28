@@ -45,11 +45,6 @@
     "views": {
       "imaginary": [
         {
-          "id": "imaginary.inputs",
-          "name": "Test Inputs",
-          "type": "webview"
-        },
-        {
           "id": "functions",
           "name": "Imaginary Function List"
         }

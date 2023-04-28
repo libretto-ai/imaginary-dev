@@ -97,16 +97,23 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     state,
     rpcHandlers
   );
-  const inputsWebviewProvider = registerWebView(
-    extensionContext,
-    "imaginary.inputs",
-    "input-panel",
-    state,
-    rpcHandlers
-  );
+  // to bring the other panel back, add this to package.json in contributes.views.imaginary
+  // {
+  //   "id": "imaginary.inputs",
+  //   "name": "Test Inputs",
+  //   "type": "webview"
+  // },
+
+  // const inputsWebviewProvider = registerWebView(
+  //   extensionContext,
+  //   "imaginary.inputs",
+  //   "input-panel",
+  //   state,
+  //   rpcHandlers
+  // );
   const messageRouter = new ImaginaryMessageRouter([
     outputsWebviewProvider,
-    inputsWebviewProvider,
+    //    inputsWebviewProvider,
   ]);
   extensionContext.subscriptions.push(messageRouter);
 
