@@ -117,6 +117,24 @@ export function addFunctionTestCase(
     },
   };
 }
+
+export function addBlankOutputToStart(
+  prevTestOutput: SourceFileTestOutputMap,
+  fileName: string,
+  functionName: string
+) {
+  const result: SourceFileTestOutputMap = JSON.parse(
+    JSON.stringify(prevTestOutput)
+  );
+  result[fileName].functionOutputs
+    .find(
+      ({ functionName: thisFunctionName }) => thisFunctionName === functionName
+    )
+    ?.outputs?.unshift({ output: null, lastRun: "" });
+
+  return result;
+}
+
 function addTestCaseToFile(
   functionTestCases: FunctionTestCases[],
   targetFunctionName: string,

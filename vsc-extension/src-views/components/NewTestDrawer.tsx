@@ -5,8 +5,13 @@ import {
   FunctionTestCase,
   SerializableFunctionDeclaration,
 } from "../../src-shared/source-info";
-import { addFunctionTestCase, blankTestCase } from "../../src-shared/testcases";
 import {
+  addFunctionTestCase,
+  addBlankOutputToStart,
+  blankTestCase,
+} from "../../src-shared/testcases";
+import {
+  latestTestOutputState,
   selectedFunctionState,
   selectedTestCaseIndexState,
   testCasesState,
@@ -26,6 +31,7 @@ export const NewTestDrawer: FC<Props> = ({
   fn,
 }) => {
   const setTestCases = useSetRecoilState(testCasesState);
+  const setLatestTestOutput = useSetRecoilState(latestTestOutputState);
   const selectedFunction = useRecoilValue(selectedFunctionState);
   const setTestCaseIndex = useSetRecoilState(
     selectedTestCaseIndexState(selectedFunction)
@@ -49,6 +55,13 @@ export const NewTestDrawer: FC<Props> = ({
         selectedFunction.fileName,
         selectedFunction.functionName,
         draftTestCase
+      )
+    );
+    setLatestTestOutput((prevTestOutput) =>
+      addBlankOutputToStart(
+        prevTestOutput,
+        selectedFunction.fileName,
+        selectedFunction.functionName
       )
     );
 
