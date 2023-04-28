@@ -6,7 +6,11 @@ import {
   SelectedFunction,
   SourceFileTestOutputMap,
 } from "../../src-shared/source-info";
-import { addFunctionTestCase, findTestCases } from "../../src-shared/testcases";
+import {
+  addFunctionTestCase,
+  addBlankOutputToStart,
+  findTestCases,
+} from "../../src-shared/testcases";
 import { HasAccessToModel } from "../../src/has-access-enum";
 import { latestTestOutputState, testCasesState } from "../shared/state";
 import { useExtensionState } from "./ExtensionState";
@@ -83,19 +87,9 @@ export const GenerateTestCasesButton: FC<
         });
       });
 
-      setLatestTestOutput((prevTestOutput) => {
-        const result: SourceFileTestOutputMap = JSON.parse(
-          JSON.stringify(prevTestOutput)
-        );
-        result[fileName].functionOutputs
-          .find(
-            ({ functionName: thisFunctionName }) =>
-              thisFunctionName === functionName
-          )
-          ?.outputs?.unshift({ output: null, lastRun: "" });
-
-        return result;
-      });
+      setLatestTestOutput((prevTestOutput) =>
+        addBlankOutputToStart(prevTestOutput, fileName, functionName)
+      );
     } catch (ex) {
       console.error(`Failure to run: ${ex}`, ex);
     }
