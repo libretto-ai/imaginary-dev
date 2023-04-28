@@ -122,16 +122,28 @@ export function addBlankOutputToStart(
   prevTestOutput: SourceFileTestOutputMap,
   fileName: string,
   functionName: string
-) {
+): SourceFileTestOutputMap {
   const result: SourceFileTestOutputMap = JSON.parse(
     JSON.stringify(prevTestOutput)
   );
-  result[fileName].functionOutputs
-    .find(
-      ({ functionName: thisFunctionName }) => thisFunctionName === functionName
-    )
-    ?.outputs?.unshift({ output: null, lastRun: "" });
-
+  if (fileName in result) {
+    result[fileName].functionOutputs
+      .find(
+        ({ functionName: thisFunctionName }) =>
+          thisFunctionName === functionName
+      )
+      ?.outputs?.unshift({ output: null, lastRun: "" });
+  } else {
+    return {
+      ...prevTestOutput,
+      [fileName]: {
+        sourceFileName: fileName,
+        functionOutputs: [
+          { functionName, outputs: [{ output: null, lastRun: "" }] },
+        ],
+      },
+    };
+  }
   return result;
 }
 
