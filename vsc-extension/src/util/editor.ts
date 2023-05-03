@@ -35,7 +35,6 @@ export const focusNode = async (
   decl: ts.FunctionDeclaration,
   sourceFile: ts.SourceFile
 ) => {
-  console.log("focusNode ", decl, sourceFile);
   const fileName = getAbsolutePathInProject(sourceFile.fileName);
   const f = await vscode.workspace.openTextDocument(vscode.Uri.file(fileName));
   const declLocation = sourceFile.getLineAndCharacterOfPosition(

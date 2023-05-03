@@ -196,8 +196,8 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
           {functionTestCase && (
             <code
               style={{
-                whiteSpace: functionTestOutput.error ? "pre-line" : "pre",
-                color: functionTestOutput.error
+                whiteSpace: functionTestOutput?.error ? "pre-line" : "pre",
+                color: functionTestOutput?.error
                   ? "var(--vscode-errorForeground)"
                   : undefined,
               }}
