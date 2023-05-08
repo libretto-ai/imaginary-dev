@@ -8,7 +8,7 @@
       }
     },
     "cloud": {
-      "runner": "@nrwl/nx-cloud",
+      "runner": "nx-cloud",
       "options": {
         "cacheableOperations": ["build", "test", "build:dev", "build:prod"],
         "accessToken": "OTA4MmVmMGYtZjEzNy00YjMyLWFjOTYtYTdlMWM4ZjZkYTkzfHJlYWQtd3JpdGU="
@@ -28,6 +28,5 @@
       "dependsOn": ["build"]
     }
   },
-
   "defaultBase": "main"
 }
