@@ -291,14 +291,13 @@ export function makeRpcHandlers(
       testCase: FunctionTestCase;
       testOutput: TestOutput;
     }) {
-      console.log("addToExamples: ", fileName, functionName, testOutput);
       const fn = findNativeFunction(
         extensionLocalState.get("nativeSources"),
         fileName,
         functionName
       );
       if (!fn) {
-        console.log("could not find file");
+        console.warn("could not find file/function: ", fileName, functionName);
         return;
       }
 
@@ -313,7 +312,6 @@ export function makeRpcHandlers(
         commentWithFunction.lastIndexOf("*/") + 3
       );
       const commentEndPos = pos + comment.length;
-      console.log("xx comment starts:", comment);
       const tsdocParser = makeTSDocParser();
       const parsedComment = tsdocParser.parseString(comment);
       const exampleTag = new tsdoc.DocBlock({
@@ -323,7 +321,6 @@ export function makeRpcHandlers(
         }),
         configuration: tsdocParser.configuration,
       });
-      console.log("attempting to add a node..");
       try {
         exampleTag.content.appendNodeInParagraph(
           new tsdoc.DocPlainText({
@@ -355,13 +352,14 @@ export function makeRpcHandlers(
       } catch (ex) {
         console.error(ex);
       }
-      console.log("appended to text..");
       parsedComment.docComment.appendCustomBlock(exampleTag);
-      console.log("appended to comment");
       const sb = new tsdoc.StringBuilder();
 
       const emit = new tsdoc.TSDocEmitter();
-      const commentStart = ts.getLineAndCharacterOfPosition(fn.sourceFile, pos);
+      const commentStart = ts.getLineAndCharacterOfPosition(
+        fn.sourceFile,
+        pos + 1
+      );
       const commentEnd = ts.getLineAndCharacterOfPosition(
         fn.sourceFile,
         commentEndPos
@@ -369,20 +367,9 @@ export function makeRpcHandlers(
 
       emit.renderComment(sb, parsedComment.docComment);
       const newComment = sb.toString();
-      console.log("xx now includes: ", newComment);
 
       const fileUri = vscode.Uri.file(
         getAbsolutePathInProject(fn.sourceFile.fileName)
-      );
-      console.log(
-        "xx replacing ",
-        commentStart.line,
-        commentStart.character,
-        pos,
-        " and ",
-        commentEnd.line,
-        commentEnd.character,
-        commentEndPos
       );
       wse.set(fileUri, [
         [
@@ -395,21 +382,10 @@ export function makeRpcHandlers(
             ),
             newComment
           ),
-          { label: "Add example", needsConfirmation: true },
+          { label: "Add example", needsConfirmation: false },
         ],
       ]);
       vscode.workspace.applyEdit(wse);
-
-      if (fileUri === vscode.window.activeTextEditor?.document.uri) {
-        console.log("xx applying edit");
-      } else {
-        console.log(
-          "xx fileUri",
-          fileUri,
-          " !== ",
-          vscode.window.activeTextEditor?.document.uri
-        );
-      }
     },
   };
 }

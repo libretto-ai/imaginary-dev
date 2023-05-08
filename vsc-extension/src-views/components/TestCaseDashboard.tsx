@@ -149,7 +149,6 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
           gridTemplateColumns: "min-content 1fr 1fr",
           paddingLeft: "0.5rem",
           minWidth: "500px",
-          width: "100%",
           overflow: "auto",
         }}
       >
@@ -185,12 +184,20 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
             fontSize: 16,
             fontWeight: "bolder",
             alignSelf: "center",
+            display: "flex",
+            justifyContent: "space-between",
+            gap: "1rem",
           }}
         >
-          Output{" "}
-          <button onClick={addToExamples} disabled={!functionTestCase}>
-            Add
-          </button>
+          <span>Output</span>
+          <VSCodeButton
+            onClick={addToExamples}
+            disabled={!functionTestCase}
+            appearance="icon"
+            title="Add this output as an example"
+          >
+            <span className="codicon codicon-add" />
+          </VSCodeButton>
         </div>
         <TestCasesList
           testCases={testCasesForSelectedFunction}
