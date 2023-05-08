@@ -320,7 +320,10 @@ export function makeRpcHandlers(
 
       const emit = new tsdoc.TSDocEmitter();
       const commentStart = ts.getLineAndCharacterOfPosition(fn.sourceFile, pos);
-      const commentEnd = ts.getLineAndCharacterOfPosition(fn.sourceFile, end);
+      const commentEnd = ts.getLineAndCharacterOfPosition(
+        fn.sourceFile,
+        end - 1
+      );
 
       emit.renderComment(sb, parsedComment.docComment);
       const newComment = sb.toString();
@@ -339,24 +342,27 @@ export function makeRpcHandlers(
         commentEnd.character,
         end
       );
-      wse.replace(
-        fileUri,
-        new vscode.Range(
-          commentStart.line,
-          commentStart.character,
-          commentEnd.line,
-          commentEnd.character
-        ),
-        newComment,
-        { label: "Add example", needsConfirmation: true }
-      );
+      wse.set(fileUri, [
+        [
+          vscode.TextEdit.replace(
+            new vscode.Range(
+              commentStart.line,
+              commentStart.character,
+              commentEnd.line,
+              commentEnd.character
+            ),
+            newComment
+          ),
+          { label: "Add example", needsConfirmation: true },
+        ],
+      ]);
       vscode.workspace.applyEdit(wse);
 
       if (fileUri === vscode.window.activeTextEditor?.document.uri) {
-        console.log("applying edit");
+        console.log("xx applying edit");
       } else {
         console.log(
-          "fileUri",
+          "xx fileUri",
           fileUri,
           " !== ",
           vscode.window.activeTextEditor?.document.uri
