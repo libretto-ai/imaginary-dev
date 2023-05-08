@@ -283,10 +283,12 @@ export function makeRpcHandlers(
     async addToExamples({
       fileName,
       functionName,
+      testCase: testInput,
       testOutput,
     }: {
       fileName: string;
       functionName: string;
+      testCase: FunctionTestCase;
       testOutput: TestOutput;
     }) {
       console.log("addToExamples: ", fileName, functionName, testOutput);
@@ -304,7 +306,13 @@ export function makeRpcHandlers(
       const commentRange = ts.getCommentRange(fn.fn);
 
       const { pos, end } = commentRange;
-      const comment = fn.sourceFile.getFullText().slice(pos, end);
+      const commentWithFunction = fn.sourceFile.getFullText().slice(pos, end);
+      // This is a hack, because getCommentRange includes the function itself?
+      const comment = commentWithFunction.slice(
+        0,
+        commentWithFunction.lastIndexOf("*/") + 3
+      );
+      const commentEndPos = pos + comment.length;
       console.log("xx comment starts:", comment);
       const tsdocParser = makeTSDocParser();
       const parsedComment = tsdocParser.parseString(comment);
@@ -315,14 +323,48 @@ export function makeRpcHandlers(
         }),
         configuration: tsdocParser.configuration,
       });
+      console.log("attempting to add a node..");
+      try {
+        exampleTag.content.appendNodeInParagraph(
+          new tsdoc.DocPlainText({
+            configuration: tsdocParser.configuration,
+            text: "Input:",
+          })
+        );
+
+        exampleTag.content.appendNode(
+          new tsdoc.DocFencedCode({
+            configuration: tsdocParser.configuration,
+            language: "json",
+            code: JSON.stringify(testInput.inputs, null, 2),
+          })
+        );
+        exampleTag.content.appendNodeInParagraph(
+          new tsdoc.DocPlainText({
+            configuration: tsdocParser.configuration,
+            text: "Output:",
+          })
+        );
+        exampleTag.content.appendNode(
+          new tsdoc.DocFencedCode({
+            configuration: tsdocParser.configuration,
+            language: "json",
+            code: JSON.stringify(testOutput.output, null, 2),
+          })
+        );
+      } catch (ex) {
+        console.error(ex);
+      }
+      console.log("appended to text..");
       parsedComment.docComment.appendCustomBlock(exampleTag);
+      console.log("appended to comment");
       const sb = new tsdoc.StringBuilder();
 
       const emit = new tsdoc.TSDocEmitter();
       const commentStart = ts.getLineAndCharacterOfPosition(fn.sourceFile, pos);
       const commentEnd = ts.getLineAndCharacterOfPosition(
         fn.sourceFile,
-        end - 1
+        commentEndPos
       );
 
       emit.renderComment(sb, parsedComment.docComment);
@@ -340,7 +382,7 @@ export function makeRpcHandlers(
         " and ",
         commentEnd.line,
         commentEnd.character,
-        end
+        commentEndPos
       );
       wse.set(fileUri, [
         [

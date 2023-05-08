@@ -88,8 +88,10 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
       fileName: selectedFunction.fileName,
       functionName: selectedFunction.functionName,
       testOutput: functionTestOutput,
+      testCase: functionTestCase,
     });
   }, [
+    functionTestCase,
     functionTestOutput,
     rpcProvider,
     selectedFunction.fileName,
