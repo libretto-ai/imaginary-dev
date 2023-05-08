@@ -24,6 +24,7 @@ import {
   updateSourceFileTestOutput,
 } from "../src-shared/testcases";
 import { HasAccessToModel } from "./has-access-enum";
+import { getAbsolutePathInProject } from "./util/editor";
 import { ExtensionHostState } from "./util/extension-state";
 import { SecretsProxy } from "./util/secrets";
 import { findNativeFunction, generateFunctionDefinition } from "./util/source";
@@ -300,8 +301,11 @@ export function makeRpcHandlers(
       }
 
       const wse = new vscode.WorkspaceEdit();
-      const { pos, end } = ts.getCommentRange(fn.fn);
+      const commentRange = ts.getCommentRange(fn.fn);
+
+      const { pos, end } = commentRange;
       const comment = fn.sourceFile.getFullText().slice(pos, end);
+      console.log("xx comment starts:", comment);
       const tsdocParser = makeTSDocParser();
       const parsedComment = tsdocParser.parseString(comment);
       const exampleTag = new tsdoc.DocBlock({
@@ -315,8 +319,49 @@ export function makeRpcHandlers(
       const sb = new tsdoc.StringBuilder();
 
       const emit = new tsdoc.TSDocEmitter();
+      const commentStart = ts.getLineAndCharacterOfPosition(fn.sourceFile, pos);
+      const commentEnd = ts.getLineAndCharacterOfPosition(fn.sourceFile, end);
+
       emit.renderComment(sb, parsedComment.docComment);
-      console.log("now includes: ", sb.toString());
+      const newComment = sb.toString();
+      console.log("xx now includes: ", newComment);
+
+      const fileUri = vscode.Uri.file(
+        getAbsolutePathInProject(fn.sourceFile.fileName)
+      );
+      console.log(
+        "xx replacing ",
+        commentStart.line,
+        commentStart.character,
+        pos,
+        " and ",
+        commentEnd.line,
+        commentEnd.character,
+        end
+      );
+      wse.replace(
+        fileUri,
+        new vscode.Range(
+          commentStart.line,
+          commentStart.character,
+          commentEnd.line,
+          commentEnd.character
+        ),
+        newComment,
+        { label: "Add example", needsConfirmation: true }
+      );
+      vscode.workspace.applyEdit(wse);
+
+      if (fileUri === vscode.window.activeTextEditor?.document.uri) {
+        console.log("applying edit");
+      } else {
+        console.log(
+          "fileUri",
+          fileUri,
+          " !== ",
+          vscode.window.activeTextEditor?.document.uri
+        );
+      }
     },
   };
 }
