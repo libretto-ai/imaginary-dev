@@ -3,7 +3,8 @@ import {
   getImaginaryTsDocComments,
   tsNodeToJsonSchema,
 } from "@imaginary-dev/typescript-transformer";
-import { ServiceParameters } from "@imaginary-dev/util";
+import { makeTSDocParser, ServiceParameters } from "@imaginary-dev/util";
+import * as tsdoc from "@microsoft/tsdoc";
 import { Configuration, OpenAIApi } from "openai";
 import ts from "typescript";
 import * as vscode from "vscode";
@@ -11,6 +12,7 @@ import {
   FunctionTestCase,
   SelectedFileTestCases,
   SourceFileTestCaseMap,
+  TestOutput,
 } from "../src-shared/source-info";
 import {
   blankTestCase,
@@ -276,6 +278,46 @@ export function makeRpcHandlers(
     async deleteTest({ fileName, functionName, testCaseIndex }: TestLocation) {
       deleteTestCase(state, fileName, functionName, testCaseIndex);
     },
+
+    async addToExamples({
+      fileName,
+      functionName,
+      testOutput,
+    }: {
+      fileName: string;
+      functionName: string;
+      testOutput: TestOutput;
+    }) {
+      console.log("addToExamples: ", fileName, functionName, testOutput);
+      const fn = findNativeFunction(
+        extensionLocalState.get("nativeSources"),
+        fileName,
+        functionName
+      );
+      if (!fn) {
+        console.log("could not find file");
+        return;
+      }
+
+      const wse = new vscode.WorkspaceEdit();
+      const { pos, end } = ts.getCommentRange(fn.fn);
+      const comment = fn.sourceFile.getFullText().slice(pos, end);
+      const tsdocParser = makeTSDocParser();
+      const parsedComment = tsdocParser.parseString(comment);
+      const exampleTag = new tsdoc.DocBlock({
+        blockTag: new tsdoc.DocBlockTag({
+          configuration: tsdocParser.configuration,
+          tagName: "@example",
+        }),
+        configuration: tsdocParser.configuration,
+      });
+      parsedComment.docComment.appendCustomBlock(exampleTag);
+      const sb = new tsdoc.StringBuilder();
+
+      const emit = new tsdoc.TSDocEmitter();
+      emit.renderComment(sb, parsedComment.docComment);
+      console.log("now includes: ", sb.toString());
+    },
   };
 }
 
@@ -375,6 +417,7 @@ function updateTestName(
   );
 }
 
+/**  */
 function extractTestCaseContext(
   testCases: SourceFileTestCaseMap,
   fileName: string,
