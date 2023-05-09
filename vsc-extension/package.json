@@ -73,7 +73,7 @@
     "@imaginary-dev/runtime": "^0.0.7",
     "@imaginary-dev/typescript-transformer": "^0.0.6",
     "@imaginary-dev/util": "^0.0.5",
-    "@vscode/codicons": "^0.0.32",
+    "@vscode/codicons": "^0.0.33",
     "@vscode/webview-ui-toolkit": "^1.2.2",
     "fastest-levenshtein": "^1.0.16",
     "html-template-tag": "^4.0.1",
