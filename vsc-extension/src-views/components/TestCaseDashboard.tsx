@@ -1,5 +1,5 @@
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
-import React, { FC, ReactNode } from "react";
+import React, { FC, ReactNode, useCallback } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import {
   FunctionTestCase,
@@ -18,6 +18,7 @@ import {
   selectedTestCaseIndexState,
   testCasesState,
 } from "../shared/state";
+import { useExtensionState } from "./ExtensionState";
 import { GenerateTestCasesButton } from "./GenerateTestCasesButton";
 import { NewTestDrawer } from "./NewTestDrawer";
 import { TestCaseInputEditor } from "./TestCaseInputEditor";
@@ -30,6 +31,7 @@ interface Props {
 }
 
 export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
+  const { rpcProvider } = useExtensionState();
   const [testIndex, setTestIndex] = useRecoilState(
     selectedTestCaseIndexState(selectedFunction)
   );
@@ -74,11 +76,27 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
       );
     });
   };
+
   const formattedDeclaration = formatDeclaration(fn);
   const functionTestCase: FunctionTestCase | undefined =
     testCasesForSelectedFunction[testIndex];
   const functionTestOutput: TestOutput | undefined =
     testOutputsForSelectedFunction[testIndex];
+
+  const addToExamples = useCallback(() => {
+    rpcProvider?.rpc("addToExamples", {
+      fileName: selectedFunction.fileName,
+      functionName: selectedFunction.functionName,
+      testOutput: functionTestOutput,
+      testCase: functionTestCase,
+    });
+  }, [
+    functionTestCase,
+    functionTestOutput,
+    rpcProvider,
+    selectedFunction.fileName,
+    selectedFunction.functionName,
+  ]);
 
   // if (!functionTestCase) {
   //   console.log("missing functionTestCase for ", testIndex);
@@ -131,7 +149,6 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
           gridTemplateColumns: "min-content 1fr 1fr",
           paddingLeft: "0.5rem",
           minWidth: "500px",
-          width: "100%",
           overflow: "auto",
         }}
       >
@@ -167,9 +184,20 @@ export const TestCaseDashboard: FC<Props> = ({ fn, selectedFunction }) => {
             fontSize: 16,
             fontWeight: "bolder",
             alignSelf: "center",
+            display: "flex",
+            justifyContent: "space-between",
+            gap: "1rem",
           }}
         >
-          Output
+          <span>Output</span>
+          <VSCodeButton
+            onClick={addToExamples}
+            disabled={!functionTestCase}
+            appearance="icon"
+            title="Add this output as an example"
+          >
+            <span className="codicon codicon-add" />
+          </VSCodeButton>
         </div>
         <TestCasesList
           testCases={testCasesForSelectedFunction}

@@ -68,32 +68,77 @@ export function getEditorSelectedFunction(
   let found = false;
   Object.entries(sources).forEach(([fileName, fileInfo]) => {
     if (fileName === documentFileName) {
-      const cursorPos = fileInfo.sourceFile.getPositionOfLineAndCharacter(
-        selection.active.line,
-        selection.active.character
-      );
-      fileInfo.functions.forEach((fn) => {
-        // `pos` is actually the position of the first non-code before the
-        // function. i.e. it is just before any leading comments/tsdocs. this
-        // means we treat being in the docstring as being in the function
-        const start = fn.pos;
-        const end = fn.getEnd();
-        if (start <= cursorPos && cursorPos <= end) {
-          const functionName = fn.name?.text;
-          if (!functionName) {
-            return;
+      try {
+        const cursorPos = fileInfo.sourceFile.getPositionOfLineAndCharacter(
+          selection.active.line,
+          selection.active.character
+        );
+        fileInfo.functions.forEach((fn) => {
+          // `pos` is actually the position of the first non-code before the
+          // function. i.e. it is just before any leading comments/tsdocs. this
+          // means we treat being in the docstring as being in the function
+          const start = fn.pos;
+          const end = fn.getEnd();
+          if (start <= cursorPos && cursorPos <= end) {
+            const functionName = fn.name?.text;
+            if (!functionName) {
+              return;
+            }
+            newSelection = {
+              fileName,
+              functionName,
+            };
+            found = true;
           }
-          newSelection = {
-            fileName,
-            functionName,
-          };
-          found = true;
-        }
-      });
+        });
+      } catch (e) {
+        // sometimes happens if internal file is out of whack with current selection
+        console.warn(
+          `failed to read document at ${
+            (selection.active.line, selection.active.character)
+          }: `,
+          e
+        );
+        return;
+      }
     }
   });
   if (!found) {
     newSelection = null;
   }
   return newSelection;
+}
+
+/**
+ * Create a vscode.WorkspaceEdit that can be applied to a file, that replaces a
+ * specific block of txt from `pos` to `end`
+ */
+export function createReplaceEdit(
+  sourceFile: ts.SourceFile,
+  pos: number,
+  end: number,
+  newString: string
+) {
+  const fileUri = vscode.Uri.file(
+    getAbsolutePathInProject(sourceFile.fileName)
+  );
+
+  const commentStart = ts.getLineAndCharacterOfPosition(sourceFile, pos);
+  const commentEnd = ts.getLineAndCharacterOfPosition(sourceFile, end);
+  const wse = new vscode.WorkspaceEdit();
+  wse.set(fileUri, [
+    [
+      vscode.TextEdit.replace(
+        new vscode.Range(
+          commentStart.line,
+          commentStart.character,
+          commentEnd.line,
+          commentEnd.character
+        ),
+        newString
+      ),
+      { label: "Add example", needsConfirmation: false },
+    ],
+  ]);
+  return wse;
 }

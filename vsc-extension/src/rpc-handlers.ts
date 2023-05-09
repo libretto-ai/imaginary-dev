@@ -11,6 +11,7 @@ import {
   FunctionTestCase,
   SelectedFileTestCases,
   SourceFileTestCaseMap,
+  TestOutput,
 } from "../src-shared/source-info";
 import {
   blankTestCase,
@@ -22,6 +23,8 @@ import {
   updateSourceFileTestOutput,
 } from "../src-shared/testcases";
 import { HasAccessToModel } from "./has-access-enum";
+import { addExampleToComment } from "./util/comments";
+import { createReplaceEdit } from "./util/editor";
 import { ExtensionHostState } from "./util/extension-state";
 import { SecretsProxy } from "./util/secrets";
 import { findNativeFunction, generateFunctionDefinition } from "./util/source";
@@ -275,6 +278,47 @@ export function makeRpcHandlers(
 
     async deleteTest({ fileName, functionName, testCaseIndex }: TestLocation) {
       deleteTestCase(state, fileName, functionName, testCaseIndex);
+    },
+
+    async addToExamples({
+      fileName,
+      functionName,
+      testCase: testInput,
+      testOutput,
+    }: {
+      fileName: string;
+      functionName: string;
+      testCase: FunctionTestCase;
+      testOutput: TestOutput;
+    }) {
+      const functionInfo = findNativeFunction(
+        extensionLocalState.get("nativeSources"),
+        fileName,
+        functionName
+      );
+      if (!functionInfo) {
+        console.warn("could not find file/function: ", fileName, functionName);
+        return;
+      }
+
+      const { pos, end } = ts.getCommentRange(functionInfo.fn);
+
+      const commentWithFunction = functionInfo.sourceFile
+        .getFullText()
+        .slice(pos, end);
+      // This is a hack, because getCommentRange includes the function itself,
+      // usually with a newline at the end
+      const comment = commentWithFunction
+        .slice(0, commentWithFunction.lastIndexOf("*/") + 2)
+        // trim newline at the end if any
+        .trim();
+      const newComment = addExampleToComment(comment, testInput, testOutput);
+
+      const commentEndPos = pos + comment.length;
+      const sourceFile = functionInfo.sourceFile;
+
+      const wse = createReplaceEdit(sourceFile, pos, commentEndPos, newComment);
+      vscode.workspace.applyEdit(wse);
     },
   };
 }
