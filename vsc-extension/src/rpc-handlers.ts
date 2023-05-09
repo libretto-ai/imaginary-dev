@@ -3,8 +3,7 @@ import {
   getImaginaryTsDocComments,
   tsNodeToJsonSchema,
 } from "@imaginary-dev/typescript-transformer";
-import { makeTSDocParser, ServiceParameters } from "@imaginary-dev/util";
-import * as tsdoc from "@microsoft/tsdoc";
+import { ServiceParameters } from "@imaginary-dev/util";
 import { Configuration, OpenAIApi } from "openai";
 import ts from "typescript";
 import * as vscode from "vscode";
@@ -24,7 +23,8 @@ import {
   updateSourceFileTestOutput,
 } from "../src-shared/testcases";
 import { HasAccessToModel } from "./has-access-enum";
-import { getAbsolutePathInProject } from "./util/editor";
+import { addExampleToComment } from "./util/comments";
+import { createReplaceEdit } from "./util/editor";
 import { ExtensionHostState } from "./util/extension-state";
 import { SecretsProxy } from "./util/secrets";
 import { findNativeFunction, generateFunctionDefinition } from "./util/source";
@@ -291,100 +291,33 @@ export function makeRpcHandlers(
       testCase: FunctionTestCase;
       testOutput: TestOutput;
     }) {
-      const fn = findNativeFunction(
+      const functionInfo = findNativeFunction(
         extensionLocalState.get("nativeSources"),
         fileName,
         functionName
       );
-      if (!fn) {
+      if (!functionInfo) {
         console.warn("could not find file/function: ", fileName, functionName);
         return;
       }
 
-      const wse = new vscode.WorkspaceEdit();
-      const commentRange = ts.getCommentRange(fn.fn);
+      const { pos, end } = ts.getCommentRange(functionInfo.fn);
 
-      const { pos, end } = commentRange;
-      const commentWithFunction = fn.sourceFile.getFullText().slice(pos, end);
-      // This is a hack, because getCommentRange includes the function itself?
-      const comment = commentWithFunction.slice(
-        0,
-        commentWithFunction.lastIndexOf("*/") + 3
-      );
+      const commentWithFunction = functionInfo.sourceFile
+        .getFullText()
+        .slice(pos, end);
+      // This is a hack, because getCommentRange includes the function itself,
+      // usually with a newline at the end
+      const comment = commentWithFunction
+        .slice(0, commentWithFunction.lastIndexOf("*/") + 2)
+        // trim newline at the end if any
+        .trim();
+      const newComment = addExampleToComment(comment, testInput, testOutput);
+
       const commentEndPos = pos + comment.length;
-      const tsdocParser = makeTSDocParser();
-      const parsedComment = tsdocParser.parseString(comment);
-      const exampleTag = new tsdoc.DocBlock({
-        blockTag: new tsdoc.DocBlockTag({
-          configuration: tsdocParser.configuration,
-          tagName: "@example",
-        }),
-        configuration: tsdocParser.configuration,
-      });
-      try {
-        exampleTag.content.appendNodeInParagraph(
-          new tsdoc.DocPlainText({
-            configuration: tsdocParser.configuration,
-            text: "Input:",
-          })
-        );
+      const sourceFile = functionInfo.sourceFile;
 
-        exampleTag.content.appendNode(
-          new tsdoc.DocFencedCode({
-            configuration: tsdocParser.configuration,
-            language: "json",
-            code: JSON.stringify(testInput.inputs, null, 2),
-          })
-        );
-        exampleTag.content.appendNodeInParagraph(
-          new tsdoc.DocPlainText({
-            configuration: tsdocParser.configuration,
-            text: "Output:",
-          })
-        );
-        exampleTag.content.appendNode(
-          new tsdoc.DocFencedCode({
-            configuration: tsdocParser.configuration,
-            language: "json",
-            code: JSON.stringify(testOutput.output, null, 2),
-          })
-        );
-      } catch (ex) {
-        console.error(ex);
-      }
-      parsedComment.docComment.appendCustomBlock(exampleTag);
-      const sb = new tsdoc.StringBuilder();
-
-      const emit = new tsdoc.TSDocEmitter();
-      const commentStart = ts.getLineAndCharacterOfPosition(
-        fn.sourceFile,
-        pos + 1
-      );
-      const commentEnd = ts.getLineAndCharacterOfPosition(
-        fn.sourceFile,
-        commentEndPos
-      );
-
-      emit.renderComment(sb, parsedComment.docComment);
-      const newComment = sb.toString();
-
-      const fileUri = vscode.Uri.file(
-        getAbsolutePathInProject(fn.sourceFile.fileName)
-      );
-      wse.set(fileUri, [
-        [
-          vscode.TextEdit.replace(
-            new vscode.Range(
-              commentStart.line,
-              commentStart.character,
-              commentEnd.line,
-              commentEnd.character
-            ),
-            newComment
-          ),
-          { label: "Add example", needsConfirmation: false },
-        ],
-      ]);
+      const wse = createReplaceEdit(sourceFile, pos, commentEndPos, newComment);
       vscode.workspace.applyEdit(wse);
     },
   };
@@ -486,7 +419,6 @@ function updateTestName(
   );
 }
 
-/**  */
 function extractTestCaseContext(
   testCases: SourceFileTestCaseMap,
   fileName: string,

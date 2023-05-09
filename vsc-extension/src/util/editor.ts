@@ -108,3 +108,37 @@ export function getEditorSelectedFunction(
   }
   return newSelection;
 }
+
+/**
+ * Create a vscode.WorkspaceEdit that can be applied to a file, that replaces a
+ * specific block of txt from `pos` to `end`
+ */
+export function createReplaceEdit(
+  sourceFile: ts.SourceFile,
+  pos: number,
+  end: number,
+  newString: string
+) {
+  const fileUri = vscode.Uri.file(
+    getAbsolutePathInProject(sourceFile.fileName)
+  );
+
+  const commentStart = ts.getLineAndCharacterOfPosition(sourceFile, pos);
+  const commentEnd = ts.getLineAndCharacterOfPosition(sourceFile, end);
+  const wse = new vscode.WorkspaceEdit();
+  wse.set(fileUri, [
+    [
+      vscode.TextEdit.replace(
+        new vscode.Range(
+          commentStart.line,
+          commentStart.character,
+          commentEnd.line,
+          commentEnd.character
+        ),
+        newString
+      ),
+      { label: "Add example", needsConfirmation: false },
+    ],
+  ]);
+  return wse;
+}
