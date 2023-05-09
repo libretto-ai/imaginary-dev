@@ -30,4 +30,4 @@ jobs:
       - run: npm run build:example
       - run: npm test
       - run: npm run
-      - run: cd vsc-extension && npm install && npm run test
+      - run: cd vsc-extension && npm ci && npm run test
