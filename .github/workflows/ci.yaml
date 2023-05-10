@@ -29,6 +29,5 @@ jobs:
       - run: npm run build
       - run: npm run build:example
       - run: npm test
-      - run: npm run
       - run: npm ci && npm run test
         working-directory: vsc-extension
