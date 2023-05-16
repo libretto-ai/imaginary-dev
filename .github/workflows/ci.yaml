@@ -29,3 +29,13 @@ jobs:
       - run: npm run build
       - run: npm run build:example
       - run: npm test
+      # vsc-extension is build separately, needs some setup-node tweaks
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: "npm"
+          cache-dependency-path: vsc-extension/package-lock.json
+      - run: npm install
+        working-directory: vsc-extension
+      - run: npm run build
+        working-directory: vsc-extension

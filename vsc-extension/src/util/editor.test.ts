@@ -74,7 +74,7 @@ describe("editor", () => {
       await focusNode(decl, sourceFile);
 
       expect(vscode.workspace.openTextDocument).toHaveBeenCalledWith(
-        "/path/to/workspace/myFile.ts"
+        vscode.Uri.file("/path/to/workspace/myFile.ts")
       );
       expect(vscode.window.showTextDocument).toHaveBeenCalled();
     });
