@@ -22,7 +22,7 @@
     "@imaginary-dev/nextjs-util": "*",
     "@next/font": "^13.4.7",
     "@types/react": "^18.2.13",
-    "@types/react-dom": "^18.0.10",
+    "@types/react-dom": "^18.2.6",
     "eslint-config-next": "^13.4.7",
     "next": "^13.4.1",
     "nextjs-google-analytics": "^2.3.3",
