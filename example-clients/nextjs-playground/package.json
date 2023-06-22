@@ -46,7 +46,7 @@
   "devDependencies": {
     "@types/node": "^16.18.34",
     "@types/react": "^18.2.13",
-    "@types/react-dom": "^18.0.11",
+    "@types/react-dom": "^18.2.6",
     "@types/uuid": "^8.3.4",
     "eslint": "^8.43.0",
     "next-remove-imports": "^1.0.8"
