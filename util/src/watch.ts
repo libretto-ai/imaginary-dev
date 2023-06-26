@@ -4,6 +4,8 @@ import { ImaginaryFunctionDefinition } from "./function-definition";
 
 export interface PromptEvent {
   prompt: ImaginaryFunctionDefinition;
+  promptTemplateText?: string;
+
   params: Record<string, any>;
   projectKey: string;
 
