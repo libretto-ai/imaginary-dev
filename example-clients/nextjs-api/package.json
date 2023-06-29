@@ -15,7 +15,7 @@
   "devDependencies": {
     "@imaginary-dev/babel-transformer": "*",
     "@imaginary-dev/runtime": "*",
-    "@types/node": "^16.18.34",
+    "@types/node": "^16.18.37",
     "eslint": "^8.43.0"
   },
   "dependencies": {
