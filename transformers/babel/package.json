@@ -13,7 +13,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@babel/plugin-transform-typescript": "^7.22.5",
+    "@babel/plugin-transform-typescript": "^7.22.9",
     "@imaginary-dev/util": "*",
     "ajv": "^8.12.0",
     "ts-essentials": "^9.3.0"
