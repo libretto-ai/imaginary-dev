@@ -18,7 +18,7 @@
     "@babel/types": "^7.21.5",
     "@chakra-ui/icons": "^2.1.0",
     "@chakra-ui/react": "^2.8.0",
-    "@emotion/react": "^11.10.5",
+    "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.10.8",
     "@imaginary-dev/babel-transformer": "*",
     "@imaginary-dev/runtime": "*",
