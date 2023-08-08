@@ -29,7 +29,7 @@
     "eslint-config-next": "^13.4.7",
     "fflate": "^0.8.0",
     "framer-motion": "^9.0.1",
-    "next": "^13.4.8",
+    "next": "^13.4.12",
     "nextjs-google-analytics": "^2.3.3",
     "react": "18.2.0",
     "react-dom": "18.2.0",
