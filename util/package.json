@@ -17,6 +17,6 @@
   "devDependencies": {
     "@jest/globals": "^29.6.2",
     "@types/object-hash": "^3.0.2",
-    "jest": "^29.5.0"
+    "jest": "^29.6.2"
   }
 }
