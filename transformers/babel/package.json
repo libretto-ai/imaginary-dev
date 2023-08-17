@@ -19,7 +19,7 @@
     "ts-essentials": "^9.3.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.22.8",
+    "@babel/core": "^7.22.10",
     "@babel/helper-plugin-utils": "^7.20.2",
     "@babel/plugin-syntax-typescript": "^7.20.0",
     "@babel/plugin-transform-modules-commonjs": "^7.22.5",
