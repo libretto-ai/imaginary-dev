@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@imaginary-dev/nextjs-util": "*",
-    "@next/font": "^13.4.10",
+    "@next/font": "^13.4.17",
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.6",
     "eslint-config-next": "^13.4.13",
