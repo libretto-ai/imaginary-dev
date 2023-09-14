@@ -48,7 +48,7 @@
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
     "@types/uuid": "^9.0.3",
-    "eslint": "^8.47.0",
+    "eslint": "^8.49.0",
     "next-remove-imports": "^1.0.12"
   }
 }
