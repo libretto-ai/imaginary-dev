@@ -24,7 +24,7 @@
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
     "eslint-config-next": "^13.4.13",
-    "next": "^13.4.17",
+    "next": "^13.4.19",
     "nextjs-google-analytics": "^2.3.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
